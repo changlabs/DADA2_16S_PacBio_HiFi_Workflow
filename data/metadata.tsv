@@ -1,0 +1,7 @@
+PoolNumber	SampleID	SubjectID	Treatment	Timepoint	SampleType	Batch
+1	Sample01	Subject01	Control	T0	Biological	Batch1
+1	Sample02	Subject02	Control	T0	Biological	Batch1
+1	Sample03	Subject03	Control	T0	Biological	Batch1
+2	Sample04	Subject04	Treatment	T1	Biological	Batch2
+2	Sample05	Subject05	Treatment	T1	Biological	Batch2
+2	Sample06	Subject06	Treatment	T1	Biological	Batch2

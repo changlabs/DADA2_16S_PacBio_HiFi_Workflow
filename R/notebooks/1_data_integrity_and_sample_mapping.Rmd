@@ -1,0 +1,1209 @@
+---
+title: "Step 1: FASTQ Data Integrity and Sample Mapping"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    code_folding: show
+    df_print: paged
+  github_document:
+    toc: true
+    toc_depth: 3
+    html_preview: false
+---
+
+```{r setup, include=FALSE}
+# Detect the current output target before setting global chunk behavior. The
+# GitHub document is rendered as a readable, non-executing workflow record,
+# whereas the HTML report executes the analysis and contains live results.
+render_target <- knitr::opts_knit$get("rmarkdown.pandoc.to")
+knitr::opts_chunk$set(
+  # Disable evaluation only for GitHub-flavored Markdown. This prevents a
+  # second expensive workflow run while still showing the analysis code.
+  eval = !(grepl("^gfm", render_target) || grepl("markdown_github", render_target, fixed = TRUE)),
+  # Uncomment this line during manual drafting when no chunks should execute.
+  #eval = FALSE,
+  # Show analysis code by default, but suppress routine package messages and
+  # warnings so the report emphasizes validation results.
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 10,
+  fig.height = 6
+)
+```
+
+```{css custom-styles, echo=FALSE, eval=knitr::is_html_output()}
+body {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+h1, h2, h3 {
+  color: #2c3e50;
+  margin-top: 1.5em;
+}
+
+code {
+  background-color: #F2F2F2;
+  color: #2c3e50;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+pre, pre code {
+  font-size: 14px;
+}
+
+.alert-info {
+  background-color: #2c3e50;
+  color: #ffffff;
+  border-left: 4px solid #f39c12;
+  padding: 12px;
+  margin: 15px 0;
+}
+
+.alert-warning {
+  background-color: #2c3e50;
+  color: #ffffff;
+  border-left: 4px solid #e74c3c;
+  padding: 12px;
+  margin: 15px 0;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
+  padding: 12px;
+  margin: 15px 0;
+}
+
+table {
+  width: 100%;
+}
+
+th, td {
+  text-align: left !important;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Allow long paths and filenames to wrap within their cells instead of
+   widening the report beyond the browser viewport. */
+td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  vertical-align: top;
+}
+
+/* DT applies alignment classes of its own, including right alignment for
+   numeric columns. Override those classes so every report table is uniformly
+   left-aligned, as requested. */
+.dataTables_wrapper table.dataTable th,
+.dataTables_wrapper table.dataTable td,
+.dataTables_wrapper .dt-left,
+.dataTables_wrapper .dt-right,
+.dataTables_wrapper .dt-center {
+  text-align: left !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Keep wide tables inside a horizontal scrolling region rather than allowing
+   them to widen the complete notebook page. */
+.dataTables_scrollBody,
+.dataTables_scrollHead {
+  overflow-x: auto !important;
+}
+```
+
+# Introduction
+
+## Purpose
+
+This notebook is **Step 1** of the PacBio HiFi full-length 16S rRNA workflow. It validates the demultiplexed raw [FASTQ](https://doi.org/10.1093/nar/gkp1137) zipped files and converts [Lima](https://github.com/PacificBiosciences/barcoding) barcode-pair filenames into stable biological sample identities using [data/sample_sheet.xlsx](../../data/sample_sheet.xlsx).
+
+Only FASTQ files that match an active sample-sheet row are extracted and written to the result folder for downstream notebooks.
+
+## Prerequisites
+
+Before running this notebook:
+
+-   Place each `.fastq.zip` archive in its supplied pool folder under [data/fastq/](../../data/fastq/), for example `data/fastq/pool<number>/`.
+-   Use the [data/sample_sheet.xlsx](../../data/sample_sheet.xlsx) template to provide your `PoolNumber`, `SampleID`, and the forward/reverse barcode sequence and identifier columns.
+-   Install the R dependencies used by this workflow using the scripts in [setup/](../../setup/).
+
+## What This Notebook Does
+
+1.  **Pool and archive discovery**: Finds supplied `pool<number>` directories and requires one `.fastq.zip` archive per supplied pool.
+2.  **Archive validation**: Opens each ZIP directory, checks member sizes, and parses Lima barcode-pair filenames.
+3.  **Sample-sheet validation**: Verifies required columns, pool numbers, sample identifiers, barcode IDs, and barcode sequences.
+4.  **Sample mapping**: Matches each active row by the exact `PoolNumber + ForwardBarcodeID + ReverseBarcodeID` key.
+5.  **Selective extraction**: Extracts only matched archive members into [results/1_data_integrity_and_sample_mapping/mapped_fastq/](../../results/1_data_integrity_and_sample_mapping/mapped_fastq/).
+6.  **FASTQ integrity validation**: Parses every extracted file completely and records its read count and size.
+7.  **Report generation**: Writes the run summary, sample manifest, archive inventory, optional inactive rows, and column dictionary to [data_integrity_and_sample_mapping.xlsx](../../results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx).
+
+## Expected Input
+
+- `data/fastq/pool<number>/<archive>.fastq.zip` — one ZIP archive per supplied pool.
+- [data/sample_sheet.xlsx](../../data/sample_sheet.xlsx) — sample-to-pool and barcode-pair mapping.
+
+## Expected Output
+
+- [results/1_data_integrity_and_sample_mapping/mapped_fastq/](../../results/1_data_integrity_and_sample_mapping/mapped_fastq/) — workflow-ready, sample-named FASTQ files.
+- [results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx](../../results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx) — excel workbook.
+
+------------------------------------------------------------------------
+
+# Environment Setup
+
+## Load Required Packages {#load-packages}
+
+The chunk below loads every R package this notebook depends on and sources the four reusable reporting helpers from [R/functions/](../functions/): Excel worksheet writing, column-dictionary documentation, clickable output links, and the live output-tree summary.
+
+```{r load-packages, message=FALSE, warning=FALSE}
+# Keep the dependency list explicit so a missing package produces one clear
+# installation message before any files are read or written.
+required_packages <- c(
+  "data.table", "DT", "fs", "here", "knitr", "openxlsx", "readxl", "ShortRead"
+)
+
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, quietly = TRUE, FUN.VALUE = logical(1))
+]
+
+if (length(missing_packages) > 0L) {
+  stop(
+    "Missing required package(s): ", paste(missing_packages, collapse = ", "),
+    ". Run setup/install_R_dependencies.R before this notebook."
+  )
+}
+
+# Attach only packages whose frequently used functions benefit from concise
+# names. Other packages remain namespace-qualified to make their origin clear.
+library(data.table)
+library(fs)
+library(here)
+
+# Load the reusable workflow helpers. These centralize workbook styling,
+# column documentation, and portable output links across all notebooks.
+source(here("R", "functions", "add_sheet_to_excel_function.R"))
+source(here("R", "functions", "build_column_dictionary_function.R"))
+source(here("R", "functions", "render_output_links_function.R"))
+source(here("R", "functions", "render_output_tree_function.R"))
+```
+
+------------------------------------------------------------------------
+
+# Configuration
+
+## Define Path and Validation Parameters {#define-paths}
+
+Define the project-relative input and output paths, the expected [Lima](https://github.com/PacificBiosciences/barcoding) member-name pattern, and whether every extracted FASTQ should be parsed completely. Using [here()](https://here.r-lib.org/) keeps these paths portable across machines.
+
+```{r define-paths}
+# Resolve all locations from the project root so the notebook remains portable
+# after cloning and does not embed a user-specific absolute path in its source.
+raw_fastq_root <- here("data", "fastq")
+sequencing_sheet_path <- here("data", "sample_sheet.xlsx")
+sequencing_sheet_name <- 1
+
+# Keep every artifact owned by this step under one results directory. The
+# mapped FASTQs become inputs to downstream notebooks; the workbook is the
+# audit trail that explains exactly how they were created.
+results_folder <- here("results", "1_data_integrity_and_sample_mapping")
+mapped_fastq_folder <- here(results_folder, "mapped_fastq")
+workbook_path <- here(results_folder, "data_integrity_and_sample_mapping.xlsx")
+
+# Expected Lima member format, for example:
+# lima.bc1024--bc1035.Q20.fastq
+lima_member_regex <- "^(?:.*/)?lima\\.(bc[0-9]+)--(bc[0-9]+)\\.Q([0-9]+)\\.fastq(?:\\.gz)?$"
+
+# Validate every FASTQ record after extraction. This is slower than checking
+# ZIP integrity alone, but catches malformed/truncated FASTQ content.
+validate_complete_fastq <- TRUE
+```
+
+------------------------------------------------------------------------
+
+# Functions
+
+## Define Reusable Validation Helpers {#helper-functions}
+
+The chunk below defines small, single-purpose helpers for resolving required sample-sheet columns, parsing pool and Lima identifiers, sanitizing sample names, validating complete FASTQ files, and rendering notebook tables.
+
+```{r helper-functions}
+normalize_header <- function(x) {
+  # Ignore case, spaces, and punctuation when comparing spreadsheet headers,
+  # while retaining the original header for later column selection.
+  gsub("[^a-z0-9]+", "", tolower(trimws(x)))
+}
+
+resolve_required_column <- function(column_names, aliases, label) {
+  # Normalize both the observed names and accepted aliases so harmless display
+  # differences do not break ingestion.
+  normalized_names <- normalize_header(column_names)
+  normalized_aliases <- normalize_header(aliases)
+  matches <- which(normalized_names %in% normalized_aliases)
+
+  # Require exactly one match: zero means the input is incomplete, while more
+  # than one would make downstream selection ambiguous.
+  if (length(matches) != 1L) {
+    stop(
+      "Could not resolve exactly one '", label, "' column. Accepted names: ",
+      paste(aliases, collapse = ", "), ". Found columns: ",
+      paste(column_names, collapse = ", ")
+    )
+  }
+
+  column_names[[matches]]
+}
+
+extract_pool_number <- function(path) {
+  # Derive the numeric pool identifier only from a complete pool<number>
+  # directory name; return NA for any directory that violates the convention.
+  pool_name <- path_file(path)
+  match <- regexec("^pool([0-9]+)$", pool_name)
+  parts <- regmatches(pool_name, match)[[1]]
+  if (length(parts) != 2L) return(NA_integer_)
+  as.integer(parts[[2]])
+}
+
+sanitize_sample_id <- function(x) {
+  # Convert user-entered sample names into filesystem-safe identifiers without
+  # changing letters, digits, periods, underscores, or hyphens.
+  x <- trimws(as.character(x))
+  x <- gsub("[[:space:]]+", "-", x)
+  x <- gsub("[^A-Za-z0-9._-]+", "-", x)
+  x <- gsub("-+", "-", x)
+  gsub("(^-|-$)", "", x)
+}
+
+parse_lima_members <- function(member_names) {
+  # Apply the configured Lima filename expression to every ZIP member once,
+  # then unpack the captured forward barcode, reverse barcode, and Q label.
+  matches <- regexec(lima_member_regex, member_names, perl = TRUE)
+  parts <- regmatches(member_names, matches)
+  valid <- lengths(parts) == 4L
+
+  # Preserve unrecognized members in the inventory with NA components so the
+  # caller can report all offending names before stopping.
+  data.table(
+    Archive_Member = member_names,
+    Recognized_FASTQ = valid,
+    Forward_Barcode_ID = vapply(
+      parts, function(x) if (length(x) == 4L) x[[2]] else NA_character_, character(1)
+    ),
+    Reverse_Barcode_ID = vapply(
+      parts, function(x) if (length(x) == 4L) x[[3]] else NA_character_, character(1)
+    ),
+    Lima_Quality_Label = vapply(
+      parts, function(x) if (length(x) == 4L) paste0("Q", x[[4]]) else NA_character_, character(1)
+    )
+  )
+}
+
+inspect_fastq_file <- function(path) {
+  # Handle missing and zero-byte files explicitly before invoking ShortRead so
+  # the audit workbook contains concise, actionable failure reasons.
+  if (!file_exists(path)) {
+    return(list(valid = FALSE, reads = NA_real_, size_mb = NA_real_, issue = "File missing"))
+  }
+  if (file_size(path) == 0) {
+    return(list(valid = FALSE, reads = 0, size_mb = 0, issue = "File is empty"))
+  }
+
+  # Store size in MiB for a human-readable report while retaining a numeric
+  # value that Excel and later R steps can sort or summarize.
+  size_mb <- as.numeric(file_size(path)) / 1024^2
+  if (!validate_complete_fastq) {
+    return(list(valid = TRUE, reads = NA_real_, size_mb = size_mb, issue = NA_character_))
+  }
+
+  # countFastq() parses the complete file. Capture parser errors as structured
+  # data instead of aborting here so all samples can be inspected together.
+  inspection <- tryCatch(
+    list(
+      valid = TRUE,
+      reads = as.numeric(ShortRead::countFastq(path)[[1]]),
+      size_mb = size_mb,
+      issue = NA_character_
+    ),
+    error = function(e) list(
+      valid = FALSE,
+      reads = NA_real_,
+      size_mb = size_mb,
+      issue = conditionMessage(e)
+    )
+  )
+  inspection
+}
+
+render_table <- function(x, caption = NULL, column_widths = NULL) {
+  # Convert data.table objects to ordinary data frames so both DT and kable use
+  # the same column names, values, and ordering.
+  table_data <- as.data.frame(x)
+
+  if (knitr::is_html_output()) {
+    # Apply optional widths only to specifically requested columns. DataTables
+    # uses zero-based column indices, whereas the R vector is one-based.
+    column_definitions <- list(
+      list(className = "dt-left", targets = "_all")
+    )
+    if (!is.null(column_widths)) {
+      width_columns <- which(!is.na(column_widths) & nzchar(column_widths))
+      column_definitions <- c(
+        column_definitions,
+        lapply(width_columns, function(column_index) {
+          list(
+            targets = column_index - 1L,
+            width = column_widths[[column_index]]
+          )
+        })
+      )
+    }
+
+    # Keep interactive HTML tables usable when they contain many rows or wide
+    # values such as absolute file paths.
+    DT::datatable(
+      table_data,
+      caption = caption,
+      rownames = FALSE,
+      class = "display compact",
+      options = list(
+        scrollX = TRUE,
+        scrollY = "400px",
+        scrollCollapse = TRUE,
+        paging = FALSE,
+        # These reports are inspection tables rather than data-exploration
+        # interfaces, so omit search controls, sorting arrows, and status text.
+        searching = FALSE,
+        ordering = FALSE,
+        info = FALSE,
+        dom = "t",
+        autoWidth = !is.null(column_widths),
+        columnDefs = column_definitions
+      )
+    )
+  } else {
+    # GitHub cannot display an HTML widget, so use a portable Markdown table and
+    # explicitly left-align every column there as well.
+    knitr::kable(
+      table_data,
+      caption = caption,
+      row.names = FALSE,
+      align = rep("l", ncol(table_data))
+    )
+  }
+}
+```
+
+------------------------------------------------------------------------
+
+# Data Integrity and Sample Mapping
+
+## Validate Input Paths {#validate-input-paths}
+
+Confirm that the raw FASTQ root and [sample_sheet.xlsx](../../data/sample_sheet.xlsx) exist, then create this step's [results/1_data_integrity_and_sample_mapping/](../../results/1_data_integrity_and_sample_mapping/) and [mapped_fastq/](../../results/1_data_integrity_and_sample_mapping/mapped_fastq/) output folders if necessary.
+
+```{r validate-input-paths}
+# Fail before creating outputs if either required input location is absent.
+if (!dir_exists(raw_fastq_root)) {
+  stop("Raw FASTQ root does not exist: ", raw_fastq_root)
+}
+if (!file_exists(sequencing_sheet_path)) {
+  stop("Sequencing sheet does not exist: ", sequencing_sheet_path)
+}
+
+# These directories are owned by Step 1 and are safe to create when missing.
+dir_create(mapped_fastq_folder, recurse = TRUE)
+```
+
+The report now records the resolved input and output locations. These paths help diagnose an incorrect project root without exposing the simple reporting code as a separate visible block.
+
+```{r report-input-paths, echo=FALSE}
+# Record the resolved runtime locations for traceability while hiding these
+# simple reporting statements from the rendered document.
+cat("Raw FASTQ root:", raw_fastq_root, "\n")
+cat("Sample sheet:", sequencing_sheet_path, "\n")
+cat("Results folder:", results_folder, "\n")
+```
+
+## Discover Pools and Archives {#discover-pools}
+
+Each supplied pool must have a lowercase directory named `pool<number>` and contain exactly one `.fastq.zip` archive. Pools listed in the sample sheet but absent from `data/fastq/` are reported as inactive and are not treated as failures.
+
+```{r discover-pools-and-archives}
+# Only immediate child directories are pools; recursive discovery could
+# accidentally interpret nested delivery folders as additional pools.
+pool_directories <- dir_ls(raw_fastq_root, type = "directory", recurse = FALSE)
+
+if (length(pool_directories) == 0L) {
+  stop("No pool directories were found under: ", raw_fastq_root)
+}
+
+# Build one typed inventory row per supplied directory and parse its Pool_ID
+# from the enforced directory naming convention.
+pool_inventory <- data.table(
+  Pool_Directory = path_file(pool_directories),
+  Pool_Path = as.character(pool_directories),
+  Pool_ID = vapply(pool_directories, extract_pool_number, integer(1))
+)
+
+if (anyNA(pool_inventory$Pool_ID)) {
+  stop(
+    "Every directory directly under data/fastq must be named pool<number>. Invalid: ",
+    paste(pool_inventory$Pool_Directory[is.na(pool_inventory$Pool_ID)], collapse = ", ")
+  )
+}
+if (anyDuplicated(pool_inventory$Pool_ID)) {
+  stop("Multiple pool directories resolve to the same Pool_ID.")
+}
+
+# Discover archives independently within each pool so the one-archive-per-pool
+# requirement can be checked and reported precisely.
+archive_lists <- lapply(pool_inventory$Pool_Path, function(pool_path) {
+  dir_ls(pool_path, regexp = "\\.fastq\\.zip$", type = "file", recurse = FALSE)
+})
+pool_inventory[, Archive_Count := lengths(archive_lists)]
+pool_inventory[, Archive_Path := vapply(
+  archive_lists,
+  function(x) if (length(x) == 1L) as.character(x) else NA_character_,
+  character(1)
+)]
+
+# Multiple archives are ambiguous and zero archives cannot supply reads, so
+# both conditions are fatal rather than guessed around.
+if (any(pool_inventory$Archive_Count != 1L)) {
+  problem <- pool_inventory[Archive_Count != 1L, .(Pool_Directory, Archive_Count)]
+  print(problem)
+  stop("Each supplied pool must contain exactly one .fastq.zip archive.")
+}
+
+# Sort output deterministically so reports remain easy to compare across runs.
+setorder(pool_inventory, Pool_ID)
+render_table(pool_inventory[, .(Pool_ID, Pool_Directory, Archive_Count, Archive_Path)],
+             "Supplied PacBio pool archives",
+             column_widths = c("80px", "120px", "120px", NA_character_))
+```
+
+## Validate ZIP Archives and Inventory Members {#validate-archives}
+
+`utils::unzip(list = TRUE)` reads each archive directory and also verifies that the ZIP can be opened.
+
+```{r inventory-zip-members}
+# Preallocate the per-pool list because each iteration can produce a different
+# number of archive members before the inventories are combined.
+archive_inventory_list <- vector("list", nrow(pool_inventory))
+
+for (i in seq_len(nrow(pool_inventory))) {
+  archive_path <- pool_inventory$Archive_Path[[i]]
+  pool_id <- pool_inventory$Pool_ID[[i]]
+
+  # Reading the ZIP directory validates the container structure without first
+  # extracting every member to disk.
+  zip_listing <- tryCatch(
+    utils::unzip(archive_path, list = TRUE),
+    error = function(e) stop("Cannot read ZIP archive ", archive_path, ": ", conditionMessage(e))
+  )
+
+  if (nrow(zip_listing) == 0L) {
+    stop("ZIP archive contains no members: ", archive_path)
+  }
+
+  # Exclude directory entries, then parse every remaining filename according
+  # to the expected Lima barcode-pair convention.
+  zip_listing <- as.data.table(zip_listing)
+  zip_listing <- zip_listing[!grepl("/$", Name)]
+  parsed <- parse_lima_members(zip_listing$Name)
+  parsed[, `:=`(
+    Pool_ID = pool_id,
+    Archive_Path = archive_path,
+    Uncompressed_Size_Bytes = zip_listing$Length,
+    Archive_Date = as.character(zip_listing$Date)
+  )]
+  archive_inventory_list[[i]] <- parsed
+}
+
+# Combine all pools only after each archive has been validated and annotated.
+archive_inventory <- rbindlist(archive_inventory_list, use.names = TRUE)
+
+if (any(!archive_inventory$Recognized_FASTQ)) {
+  stop(
+    "Found archive member(s) that do not match the expected Lima FASTQ naming convention: ",
+    paste(head(archive_inventory[Recognized_FASTQ == FALSE, Archive_Member], 20), collapse = ", ")
+  )
+}
+if (any(archive_inventory$Uncompressed_Size_Bytes <= 0)) {
+  stop("One or more archive FASTQ members are empty.")
+}
+
+# Pool number is part of the key because the same barcode pair can legitimately
+# be reused in a different pool.
+archive_inventory[, Mapping_Key := paste(Pool_ID, Forward_Barcode_ID, Reverse_Barcode_ID, sep = "|")]
+if (anyDuplicated(archive_inventory$Mapping_Key)) {
+  duplicate_keys <- unique(archive_inventory$Mapping_Key[duplicated(archive_inventory$Mapping_Key)])
+  stop("Duplicate pool/barcode mappings in archive members: ", paste(duplicate_keys, collapse = ", "))
+}
+
+# Summarize delivery contents without loading sequence data into memory.
+archive_summary <- archive_inventory[, .(
+  FASTQ_Members = .N,
+  Uncompressed_GB = round(sum(Uncompressed_Size_Bytes) / 1024^3, 3),
+  Quality_Labels = paste(sort(unique(Lima_Quality_Label)), collapse = ", ")
+), by = Pool_ID]
+
+render_table(archive_summary, "FASTQ archive summary")
+```
+
+## Read and Validate the Sample Sheet {#validate-sample-sheet}
+
+Required columns are resolved by their explicit names rather than by position. The notebook validates `PoolNumber`, `SampleID`, barcode sequences, and barcode IDs before using them for sample mapping.
+
+```{r read-sequencing-sheet}
+# Read every input column as text first. Explicit conversion below gives more
+# informative validation errors than automatic spreadsheet type guessing.
+sheet_raw <- readxl::read_excel(
+  sequencing_sheet_path,
+  sheet = sequencing_sheet_name,
+  col_types = "text",
+  .name_repair = "minimal"
+)
+# data.table syntax is used for typed transformations and grouped summaries.
+sheet_raw <- as.data.table(sheet_raw)
+
+if (nrow(sheet_raw) == 0L) stop("The sequencing sheet contains no sample rows.")
+if (anyDuplicated(names(sheet_raw))) stop("The sequencing sheet has duplicated column names.")
+
+# Resolve columns by name rather than position so users may reorder the
+# template without changing the workflow.
+pool_column <- resolve_required_column(
+  names(sheet_raw), c("PoolNumber"), "pool number"
+)
+sample_name_column <- resolve_required_column(
+  names(sheet_raw), c("SampleID"), "sample identifier"
+)
+forward_barcode_sequence_column <- resolve_required_column(
+  names(sheet_raw), c("ForwardBarcodeSequence"), "forward barcode sequence"
+)
+forward_barcode_column <- resolve_required_column(
+  names(sheet_raw), c("ForwardBarcodeID"),
+  "forward barcode ID"
+)
+reverse_barcode_column <- resolve_required_column(
+  names(sheet_raw), c("ReverseBarcodeID"),
+  "reverse barcode ID"
+)
+reverse_barcode_sequence_column <- resolve_required_column(
+  names(sheet_raw), c("ReverseBarcodeSequence"), "reverse barcode sequence"
+)
+
+# Create a normalized internal representation: integer pools, uppercase DNA
+# sequences, lowercase Lima IDs, and trimmed sample names.
+sample_sheet <- sheet_raw[, .(
+  Pool_ID = suppressWarnings(as.integer(get(pool_column))),
+  Sample_Name_Original = trimws(as.character(get(sample_name_column))),
+  Forward_Barcode_Sequence = toupper(trimws(as.character(get(forward_barcode_sequence_column)))),
+  Forward_Barcode_ID = tolower(trimws(as.character(get(forward_barcode_column)))),
+  Reverse_Barcode_Sequence = toupper(trimws(as.character(get(reverse_barcode_sequence_column)))),
+  Reverse_Barcode_ID = tolower(trimws(as.character(get(reverse_barcode_column))))
+)]
+
+# Validate field domains before constructing keys. This prevents malformed
+# values from silently becoming unmatched samples later.
+if (anyNA(sample_sheet$Pool_ID) || any(sample_sheet$Pool_ID < 1L)) {
+  stop("Every sample-sheet row must have a positive integer PoolNumber.")
+}
+if (anyNA(sample_sheet$Sample_Name_Original) || any(sample_sheet$Sample_Name_Original == "")) {
+  stop("Every sample-sheet row must have a non-empty SampleID.")
+}
+if (anyNA(sample_sheet$Forward_Barcode_ID) || anyNA(sample_sheet$Reverse_Barcode_ID) ||
+    any(!grepl("^bc[0-9]+$", sample_sheet$Forward_Barcode_ID)) ||
+    any(!grepl("^bc[0-9]+$", sample_sheet$Reverse_Barcode_ID))) {
+  stop("Every barcode ID must use the format bc<number>.")
+}
+if (anyNA(sample_sheet$Forward_Barcode_Sequence) ||
+    anyNA(sample_sheet$Reverse_Barcode_Sequence) ||
+    any(!grepl("^[ACGT]+$", sample_sheet$Forward_Barcode_Sequence)) ||
+    any(!grepl("^[ACGT]+$", sample_sheet$Reverse_Barcode_Sequence))) {
+  stop("Every barcode sequence must be a non-empty DNA sequence containing only A, C, G, and T.")
+}
+
+# Retain both the source identifier for auditing and a sanitized identifier for
+# safe output filenames. PoolNumber remains independent metadata and is never
+# appended to the biological SampleID.
+sample_sheet[, Sample_Name := sanitize_sample_id(Sample_Name_Original)]
+if (any(sample_sheet$Sample_Name == "")) stop("Sample-name sanitization produced an empty identifier.")
+
+# Use the sanitized biological identifier directly. Because SampleID is the
+# workflow-wide key, it must be unique across all pools; PoolNumber is carried
+# in its own numeric column in every table that needs pool provenance.
+sample_sheet[, SampleID := Sample_Name]
+# Construct the same composite key used for archive members, then mark rows
+# whose pool was actually supplied in this demo/run.
+sample_sheet[, Mapping_Key := paste(Pool_ID, Forward_Barcode_ID, Reverse_Barcode_ID, sep = "|")]
+sample_sheet[, Active_Pool := Pool_ID %in% pool_inventory$Pool_ID]
+
+# Both mapping keys and output SampleIDs must be unique to guarantee a one-row,
+# one-input, one-output relationship.
+if (anyDuplicated(sample_sheet$Mapping_Key)) {
+  duplicate_keys <- unique(sample_sheet$Mapping_Key[duplicated(sample_sheet$Mapping_Key)])
+  stop("The sequencing sheet has duplicate pool/barcode mappings: ", paste(duplicate_keys, collapse = ", "))
+}
+if (anyDuplicated(sample_sheet$SampleID)) {
+  duplicate_ids <- unique(sample_sheet$SampleID[duplicated(sample_sheet$SampleID)])
+  stop("The sequencing sheet produces duplicate SampleIDs: ", paste(duplicate_ids, collapse = ", "))
+}
+
+# Show whether every sheet pool is active without treating intentionally absent
+# pools as a validation failure.
+sheet_pool_summary <- sample_sheet[, .(
+  Sequencing_Sheet_Rows = .N,
+  Active_Pool = unique(Active_Pool)
+), by = Pool_ID]
+setorder(sheet_pool_summary, Pool_ID)
+render_table(sheet_pool_summary, "Sequencing-sheet pool coverage")
+```
+
+## Match Active Samples to Archive Members {#match-samples}
+
+The join key is the exact combination of pool, forward barcode ID, and reverse barcode ID. Barcode-pair members not listed for an active pool are retained in the results report but are not extracted.
+
+```{r match-samples}
+# Only rows belonging to supplied pools participate in matching. Inactive rows
+# remain available for the optional audit worksheet.
+active_samples <- copy(sample_sheet[Active_Pool == TRUE])
+
+# Left-join from the sample sheet so every requested active sample is retained,
+# including rows with no matching archive member.
+sample_manifest <- merge(
+  active_samples,
+  archive_inventory[, .(
+    Mapping_Key, Archive_Path, Archive_Member, Lima_Quality_Label,
+    Uncompressed_Size_Bytes
+  )],
+  by = "Mapping_Key",
+  all.x = TRUE,
+  sort = FALSE
+)
+
+# Convert missing join results into an explicit, user-facing status.
+sample_manifest[, Mapping_Status := fifelse(
+  is.na(Archive_Member), "FAIL: sequencing-sheet mapping absent from archive", "PASS"
+)]
+
+# Flag extra demultiplexed members for auditing; they are deliberately not
+# extracted because no active sample-sheet row requested them.
+archive_inventory[, Listed_In_Sequencing_Sheet := Mapping_Key %in% active_samples$Mapping_Key]
+
+missing_active_samples <- sample_manifest[is.na(Archive_Member)]
+if (nrow(missing_active_samples) > 0L) {
+  render_table(
+    missing_active_samples[, .(
+      Pool_ID, Sample_Name_Original,
+      Forward_Barcode_ID, Reverse_Barcode_ID, Mapping_Status
+    )],
+    "Active sequencing-sheet rows without an archive member"
+  )
+}
+```
+
+The following summary reports how many requested samples matched, how many active requests remain unresolved, and how many delivered barcode-pair files were intentionally left inside the archives because they were not requested.
+
+```{r report-mapping-counts, echo=FALSE}
+# Keep all short mapping summaries in one hidden reporting chunk so they appear
+# together as output without separate visible code boxes.
+cat("Active sequencing-sheet samples:", nrow(active_samples), "\n")
+cat("Matched samples:", sum(sample_manifest$Mapping_Status == "PASS"), "\n")
+cat("Unmatched active samples:", nrow(missing_active_samples), "\n")
+cat("Unlisted barcode-pair files (not extracted):",
+    sum(!archive_inventory$Listed_In_Sequencing_Sheet), "\n")
+```
+
+## Extract and Rename Matched FASTQ Files {#extract-fastq}
+
+Each matched archive member is extracted directly to a temporary directory and then moved to its deterministic workflow filename. Because this notebook owns [results/1_data_integrity_and_sample_mapping/mapped_fastq/](../../results/1_data_integrity_and_sample_mapping/mapped_fastq/), possible stale FASTQ files existing from  earlier runs are cleared from that managed folder before extraction. Raw files under [data/](../../data/) are never changed.
+
+```{r extract-matched-fastq}
+# Do not create a partial mapped dataset: all active rows must resolve before
+# extraction begins.
+if (nrow(missing_active_samples) > 0L) {
+  stop(
+    "Cannot extract workflow inputs because ", nrow(missing_active_samples),
+    " active sequencing-sheet sample(s) are missing from the supplied archives."
+  )
+}
+
+# Derive deterministic output paths from validated SampleIDs.
+sample_manifest[, Output_FASTQ := as.character(
+  path(mapped_fastq_folder, paste0(SampleID, ".fastq"))
+)]
+
+if (anyDuplicated(sample_manifest$Output_FASTQ)) {
+  stop("Multiple samples resolve to the same output FASTQ path.")
+}
+
+# This notebook owns mapped_fastq/, so remove stale FASTQ outputs from an older
+# sample sheet before writing the current run. Non-FASTQ files are left alone.
+stale_fastq_outputs <- dir_ls(
+  mapped_fastq_folder,
+  regexp = "\\.fastq(?:\\.gz)?$",
+  type = "file",
+  recurse = FALSE
+)
+if (length(stale_fastq_outputs) > 0L) file_delete(stale_fastq_outputs)
+
+# Isolate each extraction in a temporary directory and register cleanup even if
+# a later validation step stops with an error.
+temporary_extract_root <- tempfile(pattern = "pacbio_step1_extract_", tmpdir = tempdir())
+dir_create(temporary_extract_root)
+on.exit(unlink(temporary_extract_root, recursive = TRUE, force = TRUE), add = TRUE)
+
+for (i in seq_len(nrow(sample_manifest))) {
+  # Extract exactly one matched member, never the entire pool archive.
+  member <- sample_manifest$Archive_Member[[i]]
+  archive <- sample_manifest$Archive_Path[[i]]
+  output_path <- sample_manifest$Output_FASTQ[[i]]
+  extract_dir <- path(temporary_extract_root, paste0("sample_", i))
+  dir_create(extract_dir)
+
+  # junkpaths=TRUE discards any internal ZIP directory prefix so the expected
+  # extracted filename is deterministic.
+  utils::unzip(archive, files = member, exdir = extract_dir, junkpaths = TRUE)
+  extracted_path <- path(extract_dir, path_file(member))
+
+  if (!file_exists(extracted_path)) {
+    stop("Extraction did not produce the expected FASTQ member: ", member)
+  }
+
+  # Move the validated extraction into the managed output folder under its
+  # stable sample-based filename.
+  if (file_exists(output_path)) file_delete(output_path)
+  file_move(extracted_path, output_path)
+}
+```
+
+After all matched members have been published under their sample-based filenames, the report confirms how many FASTQ files were extracted and where they were written.
+
+```{r report-extraction, echo=FALSE}
+# Summarize the completed extraction after every matched file has been moved.
+cat("Extracted", nrow(sample_manifest), "sample FASTQ files to", mapped_fastq_folder, "\n")
+```
+
+## Validate Extracted FASTQ Files {#validate-fastq}
+
+Every extracted FASTQ is checked for existence, non-zero size, and complete parsing. Read counts reported here are the input counts for the downstream primer-removal step.
+
+```{r validate-extracted-fastq}
+# Validate each extracted file independently and keep the structured results in
+# manifest row order.
+fastq_inspections <- lapply(sample_manifest$Output_FASTQ, inspect_fastq_file)
+
+# Expand the per-file result lists into typed manifest columns for downstream
+# summaries and Excel export.
+sample_manifest[, `:=`(
+  FASTQ_Valid = vapply(fastq_inspections, `[[`, logical(1), "valid"),
+  Input_Reads = vapply(fastq_inspections, `[[`, numeric(1), "reads"),
+  Output_Size_MB = round(vapply(fastq_inspections, `[[`, numeric(1), "size_mb"), 3),
+  FASTQ_Issue = vapply(
+    fastq_inspections,
+    function(x) if (is.null(x$issue) || is.na(x$issue)) NA_character_ else as.character(x$issue),
+    character(1)
+  )
+)]
+
+# Mapping failure takes precedence; otherwise parsing determines final status.
+sample_manifest[, Integrity_Status := fifelse(
+  Mapping_Status != "PASS", Mapping_Status,
+  fifelse(FASTQ_Valid == TRUE, "PASS", "FAIL: FASTQ parsing failed")
+)]
+
+# Display every invalid file and its captured parser message before stopping.
+if (any(sample_manifest$FASTQ_Valid != TRUE)) {
+  render_table(
+    sample_manifest[FASTQ_Valid != TRUE, .(SampleID, Output_FASTQ, FASTQ_Issue)],
+    "Invalid extracted FASTQ files"
+  )
+  stop("One or more extracted FASTQ files failed complete-file validation.")
+}
+
+# Summarize read depth and extracted size by pool using numeric values.
+sample_summary <- sample_manifest[, .(
+  Samples = .N,
+  Total_Reads = sum(Input_Reads),
+  Median_Reads = round(stats::median(Input_Reads)),
+  Minimum_Reads = min(Input_Reads),
+  Maximum_Reads = max(Input_Reads),
+  Total_Size_MB = round(sum(Output_Size_MB), 2)
+), by = Pool_ID]
+
+render_table(sample_summary, "Validated workflow-ready FASTQ files")
+```
+
+------------------------------------------------------------------------
+
+# Export Results
+
+## Save the Manifest and Export Tables to Excel {#save-excel}
+
+Assemble the typed run summary, sample manifest, archive inventory, and optional inactive-row table; document every exported column with the shared [build_column_dictionary_function.R](../functions/build_column_dictionary_function.R) helper; and save the complete workbook as [data_integrity_and_sample_mapping.xlsx](../../results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx). An extra `Inactive_Sheet_Rows` worksheet is included only when at least one sample-sheet row refers to a pool for which no FASTQ archive was supplied.
+
+```{r export-results, echo=FALSE}
+# Select and rename only publication-facing manifest columns. Explicit numeric
+# coercion ensures Excel stores counts and sizes as numbers rather than text.
+manifest_export <- sample_manifest[, .(
+  PoolNumber = Pool_ID,
+  SampleID,
+  SourceSampleID = Sample_Name_Original,
+  ForwardBarcodeSequence = Forward_Barcode_Sequence,
+  ForwardBarcodeID = Forward_Barcode_ID,
+  ReverseBarcodeSequence = Reverse_Barcode_Sequence,
+  ReverseBarcodeID = Reverse_Barcode_ID,
+  LimaQualityLabel = Lima_Quality_Label,
+  SourceArchive = path_file(Archive_Path),
+  ArchiveMember = Archive_Member,
+  MappedFASTQ = Output_FASTQ,
+  InputReads = as.numeric(Input_Reads),
+  OutputSizeMB = as.numeric(Output_Size_MB),
+  IntegrityStatus = Integrity_Status
+)]
+# Stable sorting makes workbook comparisons predictable across repeated runs.
+setorder(manifest_export, PoolNumber, SampleID)
+
+# Build a pool-member audit table containing every delivered Lima FASTQ,
+# including members not requested by the active sample sheet.
+archive_export <- archive_inventory[, .(
+  PoolNumber = Pool_ID,
+  Archive = path_file(Archive_Path),
+  ArchiveMember = Archive_Member,
+  ForwardBarcodeID = Forward_Barcode_ID,
+  ReverseBarcodeID = Reverse_Barcode_ID,
+  LimaQualityLabel = Lima_Quality_Label,
+  UncompressedSizeBytes = as.numeric(Uncompressed_Size_Bytes),
+  ListedInSampleSheet = Listed_In_Sequencing_Sheet
+)]
+setorder(archive_export, PoolNumber, ArchiveMember)
+
+# Preserve sample-sheet rows for absent pools in memory and export them only
+# when they exist; this distinguishes intentionally unavailable input from a
+# failed mapping within a supplied pool.
+inactive_sheet_export <- sample_sheet[Active_Pool == FALSE, .(
+  PoolNumber = Pool_ID,
+  SampleID = Sample_Name_Original,
+  ForwardBarcodeSequence = Forward_Barcode_Sequence,
+  ForwardBarcodeID = Forward_Barcode_ID,
+  ReverseBarcodeSequence = Reverse_Barcode_Sequence,
+  ReverseBarcodeID = Reverse_Barcode_ID,
+  Status = "INACTIVE: matching raw pool not supplied"
+)]
+setorder(inactive_sheet_export, PoolNumber, SampleID)
+
+# Summarize sample mapping and complete-file validation separately for each
+# supplied pool so the Run_Summary worksheet contains one auditable row per
+# pool rather than one aggregate row for the complete run.
+pool_sample_metrics <- sample_manifest[, .(
+  ActiveSampleCount = as.integer(.N),
+  MatchedSampleCount = as.integer(sum(Mapping_Status == "PASS")),
+  ValidFASTQCount = as.integer(sum(FASTQ_Valid == TRUE)),
+  TotalInputReads = as.numeric(sum(Input_Reads)),
+  OverallStatus = if (all(Integrity_Status == "PASS")) "PASS" else "FAIL"
+), by = Pool_ID]
+
+pool_archive_metrics <- archive_inventory[, .(
+  FASTQMemberCount = as.integer(.N),
+  UnlistedArchiveMemberCount = as.integer(sum(!Listed_In_Sequencing_Sheet))
+), by = Pool_ID]
+
+run_summary <- merge(
+  pool_inventory[, .(
+    PoolNumber = as.integer(Pool_ID),
+    PoolDirectory = as.character(Pool_Directory),
+    ArchiveCount = as.integer(Archive_Count),
+    ArchiveFile = path_file(Archive_Path)
+  )],
+  pool_sample_metrics,
+  by.x = "PoolNumber",
+  by.y = "Pool_ID",
+  all.x = TRUE,
+  sort = FALSE
+)
+run_summary <- merge(
+  run_summary,
+  pool_archive_metrics,
+  by.x = "PoolNumber",
+  by.y = "Pool_ID",
+  all.x = TRUE,
+  sort = FALSE
+)
+setcolorder(run_summary, c(
+  "PoolNumber", "PoolDirectory", "ArchiveCount", "ArchiveFile",
+  "FASTQMemberCount", "ActiveSampleCount", "MatchedSampleCount",
+  "ValidFASTQCount", "TotalInputReads", "UnlistedArchiveMemberCount",
+  "OverallStatus"
+))
+setorder(run_summary, PoolNumber)
+
+# Maintain column definitions in one named vector. The same descriptions feed
+# both the Column_Dictionary worksheet and Excel header-cell comments.
+column_definitions <- c(
+  SampleID = "Unique workflow sample identifier formed from the sanitized biological sample name; PoolNumber is stored separately and is not appended.",
+  SourceSampleID = "Biological sample identifier exactly as recorded in data/sample_sheet.xlsx before filename-safe sanitization.",
+  PoolNumber = "Numeric PacBio pool number derived from pool<number> and cross-checked against the sample sheet.",
+  ForwardBarcodeSequence = "Forward barcode nucleotide sequence recorded in the sample sheet.",
+  ForwardBarcodeID = "Forward Lima barcode identifier used in the pool-specific mapping key.",
+  ReverseBarcodeSequence = "Reverse barcode nucleotide sequence recorded in the sample sheet.",
+  ReverseBarcodeID = "Reverse Lima barcode identifier used in the pool-specific mapping key.",
+  LimaQualityLabel = "Quality label embedded in the delivered Lima filename, such as Q20; this is not recalculated here.",
+  SourceArchive = "Filename of the immutable raw PacBio FASTQ ZIP archive.",
+  Archive = "Filename of the immutable raw PacBio FASTQ ZIP archive.",
+  ArchiveMember = "Original pool-demultiplexed FASTQ member path inside the ZIP archive.",
+  MappedFASTQ = "Workflow-ready sample FASTQ path created by this notebook under mapped_fastq/.",
+  InputReads = "Number of completely parsed FASTQ records in the extracted sample file.",
+  OutputSizeMB = "Extracted FASTQ file size in mebibytes, rounded to three decimal places.",
+  IntegrityStatus = "PASS when sample mapping succeeded and the complete extracted FASTQ parsed without error.",
+  UncompressedSizeBytes = "Uncompressed member size reported by the ZIP directory.",
+  ListedInSampleSheet = "Whether the pool/barcode pair appears in a sample-sheet row for a supplied pool.",
+  Status = "Reason the sequencing-sheet row was not processed in the current run.",
+  PoolDirectory = "Pool directory name discovered under data/fastq/.",
+  ArchiveCount = "Number of FASTQ ZIP archives discovered for the pool.",
+  ArchiveFile = "Filename of the validated FASTQ ZIP archive for the pool.",
+  FASTQMemberCount = "Number of recognized FASTQ members delivered in the pool archive.",
+  ActiveSampleCount = "Number of sample-sheet rows belonging to supplied pools; stored as a numeric Excel value.",
+  MatchedSampleCount = "Number of active samples matched to exactly one archive member; stored as a numeric Excel value.",
+  ValidFASTQCount = "Number of extracted FASTQ files that parsed completely; stored as a numeric Excel value.",
+  TotalInputReads = "Total FASTQ records across all mapped samples; stored as a numeric Excel value.",
+  UnlistedArchiveMemberCount = "Archive members not listed in the active sample sheet; stored as a numeric Excel value.",
+  OverallStatus = "Pool-level PASS only when every active sample maps and every mapped FASTQ validates."
+)
+
+# Rebuild the audit workbook atomically from the current run rather than mixing
+# sheets from different executions.
+if (file_exists(workbook_path)) file_delete(workbook_path)
+
+# Define the standard sheets first, then append the optional inactive-row sheet
+# only when it contains data.
+workbook_sheets <- list(
+  Run_Summary = run_summary,
+  Sample_Manifest = manifest_export,
+  Archive_Inventory = archive_export
+)
+if (nrow(inactive_sheet_export) > 0L) {
+  workbook_sheets$Inactive_Sheet_Rows <- inactive_sheet_export
+}
+
+# Use the shared writer so every worksheet receives consistent table styling,
+# filters, frozen headers, column widths, and tab colors.
+for (sheet_name in names(workbook_sheets)) {
+  add_sheet_to_excel(
+    workbook_path = workbook_path,
+    sheet_name = sheet_name,
+    data = workbook_sheets[[sheet_name]],
+    rownames = FALSE,
+    overwrite = FALSE
+  )
+}
+
+# Build one documentation table by stacking the per-sheet dictionaries. Calling
+# this helper also writes the descriptions as comments on source-sheet headers.
+column_dictionary <- do.call(
+  rbind,
+  lapply(names(workbook_sheets), function(sheet_name) {
+    build_column_dictionary(
+      sheet_name = sheet_name,
+      data = workbook_sheets[[sheet_name]],
+      descriptions = column_definitions,
+      workbook_path = workbook_path,
+      rownames = FALSE
+    )
+  })
+)
+
+# Document the dictionary's own schema before writing its header comments.
+dictionary_descriptions <- c(
+  Sheet = "Worksheet containing the documented column.",
+  Column = "Column name exactly as written in the documented worksheet.",
+  Explanation = "Definition and derivation of the documented column."
+)
+
+# Add the completed dictionary last so it describes every preceding worksheet.
+add_sheet_to_excel(
+  workbook_path = workbook_path,
+  sheet_name = "Column_Dictionary",
+  data = column_dictionary,
+  rownames = FALSE,
+  overwrite = FALSE
+)
+# Add explanatory comments to the dictionary headers as well.
+# Suppress the helper's returned dictionary data frame: the object belongs in
+# Excel and should not be printed as an extra HTML table at the end of the chunk.
+invisible(build_column_dictionary(
+  sheet_name = "Column_Dictionary",
+  data = column_dictionary,
+  descriptions = dictionary_descriptions,
+  workbook_path = workbook_path,
+  rownames = FALSE
+))
+```
+
+The workbook path printed below identifies the complete audit artifact to review before accepting the final integrity decision.
+
+```{r report-export-path, echo=FALSE}
+# Print the generated artifact location while keeping reporting code hidden.
+cat("Results exported to:\n", workbook_path, "\n")
+```
+
+## Final Integrity Decision {#final-decision}
+
+Combine the row-level mapping and FASTQ checks into one final gate. Downstream notebooks should proceed only when every active sample maps exactly once, every mapped FASTQ parses completely, and every file contains at least one read.
+
+```{r final-integrity-decision}
+# Downstream work is allowed only when at least one sample exists and every
+# active sample mapped, parsed successfully, and contains at least one read.
+overall_pass <-
+  nrow(sample_manifest) > 0L &&
+  all(sample_manifest$Mapping_Status == "PASS") &&
+  all(sample_manifest$FASTQ_Valid == TRUE) &&
+  all(sample_manifest$Input_Reads > 0)
+
+# Stop the notebook with a single gate failure after all detailed diagnostics
+# and the audit workbook have been produced.
+if (!overall_pass) {
+  stop("Step 1 integrity checks failed. Review the audit workbook before continuing.")
+}
+```
+
+If every validation criterion passed, this final status line reports the number of workflow-ready samples and supplied pools.
+
+```{r report-final-integrity, echo=FALSE}
+# This chunk runs only after the preceding integrity gate has passed.
+cat(
+  "PASS —", nrow(sample_manifest), "samples from",
+  length(unique(sample_manifest$Pool_ID)), "supplied pool(s) were mapped, extracted, and validated.\n"
+)
+```
+
+------------------------------------------------------------------------
+
+# Output Files
+
+The link below opens the Excel workbook generated by this run. It is rendered at knit time by the shared [render_output_links_function.R](../functions/render_output_links_function.R) helper so the GitHub document contains a portable relative link rather than a machine-specific absolute path.
+
+```{r output-links, echo=FALSE, results='asis'}
+# Generate a portable Markdown link relative to the notebook location rather
+# than embedding the current machine's absolute path.
+render_output_links(
+  workbook_path,
+  labels = "Integrity and sample-mapping workbook"
+)
+```
+
+------------------------------------------------------------------------
+
+# Output File Summary
+
+The tree below lists the current contents of [results/1_data_integrity_and_sample_mapping/](../../results/1_data_integrity_and_sample_mapping/) as clickable links, generated live from disk by [render_output_tree_function.R](../functions/render_output_tree_function.R). This avoids maintaining a separate output list that could drift away from the files actually produced.
+
+```{r output-summary, echo=FALSE, results='asis'}
+# Inventory the actual output directory at knit time so the displayed tree
+# cannot drift from files on disk.
+render_output_tree(
+  results_folder,
+  descriptions = c(
+    "data_integrity_and_sample_mapping.xlsx" = "Run summary, sample manifest, archive inventory, optional inactive sample-sheet rows, and column dictionary",
+    "mapped_fastq" = "Workflow-ready FASTQ files matched and renamed from the supplied PacBio pool archives"
+  )
+)
+```
+
+------------------------------------------------------------------------
+
+# Recommended Next Step
+
+After this notebook passes, continue with [Step 2 (PacBio HiFi Quality Filtering)](2_quality_filtering.md). That notebook reads sample identities from the `Sample_Manifest` worksheet in [data_integrity_and_sample_mapping.xlsx](../../results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx) and analyzes the validated FASTQ files in [mapped_fastq/](../../results/1_data_integrity_and_sample_mapping/mapped_fastq/), rather than inferring sample names again.
+
+------------------------------------------------------------------------
+
+# Session Information
+
+Record the R version, operating system, and attached package versions used for this run so the result can be reproduced and compared with future executions.
+
+```{r session-info, echo=FALSE}
+# Record exact R, platform, and attached-package versions for reproducibility.
+sessionInfo()
+```
+
+------------------------------------------------------------------------
+
+# References
+
+## Methods and Software
+
+-   Cock PJA, Fields CJ, Goto N, Heuer ML, Rice PM (2010). The Sanger FASTQ file format for sequences with quality scores, and the Solexa/Illumina FASTQ variants. *Nucleic Acids Research*, 38(6):1767–1771. [https://doi.org/10.1093/nar/gkp1137](https://doi.org/10.1093/nar/gkp1137)
+-   Callahan BJ, McMurdie PJ, Rosen MJ, Han AW, Johnson AJA, Holmes SP (2016). DADA2: High-resolution sample inference from Illumina amplicon data. *Nature Methods*, 13:581–583. [https://doi.org/10.1038/nmeth.3869](https://doi.org/10.1038/nmeth.3869)
+-   Callahan BJ et al. (2019). High-throughput amplicon sequencing of the full-length 16S rRNA gene with single-nucleotide resolution. *Nucleic Acids Research*, 47(18):e103. [https://doi.org/10.1093/nar/gkz569](https://doi.org/10.1093/nar/gkz569)
+-   Morgan M et al. (2009). ShortRead: a Bioconductor package for input, quality assessment and exploration of high-throughput sequence data. *Bioinformatics*, 25(19):2607–2608. [https://doi.org/10.1093/bioinformatics/btp450](https://doi.org/10.1093/bioinformatics/btp450)
+
+## Documentation
+
+-   [PacBio Lima — demultiplexing barcoded PacBio samples](https://github.com/PacificBiosciences/barcoding)
+-   [PacBio HiFi full-length 16S workflow](https://github.com/PacificBiosciences/HiFi-16S-workflow)
+-   [DADA2 project and tutorials](https://benjjneb.github.io/dada2/)
+-   [DADA2 full-length PacBio example](https://benjjneb.github.io/LRASManuscript/LRASms_fecal.html)
+-   [Bioconductor ShortRead manual](https://bioconductor.org/packages/release/bioc/manuals/ShortRead/man/ShortRead.pdf)
+-   [here package documentation](https://here.r-lib.org/)
+
+## Related Project Files
+
+-   [data/sample_sheet.xlsx](../../data/sample_sheet.xlsx) — editable PacBio sample and barcode mapping.
+-   [R/functions/](../functions/) — shared report-writing and output-rendering helpers.
+
+------------------------------------------------------------------------
+
+# Appendix: Troubleshooting Guide
+
+## No Pool Directories Found
+
+**Error**: `No pool directories were found under ...`
+
+-   Confirm that each supplied archive is under [data/fastq/](../../data/fastq/)`pool<number>/`.
+-   Use lowercase directory names such as `pool1` and `pool2`; additional text is not accepted.
+
+## Wrong Number of Archives
+
+**Error**: `Each supplied pool must contain exactly one .fastq.zip archive.`
+
+-   Remove unrelated ZIP files from the pool directory.
+-   Confirm that the delivery archive ends in `.fastq.zip`.
+-   Keep one archive per supplied pool.
+
+## Missing or Invalid Sample-Sheet Columns
+
+The required columns in [sample_sheet.xlsx](../../data/sample_sheet.xlsx) are `PoolNumber`, `SampleID`, `ForwardBarcodeSequence`, `ForwardBarcodeID`, `ReverseBarcodeSequence`, and `ReverseBarcodeID`.
+
+-   Do not rename or reorder identifiers inside barcode values such as `bc1024`.
+-   Barcode sequences must contain only `A`, `C`, `G`, and `T`.
+-   Each `PoolNumber + ForwardBarcodeID + ReverseBarcodeID` combination must be unique.
+
+## Sample-Sheet Row Has No FASTQ Member
+
+**Error**: `active sample-sheet sample(s) are missing from the supplied archives.`
+
+-   Confirm that the row uses the correct pool number and barcode direction.
+-   Inspect the `Archive_Inventory` worksheet in [data_integrity_and_sample_mapping.xlsx](../../results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx).
+-   Confirm that the sequencing provider delivered the expected Lima barcode-pair member.
+
+## Invalid Extracted FASTQ
+
+If an extracted FASTQ fails [ShortRead::countFastq()](https://bioconductor.org/packages/release/bioc/manuals/ShortRead/man/ShortRead.pdf):
+
+-   Re-download or re-copy the corresponding raw archive.
+-   Verify the ZIP archive independently with `unzip -t` command.
+-   Review the reported `FASTQ_Issue` before proceeding.
