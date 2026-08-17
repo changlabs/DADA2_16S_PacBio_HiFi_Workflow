@@ -7089,8 +7089,8 @@ requires this to succeed.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>sample_metadata <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
 <span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(metadata_path) <span class="sc">&amp;&amp;</span> <span class="sc">!</span><span class="fu">file_exists</span>(metadata_path)) {</span>
-<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Configured metadata file does not exist: &quot;</span>, metadata_path,</span>
-<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>         <span class="st">&quot;. Set metadata_path &lt;- NULL to run without metadata.&quot;</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>    <span class="fu">message</span>(<span class="st">&quot;Metadata file not found; continuing without sample metadata: &quot;</span>, metadata_path)</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>    metadata_path <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
 <span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>}</span>
 <span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a></span>
 <span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(metadata_path) <span class="sc">&amp;&amp;</span> <span class="fu">file_exists</span>(metadata_path)) {</span>
