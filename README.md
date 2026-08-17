@@ -170,13 +170,13 @@ data/fastq/pool1/<delivery>.fastq.zip
 data/fastq/pool2/<delivery>.fastq.zip
 ```
 
-Edit [data/sample_sheet.xlsx](data/sample_sheet.xlsx) so every active barcode pair maps to a unique `SampleID` and numeric `PoolNumber`. `SampleID` must not include the pool number. Step 1 extracts only mapped archive members and retains unmatched sample-sheet rows for review.
+Edit [data/sample_sheet.xlsx](data/sample_sheet.xlsx) so every active barcode pair maps to a unique `SampleID` and numeric `PoolNumber`. `SampleID` must not include the pool number. [Step 1](1_data_integrity_check.md) extracts only mapped archive members and retains unmatched sample-sheet rows for review.
 
 See [data/README.md](data/README.md) for the complete format and consistency checks.
 
 ### 8. Copy Your Cell Count File (Optional)
 
-Only needed for Step 8 (Microbial Load Correction) if you have independent microbial load (cell count) measurements per sample -- e.g. from flow cytometry or qPCR. Skip this if you don't; every other step works on relative abundances without it.
+Only needed for [Step 8 (Microbial Load Correction)](8_microbial_load_correction.md) if you have independent microbial load (cell count) measurements per sample -- e.g. from flow cytometry or qPCR. Skip this if you don't; every other step works on relative abundances without it.
 
 The cell-count template is provided at [`data/cell_count/cell_count.tsv`](data/cell_count/cell_count.tsv), which is also this pipeline's default expected input path. Replace its generic sample IDs and placeholder counts with your measurements. See [`data/README.md`](data/README.md) for the full file format.
 
@@ -192,25 +192,25 @@ Run the numbered notebooks in order from the project root. In RStudio, use **Kni
 
 ### Step 1 — [Data Integrity and Sample Mapping](R/notebooks/1_data_integrity_and_sample_mapping.md) *(required)*
 
-Validates the supplied pool archives and FASTQ members, checks the sample sheet, maps Lima barcode pairs to biological sample identifiers, and extracts only matched reads to `results/1_data_integrity_and_sample_mapping/mapped_fastq/`.
+Validates the supplied pool archives and FASTQ members, checks the sample sheet, maps Lima barcode pairs to biological sample identifiers, and extracts only matched reads.
 
 ### Step 2 — [Quality Filtering](R/notebooks/2_quality_filtering.md) *(required)*
 
-Calculates per-sample PacBio read-quality, read-length, GC, and size statistics in R. Reads with mean **Q ≥ 20** are written uncompressed to `results/2_quality_filtered_reads/Q20_filtered_fastq/`. No read-length filter or `truncLen` is applied in this step.
+Calculates per-sample PacBio read-quality, read-length, GC, and size statistics in R. Reads with mean **Q ≥ 20** are written as uncompressed FASTQ files. No read-length filter or length truncation is applied in this step.
 
 ### Step 3 — [Primer Trimming](R/notebooks/3_primer_trimming.md) *(required)*
 
-Uses linked F27–R1492 primers with Cutadapt to retain full primer-to-primer amplicons, remove both primers, and orient every retained HiFi read consistently. Review the configured primer sequences before running a different assay.
+Uses linked primers with Cutadapt to retain full primer-to-primer amplicons, remove both primers, and orient every retained HiFi read consistently. Review the configured primer sequences before running a different assay.
 
-### Step 4 — [DADA2 maxEE Parameter Selection](R/notebooks/4_dada2_parameter_selection.md) *(recommended)*
+### Step 4 — [DADA2 Parameter Selection](R/notebooks/4_dada2_parameter_selection.md) *(recommended)*
 
-Launches the [PacBio maxEE Shiny app](R/shiny/dada2_parameter_selection_app.R), calculates expected errors for complete primer-trimmed reads, shows pooled and per-sample retention across candidate thresholds, and optionally validates the selected value with real DADA2 filtering, PacBio error learning, and sample inference. The exported workbook is loaded automatically by Step 5.
+A guide to the [DADA2 Parameter Selection](R/shiny/dada2_parameter_selection_app.R) Shiny app, which calculates expected errors for complete primer-trimmed reads, shows pooled and per-sample retention across candidate thresholds, and optionally validates the selected value with real DADA2 filtering, PacBio error learning, and sample inference. The exported workbook is loaded automatically by [Step 5](5_dada2_pipeline.md).
 
 ### Step 5 — [DADA2 Pipeline](R/notebooks/5_dada2_pipeline.md) *(required)*
 
-Applies target-length, ambiguous-base, and expected-error filtering; learns the PacBio error model; infers ASVs; removes chimeras; and assigns taxonomy with the available SILVA and/or GTDB references. It exports CSV ASV/taxonomy tables, an Excel processing summary, plots, logs, and checkpoints.
+Applies target-length, ambiguous-base (N), and expected-error filtering; learns the PacBio error model; infers ASVs; removes chimeras; and assigns taxonomy with the available SILVA and/or GTDB references. It exports CSV ASV/taxonomy tables, an Excel processing summary, plots, logs, and checkpoints.
 
-If more than one pool is represented, Step 5 also creates self-contained pool-specific ASV sequence, count, taxonomy, and processing-summary files under [results/5_dada2_pipeline/separate_pools/](results/5_dada2_pipeline/separate_pools/).
+If more than one pool is represented, [Step 5](5_dada2_pipeline.md) also creates self-contained pool-specific ASV sequence, count, taxonomy, and processing-summary files.
 
 ### Step 6 — [Phylogenetic Tree](R/notebooks/6_phylogenetic_tree.md) *(optional)*
 
@@ -218,11 +218,11 @@ Aligns ASV sequences with DECIPHER and constructs maximum-likelihood trees with 
 
 ### Step 7 — [16S Copy Number Correction](R/notebooks/7_copy_number_correction.md) *(optional)*
 
-Uses PICRUSt2 `place_seqs.py` and `hsp.py` to predict ASV-level 16S rRNA gene copy number and produce a copy-number-corrected ASV abundance table. A compatible conda environment named `picrust2` is required.
+Uses PICRUSt2 to predict ASV-level 16S rRNA gene copy number and produce a copy-number-corrected ASV abundance table. A compatible conda environment named `picrust2` is required.
 
 ### Step 8 — [Microbial Load Correction](R/notebooks/8_microbial_load_correction.md) *(optional)*
 
-Requires Step 7 and positive cell-count measurements. It rarefies samples to a common sampling depth per cell and rescales by measured cell count to generate a Quantitative Microbiome Profile.
+Requires [Step 7](7_copy_number_correction.md) and positive cell-count measurements. It rarefies samples to a common sampling depth per cell and rescales by measured cell count to generate a Quantitative Microbiome Profile.
 
 ### Step 9 — [Phyloseq Object](R/notebooks/9_phyloseq_object.md) *(optional)*
 
@@ -232,9 +232,9 @@ Combines taxonomy, sample metadata, the optional tree, and every validated abund
 
 ## Pool-Specific Processing
 
-Step 5 performs DADA2 inference globally so identical biological sequences retain the same `ASV_ID` across pools. It then subsets counts, representative sequences, taxonomy, and processing summaries into `separate_pools/pool<number>/`.
+[Step 5](5_dada2_pipeline.md) performs DADA2 inference globally so identical biological sequences retain the same `ASV_ID` across pools. It then subsets counts, representative sequences, taxonomy, and processing summaries into `separate_pools/pool<number>/`.
 
-Steps 6–9 behave as follows:
+Steps [6](6_phylogenetic_tree.md)–[9](9_phyloseq_object.md) behave as follows:
 
 1.  Process the combined upstream output normally.
 2.  Check whether the required upstream `separate_pools` directory exists.
