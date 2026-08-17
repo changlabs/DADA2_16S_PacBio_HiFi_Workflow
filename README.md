@@ -21,7 +21,7 @@ A reproducible R-based pipeline for processing **PacBio HiFi full-length 16S rRN
 
 ------------------------------------------------------------------------
 
-## Key Features {#key-features}
+## Key Features
 
 - **PacBio HiFi-aware quality control** — Calculates per-read length, GC content, and mean read quality directly in R and retains reads with **Q ≥ 20**.
 - **Data-driven maxEE selection** — A PacBio-specific Shiny app displays pooled and per-sample expected-error retention and validates the selected threshold with real DADA2 processing.
@@ -38,7 +38,7 @@ A reproducible R-based pipeline for processing **PacBio HiFi full-length 16S rRN
 
 ------------------------------------------------------------------------
 
-## Pipeline Overview {#pipeline-overview}
+## Pipeline Overview
 
 ``` text
   PacBio HiFi FASTQ archives + sample sheet
@@ -97,7 +97,7 @@ A reproducible R-based pipeline for processing **PacBio HiFi full-length 16S rRN
 
 ------------------------------------------------------------------------
 
-## Setup {#setup}
+## Setup
 
 ### 1. Clone the Repository
 
@@ -186,7 +186,7 @@ Only needed for [Step 9](9_phyloseq_object.md) if you want experimental sample i
 
 ------------------------------------------------------------------------
 
-## Running the Pipeline {#running-the-pipeline}
+## Running the Pipeline
 
 Run the numbered notebooks in order from the project root. In RStudio, use **Knit** and select the HTML output to execute the analysis and create the full report/tutorial. The GitHub Markdown output is a non-executing, portable view intended for repository browsing. Read each notebook's prerequisites before starting, review its diagnostic tables and plots after completion, and follow the linked next-step guidance only after its final validation checks pass.
 
@@ -230,7 +230,7 @@ Combines taxonomy, sample metadata, the optional tree, and every validated abund
 
 ------------------------------------------------------------------------
 
-## Pool-Specific Processing {#pool-specific-processing}
+## Pool-Specific Processing
 
 Step 5 performs DADA2 inference globally so identical biological sequences retain the same `ASV_ID` across pools. It then subsets counts, representative sequences, taxonomy, and processing summaries into `separate_pools/pool<number>/`.
 
@@ -246,13 +246,13 @@ If no `separate_pools` directory exists, only the combined dataset is processed.
 
 ------------------------------------------------------------------------
 
-## Column Dictionaries {#column-dictionaries}
+## Column Dictionaries
 
 Every Excel workbook ends with a `Column_Dictionary` sheet documenting each exported column in plain language. It is generated with [R/functions/build_column_dictionary_function.R](R/functions/build_column_dictionary_function.R). If an exported column is added or renamed, update its description so the workbook remains self-documenting.
 
 ------------------------------------------------------------------------
 
-## Project Structure {#project-structure}
+## Project Structure
 
 ``` text
 DADA2_16S_PacBio_HiFi_Workflow/
@@ -303,7 +303,7 @@ DADA2_16S_PacBio_HiFi_Workflow/
 
 ------------------------------------------------------------------------
 
-## References {#references}
+## References
 
 ### Core Methods
 
@@ -326,13 +326,13 @@ DADA2_16S_PacBio_HiFi_Workflow/
 
 ------------------------------------------------------------------------
 
-## License {#license}
+## License
 
 This project is released under the [MIT License](LICENSE).
 
 ------------------------------------------------------------------------
 
-## Acknowledgments {#acknowledgments}
+## Acknowledgments
 
 - [DADA2](https://benjjneb.github.io/dada2/) developers for the core ASV inference framework
 - [Pacific Biosciences](https://www.pacb.com/) for the public HiFi 16S workflow guidance
