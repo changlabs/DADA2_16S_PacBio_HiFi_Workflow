@@ -135,7 +135,7 @@ Installing these prerequisites may require administrator access. On Debian/Ubunt
 Then open [`setup/install_required_tools.R`](setup/install_required_tools.R) in RStudio and run it with **Source**. The script downloads and installs the following tools into the project-local [`tools/`](tools/) directory without requiring conda or a system-wide installation of the tools themselves:
 
 | Tool | Location | Purpose |
-|:-----------------------|:-----------------------|:-----------------------|
+|:---|:---|:---|
 | [Cutadapt](https://cutadapt.readthedocs.io/) | `tools/cutadapt/venv/` | Primer trimming and read orientation |
 | [FastTree](https://morgannprice.github.io/fasttree/) | `tools/fasttree/FastTree` | Phylogenetic tree construction |
 
