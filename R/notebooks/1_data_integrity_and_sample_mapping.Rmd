@@ -138,14 +138,14 @@ Only FASTQ files that match an active sample-sheet row are extracted and written
 Before running this notebook:
 
 -   Place each `.fastq.zip` archive in its supplied pool folder under [data/fastq/](../../data/fastq/), for example `data/fastq/pool<number>/`.
--   Use the [data/sample_sheet.xlsx](../../data/sample_sheet.xlsx) template to provide your `PoolNumber`, `SampleID`, and the forward/reverse barcode sequence and identifier columns.
+-   Use the [data/sample_sheet.xlsx](../../data/sample_sheet.xlsx) template to provide `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`.
 -   Install the R dependencies used by this workflow using the scripts in [setup/](../../setup/).
 
 ## What This Notebook Does
 
 1.  **Pool and archive discovery**: Finds supplied `pool<number>` directories and requires one `.fastq.zip` archive per supplied pool.
 2.  **Archive validation**: Opens each ZIP directory, checks member sizes, and parses Lima barcode-pair filenames.
-3.  **Sample-sheet validation**: Verifies required columns, pool numbers, sample identifiers, barcode IDs, and barcode sequences.
+3.  **Sample-sheet validation**: Verifies required columns, pool numbers, sample identifiers, and barcode IDs.
 4.  **Sample mapping**: Matches each active row by the exact `PoolNumber + ForwardBarcodeID + ReverseBarcodeID` key.
 5.  **Selective extraction**: Extracts only matched archive members into [results/1_data_integrity_and_sample_mapping/mapped_fastq/](../../results/1_data_integrity_and_sample_mapping/mapped_fastq/).
 6.  **FASTQ integrity validation**: Parses every extracted file completely and records its read count and size.
@@ -566,7 +566,7 @@ render_table(archive_summary, "FASTQ archive summary")
 
 ## Read and Validate the Sample Sheet {#validate-sample-sheet}
 
-Required columns are resolved by their explicit names rather than by position. The notebook validates `PoolNumber`, `SampleID`, barcode sequences, and barcode IDs before using them for sample mapping.
+Required columns are resolved by their explicit names rather than by position. The notebook validates `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID` before using them for sample mapping. Barcode nucleotide sequences are unnecessary because the supplied FASTQs have already been demultiplexed. Extra sample-sheet columns are ignored.
 
 ```{r read-sequencing-sheet}
 # Read every input column as text first. Explicit conversion below gives more
@@ -591,9 +591,6 @@ pool_column <- resolve_required_column(
 sample_name_column <- resolve_required_column(
   names(sheet_raw), c("SampleID"), "sample identifier"
 )
-forward_barcode_sequence_column <- resolve_required_column(
-  names(sheet_raw), c("ForwardBarcodeSequence"), "forward barcode sequence"
-)
 forward_barcode_column <- resolve_required_column(
   names(sheet_raw), c("ForwardBarcodeID"),
   "forward barcode ID"
@@ -602,18 +599,13 @@ reverse_barcode_column <- resolve_required_column(
   names(sheet_raw), c("ReverseBarcodeID"),
   "reverse barcode ID"
 )
-reverse_barcode_sequence_column <- resolve_required_column(
-  names(sheet_raw), c("ReverseBarcodeSequence"), "reverse barcode sequence"
-)
 
-# Create a normalized internal representation: integer pools, uppercase DNA
-# sequences, lowercase Lima IDs, and trimmed sample names.
+# Create a normalized internal representation: integer pools, lowercase Lima
+# IDs, and trimmed sample names.
 sample_sheet <- sheet_raw[, .(
   Pool_ID = suppressWarnings(as.integer(get(pool_column))),
   Sample_Name_Original = trimws(as.character(get(sample_name_column))),
-  Forward_Barcode_Sequence = toupper(trimws(as.character(get(forward_barcode_sequence_column)))),
   Forward_Barcode_ID = tolower(trimws(as.character(get(forward_barcode_column)))),
-  Reverse_Barcode_Sequence = toupper(trimws(as.character(get(reverse_barcode_sequence_column)))),
   Reverse_Barcode_ID = tolower(trimws(as.character(get(reverse_barcode_column))))
 )]
 
@@ -629,12 +621,6 @@ if (anyNA(sample_sheet$Forward_Barcode_ID) || anyNA(sample_sheet$Reverse_Barcode
     any(!grepl("^bc[0-9]+$", sample_sheet$Forward_Barcode_ID)) ||
     any(!grepl("^bc[0-9]+$", sample_sheet$Reverse_Barcode_ID))) {
   stop("Every barcode ID must use the format bc<number>.")
-}
-if (anyNA(sample_sheet$Forward_Barcode_Sequence) ||
-    anyNA(sample_sheet$Reverse_Barcode_Sequence) ||
-    any(!grepl("^[ACGT]+$", sample_sheet$Forward_Barcode_Sequence)) ||
-    any(!grepl("^[ACGT]+$", sample_sheet$Reverse_Barcode_Sequence))) {
-  stop("Every barcode sequence must be a non-empty DNA sequence containing only A, C, G, and T.")
 }
 
 # Retain both the source identifier for auditing and a sanitized identifier for
@@ -863,9 +849,7 @@ manifest_export <- sample_manifest[, .(
   PoolNumber = Pool_ID,
   SampleID,
   SourceSampleID = Sample_Name_Original,
-  ForwardBarcodeSequence = Forward_Barcode_Sequence,
   ForwardBarcodeID = Forward_Barcode_ID,
-  ReverseBarcodeSequence = Reverse_Barcode_Sequence,
   ReverseBarcodeID = Reverse_Barcode_ID,
   LimaQualityLabel = Lima_Quality_Label,
   SourceArchive = path_file(Archive_Path),
@@ -898,9 +882,7 @@ setorder(archive_export, PoolNumber, ArchiveMember)
 inactive_sheet_export <- sample_sheet[Active_Pool == FALSE, .(
   PoolNumber = Pool_ID,
   SampleID = Sample_Name_Original,
-  ForwardBarcodeSequence = Forward_Barcode_Sequence,
   ForwardBarcodeID = Forward_Barcode_ID,
-  ReverseBarcodeSequence = Reverse_Barcode_Sequence,
   ReverseBarcodeID = Reverse_Barcode_ID,
   Status = "INACTIVE: matching raw pool not supplied"
 )]
@@ -957,9 +939,7 @@ column_definitions <- c(
   SampleID = "Unique workflow sample identifier formed from the sanitized biological sample name; PoolNumber is stored separately and is not appended.",
   SourceSampleID = "Biological sample identifier exactly as recorded in data/sample_sheet.xlsx before filename-safe sanitization.",
   PoolNumber = "Numeric PacBio pool number derived from pool<number> and cross-checked against the sample sheet.",
-  ForwardBarcodeSequence = "Forward barcode nucleotide sequence recorded in the sample sheet.",
   ForwardBarcodeID = "Forward Lima barcode identifier used in the pool-specific mapping key.",
-  ReverseBarcodeSequence = "Reverse barcode nucleotide sequence recorded in the sample sheet.",
   ReverseBarcodeID = "Reverse Lima barcode identifier used in the pool-specific mapping key.",
   LimaQualityLabel = "Quality label embedded in the delivered Lima filename, such as Q20; this is not recalculated here.",
   SourceArchive = "Filename of the immutable raw PacBio FASTQ ZIP archive.",
@@ -1186,10 +1166,9 @@ sessionInfo()
 
 ## Missing or Invalid Sample-Sheet Columns
 
-The required columns in [sample_sheet.xlsx](../../data/sample_sheet.xlsx) are `PoolNumber`, `SampleID`, `ForwardBarcodeSequence`, `ForwardBarcodeID`, `ReverseBarcodeSequence`, and `ReverseBarcodeID`.
+The required columns in [sample_sheet.xlsx](../../data/sample_sheet.xlsx) are `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`.
 
 -   Do not rename or reorder identifiers inside barcode values such as `bc1024`.
--   Barcode sequences must contain only `A`, `C`, `G`, and `T`.
 -   Each `PoolNumber + ForwardBarcodeID + ReverseBarcodeID` combination must be unique.
 
 ## Sample-Sheet Row Has No FASTQ Member

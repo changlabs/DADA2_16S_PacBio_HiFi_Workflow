@@ -141,8 +141,8 @@ Before running this notebook:
   [data/fastq/](../../data/fastq/), for example
   `data/fastq/pool<number>/`.
 - Use the [data/sample_sheet.xlsx](../../data/sample_sheet.xlsx)
-  template to provide your `PoolNumber`, `SampleID`, and the
-  forward/reverse barcode sequence and identifier columns.
+  template to provide `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and
+  `ReverseBarcodeID`.
 - Install the R dependencies used by this workflow using the scripts in
   [setup/](../../setup/).
 
@@ -153,7 +153,7 @@ Before running this notebook:
 2.  **Archive validation**: Opens each ZIP directory, checks member
     sizes, and parses Lima barcode-pair filenames.
 3.  **Sample-sheet validation**: Verifies required columns, pool
-    numbers, sample identifiers, barcode IDs, and barcode sequences.
+    numbers, sample identifiers, and barcode IDs.
 4.  **Sample mapping**: Matches each active row by the exact
     `PoolNumber + ForwardBarcodeID + ReverseBarcodeID` key.
 5.  **Selective extraction**: Extracts only matched archive members into
@@ -599,8 +599,11 @@ render_table(archive_summary, "FASTQ archive summary")
 ## Read and Validate the Sample Sheet
 
 Required columns are resolved by their explicit names rather than by
-position. The notebook validates `PoolNumber`, `SampleID`, barcode
-sequences, and barcode IDs before using them for sample mapping.
+position. The notebook validates `PoolNumber`, `SampleID`,
+`ForwardBarcodeID`, and `ReverseBarcodeID` before using them for sample
+mapping. Barcode nucleotide sequences are unnecessary because the
+supplied FASTQs have already been demultiplexed. Extra sample-sheet
+columns are ignored.
 
 ``` r
 # Read every input column as text first. Explicit conversion below gives more
@@ -625,9 +628,6 @@ pool_column <- resolve_required_column(
 sample_name_column <- resolve_required_column(
   names(sheet_raw), c("SampleID"), "sample identifier"
 )
-forward_barcode_sequence_column <- resolve_required_column(
-  names(sheet_raw), c("ForwardBarcodeSequence"), "forward barcode sequence"
-)
 forward_barcode_column <- resolve_required_column(
   names(sheet_raw), c("ForwardBarcodeID"),
   "forward barcode ID"
@@ -636,18 +636,13 @@ reverse_barcode_column <- resolve_required_column(
   names(sheet_raw), c("ReverseBarcodeID"),
   "reverse barcode ID"
 )
-reverse_barcode_sequence_column <- resolve_required_column(
-  names(sheet_raw), c("ReverseBarcodeSequence"), "reverse barcode sequence"
-)
 
-# Create a normalized internal representation: integer pools, uppercase DNA
-# sequences, lowercase Lima IDs, and trimmed sample names.
+# Create a normalized internal representation: integer pools, lowercase Lima
+# IDs, and trimmed sample names.
 sample_sheet <- sheet_raw[, .(
   Pool_ID = suppressWarnings(as.integer(get(pool_column))),
   Sample_Name_Original = trimws(as.character(get(sample_name_column))),
-  Forward_Barcode_Sequence = toupper(trimws(as.character(get(forward_barcode_sequence_column)))),
   Forward_Barcode_ID = tolower(trimws(as.character(get(forward_barcode_column)))),
-  Reverse_Barcode_Sequence = toupper(trimws(as.character(get(reverse_barcode_sequence_column)))),
   Reverse_Barcode_ID = tolower(trimws(as.character(get(reverse_barcode_column))))
 )]
 
@@ -663,12 +658,6 @@ if (anyNA(sample_sheet$Forward_Barcode_ID) || anyNA(sample_sheet$Reverse_Barcode
     any(!grepl("^bc[0-9]+$", sample_sheet$Forward_Barcode_ID)) ||
     any(!grepl("^bc[0-9]+$", sample_sheet$Reverse_Barcode_ID))) {
   stop("Every barcode ID must use the format bc<number>.")
-}
-if (anyNA(sample_sheet$Forward_Barcode_Sequence) ||
-    anyNA(sample_sheet$Reverse_Barcode_Sequence) ||
-    any(!grepl("^[ACGT]+$", sample_sheet$Forward_Barcode_Sequence)) ||
-    any(!grepl("^[ACGT]+$", sample_sheet$Reverse_Barcode_Sequence))) {
-  stop("Every barcode sequence must be a non-empty DNA sequence containing only A, C, G, and T.")
 }
 
 # Retain both the source identifier for auditing and a sanitized identifier for
@@ -1036,12 +1025,10 @@ future executions.
 
 The required columns in
 [sample_sheet.xlsx](../../data/sample_sheet.xlsx) are `PoolNumber`,
-`SampleID`, `ForwardBarcodeSequence`, `ForwardBarcodeID`,
-`ReverseBarcodeSequence`, and `ReverseBarcodeID`.
+`SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`.
 
 - Do not rename or reorder identifiers inside barcode values such as
   `bc1024`.
-- Barcode sequences must contain only `A`, `C`, `G`, and `T`.
 - Each `PoolNumber + ForwardBarcodeID + ReverseBarcodeID` combination
   must be unique.
 

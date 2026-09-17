@@ -5531,9 +5531,10 @@ and written to the result folder for downstream notebooks.</p>
 <li>Place each <code>.fastq.zip</code> archive in its supplied pool
 folder under <a href="../../data/fastq/">data/fastq/</a>, for example
 <code>data/fastq/pool&lt;number&gt;/</code>.</li>
-<li>Use the <a href="../../data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> template
-to provide your <code>PoolNumber</code>, <code>SampleID</code>, and the
-forward/reverse barcode sequence and identifier columns.</li>
+<li>Use the <a
+href="../../data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> template
+to provide <code>PoolNumber</code>, <code>SampleID</code>,
+<code>ForwardBarcodeID</code>, and <code>ReverseBarcodeID</code>.</li>
 <li>Install the R dependencies used by this workflow using the scripts
 in <a href="../../setup/">setup/</a>.</li>
 </ul>
@@ -5548,8 +5549,7 @@ Does</h2>
 <li><strong>Archive validation</strong>: Opens each ZIP directory,
 checks member sizes, and parses Lima barcode-pair filenames.</li>
 <li><strong>Sample-sheet validation</strong>: Verifies required columns,
-pool numbers, sample identifiers, barcode IDs, and barcode
-sequences.</li>
+pool numbers, sample identifiers, and barcode IDs.</li>
 <li><strong>Sample mapping</strong>: Matches each active row by the
 exact <code>PoolNumber + ForwardBarcodeID + ReverseBarcodeID</code>
 key.</li>
@@ -5994,110 +5994,99 @@ and also verifies that the ZIP can be opened.</p>
 Sample Sheet</h2>
 <p>Required columns are resolved by their explicit names rather than by
 position. The notebook validates <code>PoolNumber</code>,
-<code>SampleID</code>, barcode sequences, and barcode IDs before using
-them for sample mapping.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Read every input column as text first. Explicit conversion below gives more</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co"># informative validation errors than automatic spreadsheet type guessing.</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>sheet_raw <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_excel</span>(</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  sequencing_sheet_path,</span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">sheet =</span> sequencing_sheet_name,</span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="st">&quot;text&quot;</span>,</span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>)</span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co"># data.table syntax is used for typed transformations and grouped summaries.</span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>sheet_raw <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(sheet_raw)</span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a></span>
-<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(sheet_raw) <span class="sc">==</span> <span class="dv">0</span><span class="dt">L</span>) <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet contains no sample rows.&quot;</span>)</span>
-<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(<span class="fu">names</span>(sheet_raw))) <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet has duplicated column names.&quot;</span>)</span>
-<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a></span>
-<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co"># Resolve columns by name rather than position so users may reorder the</span></span>
-<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co"># template without changing the workflow.</span></span>
-<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>pool_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;PoolNumber&quot;</span>), <span class="st">&quot;pool number&quot;</span></span>
-<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a>)</span>
-<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>sample_name_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;SampleID&quot;</span>), <span class="st">&quot;sample identifier&quot;</span></span>
-<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a>)</span>
-<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a>forward_barcode_sequence_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ForwardBarcodeSequence&quot;</span>), <span class="st">&quot;forward barcode sequence&quot;</span></span>
-<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>)</span>
-<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a>forward_barcode_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ForwardBarcodeID&quot;</span>),</span>
-<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a>  <span class="st">&quot;forward barcode ID&quot;</span></span>
-<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a>)</span>
-<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a>reverse_barcode_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ReverseBarcodeID&quot;</span>),</span>
-<span id="cb10-32"><a href="#cb10-32" tabindex="-1"></a>  <span class="st">&quot;reverse barcode ID&quot;</span></span>
-<span id="cb10-33"><a href="#cb10-33" tabindex="-1"></a>)</span>
-<span id="cb10-34"><a href="#cb10-34" tabindex="-1"></a>reverse_barcode_sequence_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-35"><a href="#cb10-35" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ReverseBarcodeSequence&quot;</span>), <span class="st">&quot;reverse barcode sequence&quot;</span></span>
-<span id="cb10-36"><a href="#cb10-36" tabindex="-1"></a>)</span>
-<span id="cb10-37"><a href="#cb10-37" tabindex="-1"></a></span>
-<span id="cb10-38"><a href="#cb10-38" tabindex="-1"></a><span class="co"># Create a normalized internal representation: integer pools, uppercase DNA</span></span>
-<span id="cb10-39"><a href="#cb10-39" tabindex="-1"></a><span class="co"># sequences, lowercase Lima IDs, and trimmed sample names.</span></span>
-<span id="cb10-40"><a href="#cb10-40" tabindex="-1"></a>sample_sheet <span class="ot">&lt;-</span> sheet_raw[, .(</span>
-<span id="cb10-41"><a href="#cb10-41" tabindex="-1"></a>  <span class="at">Pool_ID =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.integer</span>(<span class="fu">get</span>(pool_column))),</span>
-<span id="cb10-42"><a href="#cb10-42" tabindex="-1"></a>  <span class="at">Sample_Name_Original =</span> <span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(sample_name_column))),</span>
-<span id="cb10-43"><a href="#cb10-43" tabindex="-1"></a>  <span class="at">Forward_Barcode_Sequence =</span> <span class="fu">toupper</span>(<span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(forward_barcode_sequence_column)))),</span>
-<span id="cb10-44"><a href="#cb10-44" tabindex="-1"></a>  <span class="at">Forward_Barcode_ID =</span> <span class="fu">tolower</span>(<span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(forward_barcode_column)))),</span>
-<span id="cb10-45"><a href="#cb10-45" tabindex="-1"></a>  <span class="at">Reverse_Barcode_Sequence =</span> <span class="fu">toupper</span>(<span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(reverse_barcode_sequence_column)))),</span>
-<span id="cb10-46"><a href="#cb10-46" tabindex="-1"></a>  <span class="at">Reverse_Barcode_ID =</span> <span class="fu">tolower</span>(<span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(reverse_barcode_column))))</span>
-<span id="cb10-47"><a href="#cb10-47" tabindex="-1"></a>)]</span>
-<span id="cb10-48"><a href="#cb10-48" tabindex="-1"></a></span>
-<span id="cb10-49"><a href="#cb10-49" tabindex="-1"></a><span class="co"># Validate field domains before constructing keys. This prevents malformed</span></span>
-<span id="cb10-50"><a href="#cb10-50" tabindex="-1"></a><span class="co"># values from silently becoming unmatched samples later.</span></span>
-<span id="cb10-51"><a href="#cb10-51" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Pool_ID) <span class="sc">||</span> <span class="fu">any</span>(sample_sheet<span class="sc">$</span>Pool_ID <span class="sc">&lt;</span> <span class="dv">1</span><span class="dt">L</span>)) {</span>
-<span id="cb10-52"><a href="#cb10-52" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every sample-sheet row must have a positive integer PoolNumber.&quot;</span>)</span>
-<span id="cb10-53"><a href="#cb10-53" tabindex="-1"></a>}</span>
-<span id="cb10-54"><a href="#cb10-54" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Sample_Name_Original) <span class="sc">||</span> <span class="fu">any</span>(sample_sheet<span class="sc">$</span>Sample_Name_Original <span class="sc">==</span> <span class="st">&quot;&quot;</span>)) {</span>
-<span id="cb10-55"><a href="#cb10-55" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every sample-sheet row must have a non-empty SampleID.&quot;</span>)</span>
-<span id="cb10-56"><a href="#cb10-56" tabindex="-1"></a>}</span>
-<span id="cb10-57"><a href="#cb10-57" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Forward_Barcode_ID) <span class="sc">||</span> <span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Reverse_Barcode_ID) <span class="sc">||</span></span>
-<span id="cb10-58"><a href="#cb10-58" tabindex="-1"></a>    <span class="fu">any</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;^bc[0-9]+$&quot;</span>, sample_sheet<span class="sc">$</span>Forward_Barcode_ID)) <span class="sc">||</span></span>
-<span id="cb10-59"><a href="#cb10-59" tabindex="-1"></a>    <span class="fu">any</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;^bc[0-9]+$&quot;</span>, sample_sheet<span class="sc">$</span>Reverse_Barcode_ID))) {</span>
-<span id="cb10-60"><a href="#cb10-60" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every barcode ID must use the format bc&lt;number&gt;.&quot;</span>)</span>
-<span id="cb10-61"><a href="#cb10-61" tabindex="-1"></a>}</span>
-<span id="cb10-62"><a href="#cb10-62" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Forward_Barcode_Sequence) <span class="sc">||</span></span>
-<span id="cb10-63"><a href="#cb10-63" tabindex="-1"></a>    <span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Reverse_Barcode_Sequence) <span class="sc">||</span></span>
-<span id="cb10-64"><a href="#cb10-64" tabindex="-1"></a>    <span class="fu">any</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;^[ACGT]+$&quot;</span>, sample_sheet<span class="sc">$</span>Forward_Barcode_Sequence)) <span class="sc">||</span></span>
-<span id="cb10-65"><a href="#cb10-65" tabindex="-1"></a>    <span class="fu">any</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;^[ACGT]+$&quot;</span>, sample_sheet<span class="sc">$</span>Reverse_Barcode_Sequence))) {</span>
-<span id="cb10-66"><a href="#cb10-66" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every barcode sequence must be a non-empty DNA sequence containing only A, C, G, and T.&quot;</span>)</span>
-<span id="cb10-67"><a href="#cb10-67" tabindex="-1"></a>}</span>
-<span id="cb10-68"><a href="#cb10-68" tabindex="-1"></a></span>
-<span id="cb10-69"><a href="#cb10-69" tabindex="-1"></a><span class="co"># Retain both the source identifier for auditing and a sanitized identifier for</span></span>
-<span id="cb10-70"><a href="#cb10-70" tabindex="-1"></a><span class="co"># safe output filenames. PoolNumber remains independent metadata and is never</span></span>
-<span id="cb10-71"><a href="#cb10-71" tabindex="-1"></a><span class="co"># appended to the biological SampleID.</span></span>
-<span id="cb10-72"><a href="#cb10-72" tabindex="-1"></a>sample_sheet[, Sample_Name <span class="sc">:=</span> <span class="fu">sanitize_sample_id</span>(Sample_Name_Original)]</span>
-<span id="cb10-73"><a href="#cb10-73" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(sample_sheet<span class="sc">$</span>Sample_Name <span class="sc">==</span> <span class="st">&quot;&quot;</span>)) <span class="fu">stop</span>(<span class="st">&quot;Sample-name sanitization produced an empty identifier.&quot;</span>)</span>
-<span id="cb10-74"><a href="#cb10-74" tabindex="-1"></a></span>
-<span id="cb10-75"><a href="#cb10-75" tabindex="-1"></a><span class="co"># Use the sanitized biological identifier directly. Because SampleID is the</span></span>
-<span id="cb10-76"><a href="#cb10-76" tabindex="-1"></a><span class="co"># workflow-wide key, it must be unique across all pools; PoolNumber is carried</span></span>
-<span id="cb10-77"><a href="#cb10-77" tabindex="-1"></a><span class="co"># in its own numeric column in every table that needs pool provenance.</span></span>
-<span id="cb10-78"><a href="#cb10-78" tabindex="-1"></a>sample_sheet[, SampleID <span class="sc">:=</span> Sample_Name]</span>
-<span id="cb10-79"><a href="#cb10-79" tabindex="-1"></a><span class="co"># Construct the same composite key used for archive members, then mark rows</span></span>
-<span id="cb10-80"><a href="#cb10-80" tabindex="-1"></a><span class="co"># whose pool was actually supplied in this demo/run.</span></span>
-<span id="cb10-81"><a href="#cb10-81" tabindex="-1"></a>sample_sheet[, Mapping_Key <span class="sc">:=</span> <span class="fu">paste</span>(Pool_ID, Forward_Barcode_ID, Reverse_Barcode_ID, <span class="at">sep =</span> <span class="st">&quot;|&quot;</span>)]</span>
-<span id="cb10-82"><a href="#cb10-82" tabindex="-1"></a>sample_sheet[, Active_Pool <span class="sc">:=</span> Pool_ID <span class="sc">%in%</span> pool_inventory<span class="sc">$</span>Pool_ID]</span>
-<span id="cb10-83"><a href="#cb10-83" tabindex="-1"></a></span>
-<span id="cb10-84"><a href="#cb10-84" tabindex="-1"></a><span class="co"># Both mapping keys and output SampleIDs must be unique to guarantee a one-row,</span></span>
-<span id="cb10-85"><a href="#cb10-85" tabindex="-1"></a><span class="co"># one-input, one-output relationship.</span></span>
-<span id="cb10-86"><a href="#cb10-86" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_sheet<span class="sc">$</span>Mapping_Key)) {</span>
-<span id="cb10-87"><a href="#cb10-87" tabindex="-1"></a>  duplicate_keys <span class="ot">&lt;-</span> <span class="fu">unique</span>(sample_sheet<span class="sc">$</span>Mapping_Key[<span class="fu">duplicated</span>(sample_sheet<span class="sc">$</span>Mapping_Key)])</span>
-<span id="cb10-88"><a href="#cb10-88" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet has duplicate pool/barcode mappings: &quot;</span>, <span class="fu">paste</span>(duplicate_keys, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
-<span id="cb10-89"><a href="#cb10-89" tabindex="-1"></a>}</span>
-<span id="cb10-90"><a href="#cb10-90" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_sheet<span class="sc">$</span>SampleID)) {</span>
-<span id="cb10-91"><a href="#cb10-91" tabindex="-1"></a>  duplicate_ids <span class="ot">&lt;-</span> <span class="fu">unique</span>(sample_sheet<span class="sc">$</span>SampleID[<span class="fu">duplicated</span>(sample_sheet<span class="sc">$</span>SampleID)])</span>
-<span id="cb10-92"><a href="#cb10-92" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet produces duplicate SampleIDs: &quot;</span>, <span class="fu">paste</span>(duplicate_ids, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
-<span id="cb10-93"><a href="#cb10-93" tabindex="-1"></a>}</span>
-<span id="cb10-94"><a href="#cb10-94" tabindex="-1"></a></span>
-<span id="cb10-95"><a href="#cb10-95" tabindex="-1"></a><span class="co"># Show whether every sheet pool is active without treating intentionally absent</span></span>
-<span id="cb10-96"><a href="#cb10-96" tabindex="-1"></a><span class="co"># pools as a validation failure.</span></span>
-<span id="cb10-97"><a href="#cb10-97" tabindex="-1"></a>sheet_pool_summary <span class="ot">&lt;-</span> sample_sheet[, .(</span>
-<span id="cb10-98"><a href="#cb10-98" tabindex="-1"></a>  <span class="at">Sequencing_Sheet_Rows =</span> .N,</span>
-<span id="cb10-99"><a href="#cb10-99" tabindex="-1"></a>  <span class="at">Active_Pool =</span> <span class="fu">unique</span>(Active_Pool)</span>
-<span id="cb10-100"><a href="#cb10-100" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
-<span id="cb10-101"><a href="#cb10-101" tabindex="-1"></a><span class="fu">setorder</span>(sheet_pool_summary, Pool_ID)</span>
-<span id="cb10-102"><a href="#cb10-102" tabindex="-1"></a><span class="fu">render_table</span>(sheet_pool_summary, <span class="st">&quot;Sequencing-sheet pool coverage&quot;</span>)</span></code></pre></div>
+<code>SampleID</code>, <code>ForwardBarcodeID</code>, and
+<code>ReverseBarcodeID</code> before using them for sample mapping.
+Barcode nucleotide sequences are unnecessary because the supplied FASTQs
+have already been demultiplexed. Extra sample-sheet columns are
+ignored.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read every input column as text first. Explicit conversion below gives more</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># informative validation errors than automatic spreadsheet type guessing.</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>sheet_raw <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_excel</span>(</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  sequencing_sheet_path,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">sheet =</span> sequencing_sheet_name,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="st">&quot;text&quot;</span>,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># data.table syntax is used for typed transformations and grouped summaries.</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>sheet_raw <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(sheet_raw)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(sheet_raw) <span class="sc">==</span> <span class="dv">0</span><span class="dt">L</span>) <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet contains no sample rows.&quot;</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(<span class="fu">names</span>(sheet_raw))) <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet has duplicated column names.&quot;</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Resolve columns by name rather than position so users may reorder the</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="co"># template without changing the workflow.</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>pool_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;PoolNumber&quot;</span>), <span class="st">&quot;pool number&quot;</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>sample_name_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;SampleID&quot;</span>), <span class="st">&quot;sample identifier&quot;</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>forward_barcode_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ForwardBarcodeID&quot;</span>),</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;forward barcode ID&quot;</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>reverse_barcode_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ReverseBarcodeID&quot;</span>),</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;reverse barcode ID&quot;</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a normalized internal representation: integer pools, lowercase Lima</span></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a><span class="co"># IDs, and trimmed sample names.</span></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>sample_sheet <span class="ot">&lt;-</span> sheet_raw[, .(</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">Pool_ID =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.integer</span>(<span class="fu">get</span>(pool_column))),</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>  <span class="at">Sample_Name_Original =</span> <span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(sample_name_column))),</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">Forward_Barcode_ID =</span> <span class="fu">tolower</span>(<span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(forward_barcode_column)))),</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">Reverse_Barcode_ID =</span> <span class="fu">tolower</span>(<span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(reverse_barcode_column))))</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>)]</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Validate field domains before constructing keys. This prevents malformed</span></span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a><span class="co"># values from silently becoming unmatched samples later.</span></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Pool_ID) <span class="sc">||</span> <span class="fu">any</span>(sample_sheet<span class="sc">$</span>Pool_ID <span class="sc">&lt;</span> <span class="dv">1</span><span class="dt">L</span>)) {</span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every sample-sheet row must have a positive integer PoolNumber.&quot;</span>)</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Sample_Name_Original) <span class="sc">||</span> <span class="fu">any</span>(sample_sheet<span class="sc">$</span>Sample_Name_Original <span class="sc">==</span> <span class="st">&quot;&quot;</span>)) {</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every sample-sheet row must have a non-empty SampleID.&quot;</span>)</span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Forward_Barcode_ID) <span class="sc">||</span> <span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Reverse_Barcode_ID) <span class="sc">||</span></span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>    <span class="fu">any</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;^bc[0-9]+$&quot;</span>, sample_sheet<span class="sc">$</span>Forward_Barcode_ID)) <span class="sc">||</span></span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>    <span class="fu">any</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;^bc[0-9]+$&quot;</span>, sample_sheet<span class="sc">$</span>Reverse_Barcode_ID))) {</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every barcode ID must use the format bc&lt;number&gt;.&quot;</span>)</span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a><span class="co"># Retain both the source identifier for auditing and a sanitized identifier for</span></span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a><span class="co"># safe output filenames. PoolNumber remains independent metadata and is never</span></span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a><span class="co"># appended to the biological SampleID.</span></span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>sample_sheet[, Sample_Name <span class="sc">:=</span> <span class="fu">sanitize_sample_id</span>(Sample_Name_Original)]</span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(sample_sheet<span class="sc">$</span>Sample_Name <span class="sc">==</span> <span class="st">&quot;&quot;</span>)) <span class="fu">stop</span>(<span class="st">&quot;Sample-name sanitization produced an empty identifier.&quot;</span>)</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a><span class="co"># Use the sanitized biological identifier directly. Because SampleID is the</span></span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a><span class="co"># workflow-wide key, it must be unique across all pools; PoolNumber is carried</span></span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a><span class="co"># in its own numeric column in every table that needs pool provenance.</span></span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>sample_sheet[, SampleID <span class="sc">:=</span> Sample_Name]</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a><span class="co"># Construct the same composite key used for archive members, then mark rows</span></span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a><span class="co"># whose pool was actually supplied in this demo/run.</span></span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>sample_sheet[, Mapping_Key <span class="sc">:=</span> <span class="fu">paste</span>(Pool_ID, Forward_Barcode_ID, Reverse_Barcode_ID, <span class="at">sep =</span> <span class="st">&quot;|&quot;</span>)]</span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>sample_sheet[, Active_Pool <span class="sc">:=</span> Pool_ID <span class="sc">%in%</span> pool_inventory<span class="sc">$</span>Pool_ID]</span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a><span class="co"># Both mapping keys and output SampleIDs must be unique to guarantee a one-row,</span></span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a><span class="co"># one-input, one-output relationship.</span></span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_sheet<span class="sc">$</span>Mapping_Key)) {</span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>  duplicate_keys <span class="ot">&lt;-</span> <span class="fu">unique</span>(sample_sheet<span class="sc">$</span>Mapping_Key[<span class="fu">duplicated</span>(sample_sheet<span class="sc">$</span>Mapping_Key)])</span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet has duplicate pool/barcode mappings: &quot;</span>, <span class="fu">paste</span>(duplicate_keys, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_sheet<span class="sc">$</span>SampleID)) {</span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>  duplicate_ids <span class="ot">&lt;-</span> <span class="fu">unique</span>(sample_sheet<span class="sc">$</span>SampleID[<span class="fu">duplicated</span>(sample_sheet<span class="sc">$</span>SampleID)])</span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet produces duplicate SampleIDs: &quot;</span>, <span class="fu">paste</span>(duplicate_ids, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a><span class="co"># Show whether every sheet pool is active without treating intentionally absent</span></span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a><span class="co"># pools as a validation failure.</span></span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>sheet_pool_summary <span class="ot">&lt;-</span> sample_sheet[, .(</span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>  <span class="at">Sequencing_Sheet_Rows =</span> .N,</span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>  <span class="at">Active_Pool =</span> <span class="fu">unique</span>(Active_Pool)</span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a><span class="fu">setorder</span>(sheet_pool_summary, Pool_ID)</span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a><span class="fu">render_table</span>(sheet_pool_summary, <span class="st">&quot;Sequencing-sheet pool coverage&quot;</span>)</span></code></pre></div>
 <div class="datatables html-widget html-fill-item" id="htmlwidget-61e8dabc6f4677d22642" style="width:100%;height:auto;"></div>
 <script type="application/json" data-for="htmlwidget-61e8dabc6f4677d22642">{"x":{"filter":"none","vertical":false,"caption":"<caption>Sequencing-sheet pool coverage<\/caption>","data":[[1,2],[3,3],[true,true]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Sequencing_Sheet_Rows<\/th>\n      <th>Active_Pool<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Sequencing_Sheet_Rows","targets":1},{"name":"Active_Pool","targets":2}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
@@ -6507,16 +6496,13 @@ Archives</h2>
 <div id="missing-or-invalid-sample-sheet-columns" class="section level2" number="12.3">
 <h2><span class="header-section-number">12.3</span> Missing or Invalid
 Sample-Sheet Columns</h2>
-<p>The required columns in <a href="../../data/sample_sheet.xlsx">sample_sheet.xlsx</a> are
+<p>The required columns in <a
+href="../../data/sample_sheet.xlsx">sample_sheet.xlsx</a> are
 <code>PoolNumber</code>, <code>SampleID</code>,
-<code>ForwardBarcodeSequence</code>, <code>ForwardBarcodeID</code>,
-<code>ReverseBarcodeSequence</code>, and
-<code>ReverseBarcodeID</code>.</p>
+<code>ForwardBarcodeID</code>, and <code>ReverseBarcodeID</code>.</p>
 <ul>
 <li>Do not rename or reorder identifiers inside barcode values such as
 <code>bc1024</code>.</li>
-<li>Barcode sequences must contain only <code>A</code>, <code>C</code>,
-<code>G</code>, and <code>T</code>.</li>
 <li>Each <code>PoolNumber + ForwardBarcodeID + ReverseBarcodeID</code>
 combination must be unique.</li>
 </ul>

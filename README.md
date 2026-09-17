@@ -170,7 +170,7 @@ data/fastq/pool1/<delivery>.fastq.zip
 data/fastq/pool2/<delivery>.fastq.zip
 ```
 
-Edit [data/sample_sheet.xlsx](data/sample_sheet.xlsx) so every active barcode pair maps to a unique `SampleID` and numeric `PoolNumber`. `SampleID` must not include the pool number. [Step 1](1_data_integrity_check.md) extracts only mapped archive members and retains unmatched sample-sheet rows for review.
+Edit [data/sample_sheet.xlsx](data/sample_sheet.xlsx) using the four required columns: `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`. Each active barcode pair must map to a unique `SampleID` and numeric `PoolNumber`. `SampleID` must not include the pool number. Barcode nucleotide sequences are unnecessary because the supplied FASTQs have already been demultiplexed. [Step 1](R/notebooks/1_data_integrity_and_sample_mapping.md) extracts only mapped archive members and retains unmatched sample-sheet rows for review.
 
 See [data/README.md](data/README.md) for the complete format and consistency checks.
 

@@ -5,7 +5,7 @@ This folder contains the PacBio HiFi FASTQ archives, sequencing sample sheet, an
 ## Folder contents
 
 - [FASTQ input folder](fastq/) contains the demultiplexed PacBio HiFi FASTQ archives organized in lowercase pool folders such as `pool1` and `pool2`.
-- [Sample sheet](sample_sheet.xlsx) maps each sample to its pool and barcode pair.
+- [Sample sheet](sample_sheet.xlsx) maps each sample to its pool and barcode pair using `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`. Barcode nucleotide sequences are not required for these already-demultiplexed FASTQs.
 - [Sample metadata](metadata.tsv) contains sample annotations for downstream construction and analysis of the phyloseq object.
 - [Cell-count table](cell_count/cell_count.tsv) contains sample-level cell counts for microbial-load correction.
 
