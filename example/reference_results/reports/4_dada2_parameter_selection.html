@@ -1702,9 +1702,9 @@ th, td { text-align: left !important; white-space: nowrap !important; }
 <div id="purpose" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> Purpose</h2>
 <p>This notebook is <strong>Step 4</strong> of the PacBio HiFi
-full-length 16S workflow. It explains how to use the <a href="../shiny/dada2_parameter_selection_app.R">PacBio HiFi maxEE
+full-length 16S workflow. It explains how to use the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/shiny/dada2_parameter_selection_app.R">PacBio HiFi maxEE
 Parameter Explorer</a> to select the maximum expected-error threshold
-used by the <a href="5_dada2_pipeline.md">DADA2 pipeline in Step
+used by the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">DADA2 pipeline in Step
 5</a>.</p>
 <p>PacBio HiFi reads span the complete amplicon, so this app does not
 select <code>truncLen</code>, paired-read overlap, or separate forward
@@ -1715,10 +1715,10 @@ preserving complete reads.</p>
 <h2><span class="header-section-number">1.2</span> Prerequisites</h2>
 <p>Before opening the app, confirm that:</p>
 <ol style="list-style-type: decimal">
-<li><a href="3_primer_trimming.md">Step 3</a> completed
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">Step 3</a> completed
 successfully.</li>
 <li>Primer-trimmed FASTQ files are present in <a title="Not included in the compact curated reference set">results/3_primer_trimming/primer_trimmed_reads/</a>.</li>
-<li>The required R packages were installed with <a href="../../setup/install_R_dependencies.R">setup/install_R_dependencies.R</a>.</li>
+<li>The required R packages were installed with <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_R_dependencies.R">setup/install_R_dependencies.R</a>.</li>
 </ol>
 </div>
 <div id="expected-output" class="section level2" number="1.3">
@@ -1730,7 +1730,7 @@ successfully.</li>
 <p>The workbook contains the selected numeric
 <code>max_expected_errors</code> value, per-sample estimated retention,
 provenance, optional real-DADA2 validation results, and a
-<code>Column_Dictionary</code> sheet. <a href="5_dada2_pipeline.md">Step
+<code>Column_Dictionary</code> sheet. <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step
 5</a> loads this workbook automatically. If it is absent, Step 5 uses
 its documented fallback value.</p>
 <hr />
@@ -1797,7 +1797,7 @@ EE = \sum_i 10^{-Q_i/10}
 EE \leq maxEE
 \]</span></p>
 <p>This is a read-level filter. It differs from the mean-Q20 filter in
-<a href="2_quality_filtering.md">Step 2</a>: two reads with the same
+<a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step 2</a>: two reads with the same
 mean quality can have different expected-error totals because their
 individual base qualities differ.</p>
 <p>For full-length reads, expected errors accumulate over approximately
@@ -2060,7 +2060,7 @@ workbook consumed automatically by Step 5.
 </table>
 <p>Saving again intentionally replaces the same workbook so Step 5
 receives one unambiguous active selection.</p>
-<p>Proceed to <a href="5_dada2_pipeline.md">Step 5: DADA2 Pipeline</a>
+<p>Proceed to <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5: DADA2 Pipeline</a>
 after saving. Step 5 prints whether the active value came from the Step
 4 workbook or from its internal fallback.</p>
 <hr />
@@ -2070,7 +2070,7 @@ after saving. Step 5 prints whether the active value came from the Step
 <div id="no-fastq-files-are-found" class="section level2" number="7.1">
 <h2><span class="header-section-number">7.1</span> No FASTQ Files Are
 Found</h2>
-<p>Confirm that <a href="3_primer_trimming.md">Step 3</a> completed and
+<p>Confirm that <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">Step 3</a> completed and
 that <strong>Step 3 FASTQ folder</strong> points to <a title="Not included in the compact curated reference set">results/3_primer_trimming/primer_trimmed_reads/</a>.</p>
 </div>
 <div id="retention-is-unexpectedly-low" class="section level2" number="7.2">
@@ -2078,9 +2078,9 @@ that <strong>Step 3 FASTQ folder</strong> points to <a title="Not included in th
 Unexpectedly Low</h2>
 <ul>
 <li>Inspect whether the issue affects all samples or only a subset.</li>
-<li>Review the <a href="2_quality_filtering.md">Step 2 quality
+<li>Review the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step 2 quality
 report</a>.</li>
-<li>Confirm primer trimming and orientation in <a href="3_primer_trimming.md">Step 3</a>.</li>
+<li>Confirm primer trimming and orientation in <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">Step 3</a>.</li>
 <li>Increase <code>maxEE</code> gradually while inspecting the shape of
 the retention curve.</li>
 <li>Validate representative samples before exporting a substantially
@@ -2113,10 +2113,10 @@ filtering tutorial</a></li>
 <code>filterAndTrim()</code> documentation</a></li>
 <li><a href="https://benjjneb.github.io/dada2/tutorial_1_8.html">DADA2
 PacBio workflow</a></li>
-<li><a href="../shiny/dada2_parameter_selection_app.R">PacBio HiFi maxEE
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/shiny/dada2_parameter_selection_app.R">PacBio HiFi maxEE
 app source</a></li>
-<li><a href="3_primer_trimming.md">Step 3 primer trimming</a></li>
-<li><a href="5_dada2_pipeline.md">Step 5 DADA2 pipeline</a></li>
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">Step 3 primer trimming</a></li>
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5 DADA2 pipeline</a></li>
 </ul>
 </div>
 

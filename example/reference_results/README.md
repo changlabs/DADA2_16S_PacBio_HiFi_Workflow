@@ -11,7 +11,7 @@ The `reports/` directory contains rendered HTML reports for every step. Steps 1â
 - PICRUSt2 copy-number-corrected and microbial-load-corrected abundance tables with their audit workbooks; and
 - six final tree-bearing phyloseq objects: raw, copy-number-corrected, and microbial-load-corrected abundance for each of SILVA and GTDB, plus both summary workbooks.
 
-Reproducible FASTQ intermediates, checkpoints, console logs, PICRUSt2 placement files, and separate interactive barplot dependency folders are intentionally omitted. Rerunning the example recreates them under the ignored `example/run_results/` tree and never overwrites these committed reference results automatically.
+Reproducible FASTQ intermediates, checkpoints, console logs, PICRUSt2 placement files, and separate interactive barplot dependency folders are intentionally omitted. Links to bundled outputs and tracked workflow source files remain clickable in the executed reports; omitted runtime targets are displayed as annotated plain text instead of broken links. Rerunning the example recreates the complete output tree under the ignored `example/run_results/` directory and never overwrites these committed reference results automatically.
 
 The cell-count inputs used by Steps 8 and 9 are synthetic test values, not measurements from the source study. Do not use them for biological interpretation. See [`../data/cell_count/README.md`](../data/cell_count/README.md) for the assumptions and supporting references.
 

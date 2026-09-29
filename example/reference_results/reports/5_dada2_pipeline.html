@@ -5402,9 +5402,14 @@ border-radius: 0px;
 
 
 
+<style id="reference-report-link-status">
+.reference-report-note { margin: 1rem auto; max-width: 1200px; padding: .8rem 1rem; border-left: 4px solid #2f6f73; background: #eef7f7; color: #243b3d; font-size: .95rem; }
+.reference-omitted { color: #5f6368; text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
+</style>
 </head>
 
 <body>
+<aside class="reference-report-note" role="note"><strong>Compact reference report:</strong> Links remain active for bundled outputs and tracked workflow source files. Dotted labels identify runtime tools or reproducible files intentionally omitted from the compact bundle. Run <code>Rscript example/run_example.R</code> to recreate the complete local output tree under <code>example/run_results/</code>.</aside>
 
 
 <div class="container-fluid main-container">
@@ -5498,16 +5503,16 @@ reporting, checkpoints, taxonomy assignment, and portable exports.</p>
 <h2><span class="header-section-number">1.2</span> Prerequisites</h2>
 <p>Before running this notebook, ensure that:</p>
 <ol style="list-style-type: decimal">
-<li><strong><a href="3_primer_trimming.md">Step 3 (Primer Trimming and
+<li><strong><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">Step 3 (Primer Trimming and
 Orientation)</a></strong> has completed successfully.</li>
 <li>Primer-trimmed FASTQ files are present in <a title="Not included in the compact curated reference set">results/3_primer_trimming/primer_trimmed_reads/</a>.</li>
 <li>The Step 3 workbook <a href="../3_primer_trimming/primer_trimming_summary.xlsx">primer_trimming_summary.xlsx</a>
 is present and contains the sample-to-pool mapping.</li>
 <li><strong>Recommended</strong>: select and export <code>maxEE</code>
-with the <a href="4_dada2_parameter_selection.md">Step 4 PacBio maxEE
+with the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/4_dada2_parameter_selection.md">Step 4 PacBio maxEE
 Parameter Explorer</a>. If its workbook is absent, this notebook uses
 the documented fallback <code>maxEE = 2</code>.</li>
-<li>Taxonomy training sets are available in <a href="../../tools/trainsets/">tools/trainsets/</a> if taxonomy
+<li>Taxonomy training sets are available in <span class="reference-omitted" title="Created or installed by a complete local example run; intentionally omitted from the compact reference bundle.">tools/trainsets/</span> if taxonomy
 assignment is required. ASV inference still runs when those optional
 references are absent.</li>
 </ol>
@@ -5690,8 +5695,8 @@ workflow.</p>
 <span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a></span>
 <span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Input folder:&quot;</span>, input_folder, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
 <span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>    <span class="st">&quot;Output folder:&quot;</span>, output_folder, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Input folder: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/3_primer_trimming/primer_trimmed_reads 
-##  Output folder: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline</code></pre>
+<pre><code>## Input folder: PROJECT_ROOT/example/run_results/3_primer_trimming/primer_trimmed_reads
+##  Output folder: PROJECT_ROOT/example/run_results/5_dada2_pipeline</code></pre>
 </div>
 <div id="configure-dada2" class="section level2" number="3.2">
 <h2><span class="header-section-number">3.2</span> Configure DADA2
@@ -6341,13 +6346,13 @@ sample with the learned PacBio error model. The
 <code>pool = FALSE</code> setting keeps sample inference independent
 rather than pooled or pseudo-pooled.</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>dereplicated_sequences <span class="ot">&lt;-</span> <span class="fu">derepFastq</span>(filtered_paths, <span class="at">verbose =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
-<pre><code>## Dereplicating sequence entries in Fastq file: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/filtered_reads/Subject-R11-Timepoint-1_filtered.fastq</code></pre>
+<pre><code>## Dereplicating sequence entries in Fastq file: PROJECT_ROOT/example/run_results/5_dada2_pipeline/filtered_reads/Subject-R11-Timepoint-1_filtered.fastq</code></pre>
 <pre><code>## Encountered 1500 unique sequences from 4911 total sequences read.</code></pre>
-<pre><code>## Dereplicating sequence entries in Fastq file: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/filtered_reads/Subject-R3-Timepoint-1_filtered.fastq</code></pre>
+<pre><code>## Dereplicating sequence entries in Fastq file: PROJECT_ROOT/example/run_results/5_dada2_pipeline/filtered_reads/Subject-R3-Timepoint-1_filtered.fastq</code></pre>
 <pre><code>## Encountered 1198 unique sequences from 4910 total sequences read.</code></pre>
-<pre><code>## Dereplicating sequence entries in Fastq file: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/filtered_reads/Subject-R3-Timepoint-2_filtered.fastq</code></pre>
+<pre><code>## Dereplicating sequence entries in Fastq file: PROJECT_ROOT/example/run_results/5_dada2_pipeline/filtered_reads/Subject-R3-Timepoint-2_filtered.fastq</code></pre>
 <pre><code>## Encountered 1327 unique sequences from 4919 total sequences read.</code></pre>
-<pre><code>## Dereplicating sequence entries in Fastq file: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/filtered_reads/Subject-R3-Timepoint-3_filtered.fastq</code></pre>
+<pre><code>## Dereplicating sequence entries in Fastq file: PROJECT_ROOT/example/run_results/5_dada2_pipeline/filtered_reads/Subject-R3-Timepoint-3_filtered.fastq</code></pre>
 <pre><code>## Encountered 1271 unique sequences from 4923 total sequences read.</code></pre>
 <div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">names</span>(dereplicated_sequences) <span class="ot">&lt;-</span> sample_names</span>
 <span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a></span>
@@ -7314,8 +7319,8 @@ separately as reusable CSV files.</p>
 <span id="cb52-15"><a href="#cb52-15" tabindex="-1"></a>    <span class="at">overwrite =</span> <span class="cn">FALSE</span></span>
 <span id="cb52-16"><a href="#cb52-16" tabindex="-1"></a>  )</span>
 <span id="cb52-17"><a href="#cb52-17" tabindex="-1"></a>}</span></code></pre></div>
-<pre><code>## Sheet Reads_Tracking added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/processing_summary.xlsx</code></pre>
-<pre><code>## Sheet Database_Comparison added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/processing_summary.xlsx</code></pre>
+<pre><code>## Sheet Reads_Tracking added successfully to the workbook: PROJECT_ROOT/example/run_results/5_dada2_pipeline/processing_summary.xlsx</code></pre>
+<pre><code>## Sheet Database_Comparison added successfully to the workbook: PROJECT_ROOT/example/run_results/5_dada2_pipeline/processing_summary.xlsx</code></pre>
 <p>The report lists the processing-summary sheets written before the
 column dictionary is appended.</p>
 <pre><code>## Added sheets: Reads_Tracking, Database_Comparison</code></pre>
@@ -7510,8 +7515,8 @@ Step</h1>
 count table</a> and <a href="../5_dada2_pipeline/asv_sequences.csv">ASV
 representative sequences</a>, together with the taxonomy CSV files
 generated for the selected databases, are the required inputs for
-downstream phylogenetic tree construction <a href="6_phylogenetic_tree.md">(Step 6)</a>, 16S-copy number correction
-<a href="7_copy_number_correction.md">(Step 7)</a> or <a href="9_phyloseq_object.md">(Step 9)</a>, which are all
+downstream phylogenetic tree construction <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/6_phylogenetic_tree.md">(Step 6)</a>, 16S-copy number correction
+<a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/7_copy_number_correction.md">(Step 7)</a> or <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/9_phyloseq_object.md">(Step 9)</a>, which are all
 <strong>optional</strong> steps.</p>
 <hr />
 </div>
@@ -7611,10 +7616,10 @@ Database</a></li>
 <div id="related" class="section level2" number="17.2">
 <h2><span class="header-section-number">17.2</span> Related</h2>
 <ul>
-<li><a href="1_data_integrity_and_sample_mapping.md">Step 1 — Data
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/1_data_integrity_and_sample_mapping.md">Step 1 — Data
 Integrity and Sample Mapping</a></li>
-<li><a href="2_quality_filtering.md">Step 2 — Quality Filtering</a></li>
-<li><a href="3_primer_trimming.md">Step 3 — Primer Trimming and
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step 2 — Quality Filtering</a></li>
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">Step 3 — Primer Trimming and
 Orientation</a></li>
 <li><a href="../5_dada2_pipeline/processing_summary.xlsx">Step 5
 results workbook</a></li>
@@ -7648,14 +7653,14 @@ necessary.</p>
 <div id="no-taxonomy-tables-are-produced" class="section level2" number="18.3">
 <h2><span class="header-section-number">18.3</span> No Taxonomy Tables
 Are Produced</h2>
-<p>Taxonomy is intentionally skipped when neither <a href="../../tools/trainsets/SILVA/">tools/trainsets/SILVA/</a> nor <a href="../../tools/trainsets/GTDB/">tools/trainsets/GTDB/</a> contains
-both a genus training FASTA and species assignment FASTA. Run <a href="../../setup/download_reference_databases.R">setup/download_reference_databases.R</a>,
+<p>Taxonomy is intentionally skipped when neither <span class="reference-omitted" title="Created or installed by a complete local example run; intentionally omitted from the compact reference bundle.">tools/trainsets/SILVA/</span> nor <span class="reference-omitted" title="Created or installed by a complete local example run; intentionally omitted from the compact reference bundle.">tools/trainsets/GTDB/</span> contains
+both a genus training FASTA and species assignment FASTA. Run <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/download_reference_databases.R">setup/download_reference_databases.R</a>,
 then rerun this notebook.</p>
 </div>
 <div id="high-chimera-rate" class="section level2" number="18.4">
 <h2><span class="header-section-number">18.4</span> High Chimera
 Rate</h2>
-<p>Confirm that <a href="3_primer_trimming.md">Step 3</a> retained the
+<p>Confirm that <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">Step 3</a> retained the
 expected linked primer-pair structure and that the configured length
 interval matches the amplified locus. Excessive PCR cycling, off-target
 amplification, and incomplete primer removal can all increase apparent

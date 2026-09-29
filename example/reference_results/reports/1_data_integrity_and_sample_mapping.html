@@ -5519,7 +5519,7 @@ overflow-x: auto !important;
 <p>This notebook is <strong>Step 1</strong> of the PacBio HiFi
 full-length 16S rRNA workflow. It validates the demultiplexed raw <a href="https://doi.org/10.1093/nar/gkp1137">FASTQ</a> zipped files and
 converts <a href="https://github.com/PacificBiosciences/barcoding">Lima</a>
-barcode-pair filenames into stable biological sample identities using <a href="../../data/sample_sheet.xlsx">data/sample_sheet.xlsx</a>.</p>
+barcode-pair filenames into stable biological sample identities using <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a>.</p>
 <p>Only FASTQ files that match an active sample-sheet row are extracted
 and written to the result folder for downstream notebooks.</p>
 </div>
@@ -5528,13 +5528,13 @@ and written to the result folder for downstream notebooks.</p>
 <p>Before running this notebook:</p>
 <ul>
 <li>Place each <code>.fastq.zip</code> archive in its supplied pool
-folder under <a href="../../data/fastq/">data/fastq/</a>, for example
+folder under <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/example/data/fastq">data/fastq/</a>, for example
 <code>data/fastq/pool&lt;number&gt;/</code>.</li>
-<li>Use the <a href="../../data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> template
+<li>Use the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> template
 to provide <code>PoolNumber</code>, <code>SampleID</code>,
 <code>ForwardBarcodeID</code>, and <code>ReverseBarcodeID</code>.</li>
 <li>Install the R dependencies used by this workflow using the scripts
-in <a href="../../setup/">setup/</a>.</li>
+in <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/setup">setup/</a>.</li>
 </ul>
 </div>
 <div id="what-this-notebook-does" class="section level2" number="1.3">
@@ -5565,7 +5565,7 @@ dictionary to <a href="../1_data_integrity_and_sample_mapping/data_integrity_and
 <ul>
 <li><code>data/fastq/pool&lt;number&gt;/&lt;archive&gt;.fastq.zip</code>
 — one ZIP archive per supplied pool.</li>
-<li><a href="../../data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
 sample-to-pool and barcode-pair mapping.</li>
 </ul>
 </div>
@@ -5586,7 +5586,7 @@ sample-to-pool and barcode-pair mapping.</li>
 <h2><span class="header-section-number">2.1</span> Load Required
 Packages</h2>
 <p>The chunk below loads every R package this notebook depends on and
-sources the four reusable reporting helpers from <a href="../functions/">R/functions/</a>: Excel worksheet writing,
+sources the four reusable reporting helpers from <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/R/functions">R/functions/</a>: Excel worksheet writing,
 column-dictionary documentation, clickable output links, and the live
 output-tree summary.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Keep the dependency list explicit so a missing package produces one clear</span></span>
@@ -5835,7 +5835,7 @@ Sample Mapping</h1>
 <div id="validate-input-paths" class="section level2" number="5.1">
 <h2><span class="header-section-number">5.1</span> Validate Input
 Paths</h2>
-<p>Confirm that the raw FASTQ root and <a href="../../data/sample_sheet.xlsx">sample_sheet.xlsx</a> exist, then
+<p>Confirm that the raw FASTQ root and <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">sample_sheet.xlsx</a> exist, then
 create this step’s <a href="../1_data_integrity_and_sample_mapping/">results/1_data_integrity_and_sample_mapping/</a>
 and <a title="Not included in the compact curated reference set">mapped_fastq/</a>
 output folders if necessary.</p>
@@ -5852,9 +5852,9 @@ output folders if necessary.</p>
 <p>The report now records the resolved input and output locations. These
 paths help diagnose an incorrect project root without exposing the
 simple reporting code as a separate visible block.</p>
-<pre><code>## Raw FASTQ root: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/data/fastq</code></pre>
-<pre><code>## Sample sheet: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/data/sample_sheet.xlsx</code></pre>
-<pre><code>## Results folder: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/1_data_integrity_and_sample_mapping</code></pre>
+<pre><code>## Raw FASTQ root: PROJECT_ROOT/example/data/fastq</code></pre>
+<pre><code>## Sample sheet: PROJECT_ROOT/example/data/sample_sheet.xlsx</code></pre>
+<pre><code>## Results folder: PROJECT_ROOT/example/run_results/1_data_integrity_and_sample_mapping</code></pre>
 </div>
 <div id="discover-pools" class="section level2" number="5.2">
 <h2><span class="header-section-number">5.2</span> Discover Pools and
@@ -5916,7 +5916,7 @@ not treated as failures.</p>
 <span id="cb8-50"><a href="#cb8-50" tabindex="-1"></a>             <span class="st">&quot;Supplied PacBio pool archives&quot;</span>,</span>
 <span id="cb8-51"><a href="#cb8-51" tabindex="-1"></a>             <span class="at">column_widths =</span> <span class="fu">c</span>(<span class="st">&quot;80px&quot;</span>, <span class="st">&quot;120px&quot;</span>, <span class="st">&quot;120px&quot;</span>, <span class="cn">NA_character_</span>))</span></code></pre></div>
 <div class="datatables html-widget html-fill-item" id="htmlwidget-89d284fc2e47714b7ee6" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-89d284fc2e47714b7ee6">{"x":{"filter":"none","vertical":false,"caption":"<caption>Supplied PacBio pool archives<\/caption>","data":[[1],["pool1"],[1],["/Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/data/fastq/pool1/Callahan-Fecal-HiFi-Example.fastq.zip"]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Pool_Directory<\/th>\n      <th>Archive_Count<\/th>\n      <th>Archive_Path<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":true,"columnDefs":[{"className":"dt-left","targets":"_all"},{"targets":0,"width":"80px"},{"targets":1,"width":"120px"},{"targets":2,"width":"120px"},{"name":"Pool_ID","targets":0},{"name":"Pool_Directory","targets":1},{"name":"Archive_Count","targets":2},{"name":"Archive_Path","targets":3}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-89d284fc2e47714b7ee6">{"x":{"filter":"none","vertical":false,"caption":"<caption>Supplied PacBio pool archives<\/caption>","data":[[1],["pool1"],[1],["PROJECT_ROOT/example/data/fastq/pool1/Callahan-Fecal-HiFi-Example.fastq.zip"]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Pool_Directory<\/th>\n      <th>Archive_Count<\/th>\n      <th>Archive_Path<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":true,"columnDefs":[{"className":"dt-left","targets":"_all"},{"targets":0,"width":"80px"},{"targets":1,"width":"120px"},{"targets":2,"width":"120px"},{"name":"Pool_ID","targets":0},{"name":"Pool_Directory","targets":1},{"name":"Archive_Count","targets":2},{"name":"Archive_Path","targets":3}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="validate-archives" class="section level2" number="5.3">
 <h2><span class="header-section-number">5.3</span> Validate ZIP Archives
@@ -6147,7 +6147,7 @@ Matched FASTQ Files</h2>
 directory and then moved to its deterministic workflow filename. Because
 this notebook owns <a title="Not included in the compact curated reference set">results/1_data_integrity_and_sample_mapping/mapped_fastq/</a>,
 possible stale FASTQ files existing from earlier runs are cleared from
-that managed folder before extraction. Raw files under <a href="../../data/">data/</a> are never changed.</p>
+that managed folder before extraction. Raw files under <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/example/data">data/</a> are never changed.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Do not create a partial mapped dataset: all active rows must resolve before</span></span>
 <span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co"># extraction begins.</span></span>
 <span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(missing_active_samples) <span class="sc">&gt;</span> <span class="dv">0</span><span class="dt">L</span>) {</span>
@@ -6207,7 +6207,7 @@ that managed folder before extraction. Raw files under <a href="../../data/">dat
 <p>After all matched members have been published under their
 sample-based filenames, the report confirms how many FASTQ files were
 extracted and where they were written.</p>
-<pre><code>## Extracted 4 sample FASTQ files to /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/1_data_integrity_and_sample_mapping/mapped_fastq</code></pre>
+<pre><code>## Extracted 4 sample FASTQ files to PROJECT_ROOT/example/run_results/1_data_integrity_and_sample_mapping/mapped_fastq</code></pre>
 </div>
 <div id="validate-fastq" class="section level2" number="5.7">
 <h2><span class="header-section-number">5.7</span> Validate Extracted
@@ -6270,7 +6270,7 @@ downstream primer-removal step.</p>
 Export Tables to Excel</h2>
 <p>Assemble the typed run summary, sample manifest, archive inventory,
 and optional inactive-row table; document every exported column with the
-shared <a href="../functions/build_column_dictionary_function.R">build_column_dictionary_function.R</a>
+shared <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/functions/build_column_dictionary_function.R">build_column_dictionary_function.R</a>
 helper; and save the complete workbook as <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>.
 An extra <code>Inactive_Sheet_Rows</code> worksheet is included only
 when at least one sample-sheet row refers to a pool for which no FASTQ
@@ -6278,7 +6278,7 @@ archive was supplied.</p>
 <p>The workbook path printed below identifies the complete audit
 artifact to review before accepting the final integrity decision.</p>
 <pre><code>## Results exported to:
-##  /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx</code></pre>
+##  PROJECT_ROOT/example/run_results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx</code></pre>
 </div>
 <div id="final-decision" class="section level2" number="6.2">
 <h2><span class="header-section-number">6.2</span> Final Integrity
@@ -6309,7 +6309,7 @@ the number of workflow-ready samples and supplied pools.</p>
 <div id="output-files" class="section level1" number="7">
 <h1><span class="header-section-number">7</span> Output Files</h1>
 <p>The link below opens the Excel workbook generated by this run. It is
-rendered at knit time by the shared <a href="../functions/render_output_links_function.R">render_output_links_function.R</a>
+rendered at knit time by the shared <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/functions/render_output_links_function.R">render_output_links_function.R</a>
 helper so the GitHub document contains a portable relative link rather
 than a machine-specific absolute path.</p>
 <ul>
@@ -6323,7 +6323,7 @@ example/run_results/1_data_integrity_and_sample_mapping/data_integrity_and_sampl
 <h1><span class="header-section-number">8</span> Output File
 Summary</h1>
 <p>The tree below lists the current contents of <a href="../1_data_integrity_and_sample_mapping/">results/1_data_integrity_and_sample_mapping/</a>
-as clickable links, generated live from disk by <a href="../functions/render_output_tree_function.R">render_output_tree_function.R</a>.
+as clickable links, generated live from disk by <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/functions/render_output_tree_function.R">render_output_tree_function.R</a>.
 This avoids maintaining a separate output list that could drift away
 from the files actually produced.</p>
 <pre>
@@ -6340,7 +6340,7 @@ example/run_results/1_data_integrity_and_sample_mapping/
 <div id="recommended-next-step" class="section level1" number="9">
 <h1><span class="header-section-number">9</span> Recommended Next
 Step</h1>
-<p>After this notebook passes, continue with <a href="2_quality_filtering.md">Step 2 (PacBio HiFi Quality
+<p>After this notebook passes, continue with <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step 2 (PacBio HiFi Quality
 Filtering)</a>. That notebook reads sample identities from the
 <code>Sample_Manifest</code> worksheet in <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>
 and analyzes the validated FASTQ files in <a title="Not included in the compact curated reference set">mapped_fastq/</a>,
@@ -6475,9 +6475,9 @@ documentation</a></li>
 <h2><span class="header-section-number">11.3</span> Related Project
 Files</h2>
 <ul>
-<li><a href="../../data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
 editable PacBio sample and barcode mapping.</li>
-<li><a href="../functions/">R/functions/</a> — shared report-writing and
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/R/functions">R/functions/</a> — shared report-writing and
 output-rendering helpers.</li>
 </ul>
 <hr />
@@ -6492,7 +6492,7 @@ Found</h2>
 <p><strong>Error</strong>:
 <code>No pool directories were found under ...</code></p>
 <ul>
-<li>Confirm that each supplied archive is under <a href="../../data/fastq/">data/fastq/</a><code>pool&lt;number&gt;/</code>.</li>
+<li>Confirm that each supplied archive is under <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/example/data/fastq">data/fastq/</a><code>pool&lt;number&gt;/</code>.</li>
 <li>Use lowercase directory names such as <code>pool1</code> and
 <code>pool2</code>; additional text is not accepted.</li>
 </ul>
@@ -6512,7 +6512,7 @@ Archives</h2>
 <div id="missing-or-invalid-sample-sheet-columns" class="section level2" number="12.3">
 <h2><span class="header-section-number">12.3</span> Missing or Invalid
 Sample-Sheet Columns</h2>
-<p>The required columns in <a href="../../data/sample_sheet.xlsx">sample_sheet.xlsx</a> are
+<p>The required columns in <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">sample_sheet.xlsx</a> are
 <code>PoolNumber</code>, <code>SampleID</code>,
 <code>ForwardBarcodeID</code>, and <code>ReverseBarcodeID</code>.</p>
 <ul>

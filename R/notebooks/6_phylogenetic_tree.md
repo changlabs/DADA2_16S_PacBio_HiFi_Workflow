@@ -124,8 +124,8 @@ table {
 This notebook is **Step 6** of the PacBio HiFi full-length 16S workflow.
 It constructs a phylogenetic tree from the representative ASV sequences
 generated in [Step 5](5_dada2_pipeline.md): sequences are aligned with
-[DECIPHER](http://www2.decipher.codes/), then
-[FastTree](http://www.microbesonline.org/fasttree/#Install) infers an
+[DECIPHER](https://www2.decipher.codes/), then
+[FastTree](https://morgannprice.github.io/fasttree/) infers an
 approximate maximum-likelihood tree under the GTR+CAT model.
 
 This step is optional in the sense that [Step 9 (Phyloseq
@@ -166,7 +166,7 @@ Before running this notebook, ensure that:
 3.  The project-local **FastTree** executable is installed at
     [tools/fasttree/FastTree](../../tools/fasttree/FastTree) by running
     [setup/install_required_tools.R](../../setup/install_required_tools.R).
-4.  **[DECIPHER](http://www2.decipher.codes/)** package is installed
+4.  **[DECIPHER](https://www2.decipher.codes/)** package is installed
     from Bioconductor.
 
 ## What This Notebook Does

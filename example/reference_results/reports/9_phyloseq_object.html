@@ -6480,24 +6480,24 @@ plots in the combined report.</p>
 <h2><span class="header-section-number">1.2</span> Prerequisites</h2>
 <p>Before running this notebook, ensure that:</p>
 <ol style="list-style-type: decimal">
-<li><strong><a href="5_dada2_pipeline.md">Step 5 (DADA2
+<li><strong><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5 (DADA2
 Pipeline)</a></strong> has been completed successfully.</li>
 <li>The ASV count table (<a href="../5_dada2_pipeline/asv_count_table.csv">asv_count_table.csv</a>)
 is present in <a href="../5_dada2_pipeline/">results/5_dada2_pipeline/</a>.</li>
 <li>At least one taxonomy table is present (<a href="../5_dada2_pipeline/silva_taxonomy_table.csv">silva_taxonomy_table.csv</a>
 and/or <a href="../5_dada2_pipeline/gtdb_taxonomy_table.csv">gtdb_taxonomy_table.csv</a>).</li>
-<li><strong>Optional</strong>: <a href="7_copy_number_correction.md">Step 7 (Copy Number Correction)</a>
+<li><strong>Optional</strong>: <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/7_copy_number_correction.md">Step 7 (Copy Number Correction)</a>
 has been run, to additionally build a copy-number-corrected phyloseq
 object per taxonomy database.</li>
-<li><strong>Optional</strong>: <a href="8_microbial_load_correction.md">Step 8 (Microbial Load
+<li><strong>Optional</strong>: <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8 (Microbial Load
 Correction)</a> has been run, to additionally build a
 microbial-load-corrected phyloseq object per taxonomy database.</li>
 <li><strong>Optional</strong>: A sample metadata file in TSV (or CSV)
-format – see <a href="../../data/README.md">data/README.md</a> for the
+format – see <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/data/README.md">data/README.md</a> for the
 required identifiers and editable example fields. Replace the
-demonstration rows and annotations in <a href="../../data/metadata.tsv">data/metadata.tsv</a> before interpreting
+demonstration rows and annotations in <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/metadata.tsv">data/metadata.tsv</a> before interpreting
 metadata-based groupings.</li>
-<li><strong>Optional</strong>: Phylogenetic trees from <a href="6_phylogenetic_tree.md">Step 6</a>.</li>
+<li><strong>Optional</strong>: Phylogenetic trees from <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/6_phylogenetic_tree.md">Step 6</a>.</li>
 </ol>
 </div>
 <div id="what-this-notebook-does" class="section level2" number="1.3">
@@ -6544,7 +6544,7 @@ and/or <a href="../5_dada2_pipeline/gtdb_taxonomy_table.csv">gtdb_taxonomy_table
 (Step 8).</li>
 <li><a href="../6_phylogenetic_tree/phylogenetic_tree.nwk">results/6_phylogenetic_tree/phylogenetic_tree.nwk</a>
 (Step 6).</li>
-<li>Sample metadata TSV (or CSV) file – see <a href="../../data/README.md">data/README.md</a>.</li>
+<li>Sample metadata TSV (or CSV) file – see <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/data/README.md">data/README.md</a>.</li>
 </ul></li>
 </ul>
 </div>
@@ -6585,8 +6585,8 @@ disk outputs.</li>
 <h1><span class="header-section-number">2</span> Environment Setup</h1>
 <div class="alert alert-info">
 <p><strong>Before running this notebook</strong>: install the required R
-packages by running <a href="../../setup/install_R_dependencies.R">setup/install_R_dependencies.R</a>.
-Complete <a href="5_dada2_pipeline.md">Step 5</a> at minimum; <a href="6_phylogenetic_tree.md">Step 6</a>, <a href="7_copy_number_correction.md">Step 7</a>, and <a href="8_microbial_load_correction.md">Step 8</a> are optional and are
+packages by running <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_R_dependencies.R">setup/install_R_dependencies.R</a>.
+Complete <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5</a> at minimum; <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/6_phylogenetic_tree.md">Step 6</a>, <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/7_copy_number_correction.md">Step 7</a>, and <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8</a> are optional and are
 picked up automatically if present.</p>
 </div>
 <div id="load-packages" class="section level2" number="2.1">
@@ -6595,7 +6595,7 @@ Packages</h2>
 <p>The chunk below loads every R package this notebook depends on, plus
 helper functions shared across the whole pipeline: Excel writing,
 column-dictionary documentation, and clickable output links (each
-sourced from <a href="../functions">R/functions/</a>).</p>
+sourced from <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/R/functions">R/functions/</a>).</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># phyloseq: Core package for microbiome data analysis</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># Provides data structures and functions for microbiome analysis</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(phyloseq)</span>
@@ -6681,7 +6681,7 @@ sourced from <a href="../functions">R/functions/</a>).</p>
 <h2><span class="header-section-number">3.1</span> Define Path
 Parameters</h2>
 <p>Set up the input and output directory paths. Using
-<code>here()</code> ensures paths are relative to the <a href="../../">project root</a>, making the script portable across
+<code>here()</code> ensures paths are relative to the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/example">project root</a>, making the script portable across
 different systems.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Base results folder for all pipeline outputs</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>results_folder <span class="ot">&lt;-</span> <span class="fu">workflow_results_dir</span>()</span>
@@ -6710,7 +6710,7 @@ different systems.</p>
 <span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a></span>
 <span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Created the Step 9 output directory:</span><span class="sc">\n</span><span class="st">&quot;</span>, output_folder, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Created the Step 9 output directory:
-##  /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object</code></pre>
+##  PROJECT_ROOT/example/run_results/9_phyloseq_object</code></pre>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Every output this notebook writes -- phyloseq .RData objects, barplots, and</span></span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co"># the summary workbook -- is split into one self-contained subfolder per</span></span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># taxonomy database (e.g. results/9_phyloseq_object/SILVA/,</span></span>
@@ -6766,11 +6766,11 @@ whether it is processing the combined dataset or one pool and which
 optional inputs were requested.</p>
 <pre><code>## Path Configuration:
 ##  - Processing scope: all pools combined 
-##  - DADA2 results folder: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline 
-##  - Tree results folder: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/6_phylogenetic_tree 
-##  - Copy-number-correction results folder: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction 
-##  - Microbial-load-correction results folder: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/8_microbial_load_correction 
-##  - Final output folder: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object 
+##  - DADA2 results folder: PROJECT_ROOT/example/run_results/5_dada2_pipeline
+##  - Tree results folder: PROJECT_ROOT/example/run_results/6_phylogenetic_tree
+##  - Copy-number-correction results folder: PROJECT_ROOT/example/run_results/7_copy_number_correction
+##  - Microbial-load-correction results folder: PROJECT_ROOT/example/run_results/8_microbial_load_correction
+##  - Final output folder: PROJECT_ROOT/example/run_results/9_phyloseq_object
 ##  - Per-database subfolders and Excel workbooks: created automatically below,
 ##    once Load Taxonomy Table(s) has determined which database(s) are available</code></pre>
 </div>
@@ -6823,7 +6823,7 @@ disk.</p>
 <span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>    <span class="st">&quot;- Top taxa for visualization:&quot;</span>, n_top_taxa, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Data Selection Configuration:
 ##  - Taxonomy database(s): auto-detected below, in Load Taxonomy Table(s)
-##  - Metadata file: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/data/metadata.tsv 
+##  - Metadata file: PROJECT_ROOT/example/data/metadata.tsv
 ##  - Include phylogenetic tree: TRUE 
 ##  - Top taxa for visualization: 10</code></pre>
 <hr />
@@ -7000,15 +7000,15 @@ abundance tables.</p>
 <span id="cb9-124"><a href="#cb9-124" tabindex="-1"></a>    }</span>
 <span id="cb9-125"><a href="#cb9-125" tabindex="-1"></a>}</span></code></pre></div>
 <pre><code>## Raw Counts abundance table found:
-##      /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/asv_count_table.csv 
+##      PROJECT_ROOT/example/run_results/5_dada2_pipeline/asv_count_table.csv
 ##    Samples: 4 
 ##    ASVs: 238 
 ## Copy-Number Corrected abundance table found:
-##      /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/copy_number_corrected_asv_count_table.csv 
+##      PROJECT_ROOT/example/run_results/7_copy_number_correction/copy_number_corrected_asv_count_table.csv
 ##    Samples: 4 
 ##    ASVs: 238 
 ## Microbial-Load Corrected abundance table found:
-##      /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/8_microbial_load_correction/microbial_load_corrected_abundance_table.csv 
+##      PROJECT_ROOT/example/run_results/8_microbial_load_correction/microbial_load_corrected_abundance_table.csv
 ##    Samples: 4 
 ##    ASVs: 238</code></pre>
 <p>The report lists the abundance sources that passed provenance and
@@ -7051,8 +7051,8 @@ one taxonomy assignment.</p>
 <span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a>            <span class="st">&quot;   Expected at:&quot;</span>, db_path, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
 <span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a>    }</span>
 <span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a>}</span></code></pre></div>
-<pre><code>## SILVA taxonomy file found: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/silva_taxonomy_table.csv 
-## GTDB taxonomy file found: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/gtdb_taxonomy_table.csv</code></pre>
+<pre><code>## SILVA taxonomy file found: PROJECT_ROOT/example/run_results/5_dada2_pipeline/silva_taxonomy_table.csv
+## GTDB taxonomy file found: PROJECT_ROOT/example/run_results/5_dada2_pipeline/gtdb_taxonomy_table.csv</code></pre>
 <p>The next gate requires at least one current SILVA or GTDB taxonomy
 table before object construction can proceed.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Check that at least one taxonomy file was found</span></span>
@@ -7081,7 +7081,7 @@ layout, and checked against the Step 5 ASV identifiers.</p>
 (Optional)</h2>
 <p>If <code>metadata_path</code> was set above, this chunk loads it
 (auto-detecting a tab- or comma-separated file from its extension – see
-<a href="../../data/README.md">data/README.md</a> for the required
+<a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/data/README.md">data/README.md</a> for the required
 format) and checks that its sample identifiers actually match the
 abundance table’s samples – a phyloseq object is still built without
 metadata, but any downstream grouping/faceting by a metadata variable
@@ -7843,22 +7843,22 @@ the denominator too.</p>
 <span id="cb29-91"><a href="#cb29-91" tabindex="-1"></a>}</span></code></pre></div>
 <pre><code>## 
 ## Top 10 genera ( SILVA - Raw Counts ):</code></pre>
-<pre><code>## Sheet Top_Genera_Raw added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
+<pre><code>## Sheet Top_Genera_Raw added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
 <pre><code>## 
 ## Top 10 genera ( SILVA - Copy-Number Corrected ):</code></pre>
-<pre><code>## Sheet Top_Genera_CN_Corrected added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
+<pre><code>## Sheet Top_Genera_CN_Corrected added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
 <pre><code>## 
 ## Top 10 genera ( SILVA - Microbial-Load Corrected ):</code></pre>
-<pre><code>## Sheet Top_Genera_ML_Corrected added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
+<pre><code>## Sheet Top_Genera_ML_Corrected added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
 <pre><code>## 
 ## Top 10 genera ( GTDB - Raw Counts ):</code></pre>
-<pre><code>## Sheet Top_Genera_Raw added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
+<pre><code>## Sheet Top_Genera_Raw added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
 <pre><code>## 
 ## Top 10 genera ( GTDB - Copy-Number Corrected ):</code></pre>
-<pre><code>## Sheet Top_Genera_CN_Corrected added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
+<pre><code>## Sheet Top_Genera_CN_Corrected added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
 <pre><code>## 
 ## Top 10 genera ( GTDB - Microbial-Load Corrected ):</code></pre>
-<pre><code>## Sheet Top_Genera_ML_Corrected added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
+<pre><code>## Sheet Top_Genera_ML_Corrected added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
 <div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a><span class="co"># Auto-print every accumulated table as one combined tagList() -- this is the</span></span>
 <span id="cb42-2"><a href="#cb42-2" tabindex="-1"></a><span class="co"># chunk&#39;s own top-level return value, so knitr&#39;s evaluate::evaluate() invokes</span></span>
 <span id="cb42-3"><a href="#cb42-3" tabindex="-1"></a><span class="co"># knit_print() on it correctly (see comment above the report_tables list).</span></span>
@@ -8101,12 +8101,12 @@ sheets. Each interactive plot is saved in the relevant database-specific
 ## This warning is displayed once per session.
 ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
 ## generated.</code></pre>
-<pre><code>##   Plot saved to: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/barplots/barplot_genus_top10_raw_counts.html 
-##   Plot saved to: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/barplots/barplot_genus_top10_copy_number_corrected.html 
-##   Plot saved to: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/barplots/barplot_genus_top10_microbial_load_corrected.html 
-##   Plot saved to: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/barplots/barplot_genus_top10_raw_counts.html 
-##   Plot saved to: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/barplots/barplot_genus_top10_copy_number_corrected.html 
-##   Plot saved to: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/barplots/barplot_genus_top10_microbial_load_corrected.html</code></pre>
+<pre><code>##   Plot saved to: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/barplots/barplot_genus_top10_raw_counts.html
+##   Plot saved to: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/barplots/barplot_genus_top10_copy_number_corrected.html
+##   Plot saved to: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/barplots/barplot_genus_top10_microbial_load_corrected.html
+##   Plot saved to: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/barplots/barplot_genus_top10_raw_counts.html
+##   Plot saved to: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/barplots/barplot_genus_top10_copy_number_corrected.html
+##   Plot saved to: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/barplots/barplot_genus_top10_microbial_load_corrected.html</code></pre>
 <p>All interactive genus barplots accumulated above are displayed
 together here so every widget renders reliably in the HTML report.</p>
 <h4>SILVA - Raw Counts</h4>
@@ -8249,7 +8249,7 @@ microbial-load-scaled total.</p>
 ##    Min abundance: 4,766 
 ##    Max abundance: 4,872 
 ##    Mean ASVs/sample: 76.8</code></pre>
-<pre><code>## Sheet Sample_Stats_Raw added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
+<pre><code>## Sheet Sample_Stats_Raw added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
 <pre><code>## 
 ## Sample statistics ( SILVA - Copy-Number Corrected ):
 ##    Total samples: 4 
@@ -8258,7 +8258,7 @@ microbial-load-scaled total.</p>
 ##    Min abundance: 1,528.21 
 ##    Max abundance: 3,867.38 
 ##    Mean ASVs/sample: 76.8</code></pre>
-<pre><code>## Sheet Sample_Stats_CN_Corrected added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
+<pre><code>## Sheet Sample_Stats_CN_Corrected added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
 <pre><code>## 
 ## Sample statistics ( SILVA - Microbial-Load Corrected ):
 ##    Total samples: 4 
@@ -8267,7 +8267,7 @@ microbial-load-scaled total.</p>
 ##    Min abundance: 1.8e+10 
 ##    Max abundance: 4.1e+10 
 ##    Mean ASVs/sample: 74.5</code></pre>
-<pre><code>## Sheet Sample_Stats_ML_Corrected added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
+<pre><code>## Sheet Sample_Stats_ML_Corrected added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
 <pre><code>## 
 ## Sample statistics ( GTDB - Raw Counts ):
 ##    Total samples: 4 
@@ -8276,7 +8276,7 @@ microbial-load-scaled total.</p>
 ##    Min abundance: 4,766 
 ##    Max abundance: 4,872 
 ##    Mean ASVs/sample: 76.8</code></pre>
-<pre><code>## Sheet Sample_Stats_Raw added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
+<pre><code>## Sheet Sample_Stats_Raw added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
 <pre><code>## 
 ## Sample statistics ( GTDB - Copy-Number Corrected ):
 ##    Total samples: 4 
@@ -8285,7 +8285,7 @@ microbial-load-scaled total.</p>
 ##    Min abundance: 1,528.21 
 ##    Max abundance: 3,867.38 
 ##    Mean ASVs/sample: 76.8</code></pre>
-<pre><code>## Sheet Sample_Stats_CN_Corrected added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
+<pre><code>## Sheet Sample_Stats_CN_Corrected added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
 <pre><code>## 
 ## Sample statistics ( GTDB - Microbial-Load Corrected ):
 ##    Total samples: 4 
@@ -8294,7 +8294,7 @@ microbial-load-scaled total.</p>
 ##    Min abundance: 1.8e+10 
 ##    Max abundance: 4.1e+10 
 ##    Mean ASVs/sample: 74.5</code></pre>
-<pre><code>## Sheet Sample_Stats_ML_Corrected added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
+<pre><code>## Sheet Sample_Stats_ML_Corrected added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
 <p>The complete per-sample abundance tables are displayed below as
 scrollable report tables; the same data are written to database-specific
 workbooks.</p>
@@ -8387,10 +8387,10 @@ ASVs that were pruned during construction.</p>
 <span id="cb63-65"><a href="#cb63-65" tabindex="-1"></a>}</span></code></pre></div>
 <pre><code>## 
 ## Taxonomy summary ( SILVA , from its raw-counts phyloseq object):</code></pre>
-<pre><code>## Sheet Tax_Summary added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
+<pre><code>## Sheet Tax_Summary added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/SILVA/phyloseq_summary_silva.xlsx</code></pre>
 <pre><code>## 
 ## Taxonomy summary ( GTDB , from its raw-counts phyloseq object):</code></pre>
-<pre><code>## Sheet Tax_Summary added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
+<pre><code>## Sheet Tax_Summary added successfully to the workbook: PROJECT_ROOT/example/run_results/9_phyloseq_object/GTDB/phyloseq_summary_gtdb.xlsx</code></pre>
 <div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" tabindex="-1"></a><span class="co"># Move &quot;Tax_Summary&quot; to be the first sheet (leftmost tab) in each database&#39;s</span></span>
 <span id="cb68-2"><a href="#cb68-2" tabindex="-1"></a><span class="co"># workbook. It is physically written after every Top_Genera_* and</span></span>
 <span id="cb68-3"><a href="#cb68-3" tabindex="-1"></a><span class="co"># Sample_Stats_* sheet above, but worksheetOrder() controls Excel&#39;s TAB</span></span>
@@ -8477,7 +8477,7 @@ Summary</h1>
 output folder, <a href="../9_phyloseq_object/">results/9_phyloseq_object/</a>,
 as a clickable, portable link (relative to this notebook’s own location)
 – built live from what is actually on disk at knit time via the
-project’s shared <a href="../functions/render_output_tree_function.R">render_output_tree_function.R</a>
+project’s shared <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/functions/render_output_tree_function.R">render_output_tree_function.R</a>
 helper. The exact set of <code>.RData</code> phyloseq objects,
 interactive <code>.html</code> barplots, and per-database Excel
 workbooks depends on which taxonomy database(s) and optional upstream
@@ -8814,16 +8814,16 @@ supported taxonomy database.</li>
 <div id="related" class="section level2" number="12.3">
 <h2><span class="header-section-number">12.3</span> Related</h2>
 <ul>
-<li><a href="5_dada2_pipeline.md">Step 5 — DADA2 Pipeline</a> — this
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5 — DADA2 Pipeline</a> — this
 notebook’s required input (ASV count table and taxonomy
 assignments).</li>
-<li><a href="6_phylogenetic_tree.md">Step 6 — Phylogenetic Tree</a> —
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/6_phylogenetic_tree.md">Step 6 — Phylogenetic Tree</a> —
 optional input, incorporated into the phyloseq object(s) if
 present.</li>
-<li><a href="7_copy_number_correction.md">Step 7 — 16S rRNA Gene Copy
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/7_copy_number_correction.md">Step 7 — 16S rRNA Gene Copy
 Number Correction</a> — optional input, adds a copy-number-corrected
 phyloseq object per taxonomy database.</li>
-<li><a href="8_microbial_load_correction.md">Step 8 — Microbial Load
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8 — Microbial Load
 Correction</a> — optional input, adds a microbial-load-corrected
 phyloseq object per taxonomy database.</li>
 </ul>
@@ -8844,12 +8844,12 @@ Phyloseq Objects</a> section reports fewer combinations than
 <code>number of taxonomy databases x 3</code>.</p>
 <p><strong>Cause</strong>: <code>copy_number_corrected</code> and/or
 <code>microbial_load_corrected</code> abundance tables were not found,
-because <a href="7_copy_number_correction.md">Step 7</a> and/or <a href="8_microbial_load_correction.md">Step 8</a> have not been run. This
+because <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/7_copy_number_correction.md">Step 7</a> and/or <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8</a> have not been run. This
 is expected – both are optional – and is reported as a skip message, not
 an error, in <a href="#load-abundance">Load Abundance Tables</a>.</p>
 <p><strong>Actions</strong>:</p>
 <ul>
-<li>Run <a href="7_copy_number_correction.md">Step 7</a> and/or <a href="8_microbial_load_correction.md">Step 8</a> first if you want the
+<li>Run <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/7_copy_number_correction.md">Step 7</a> and/or <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8</a> first if you want the
 additional phyloseq object(s), then re-run this notebook.</li>
 <li>If you only need raw-counts phyloseq objects, no action is
 needed.</li>
@@ -8914,7 +8914,7 @@ be classified to all taxonomic levels.</p>
 <ul>
 <li>Use <code>NArm = FALSE</code> in <code>tax_glom()</code> to retain
 unclassified taxa.</li>
-<li>Consider using less stringent classification thresholds in <a href="5_dada2_pipeline.md">Step 5</a>.</li>
+<li>Consider using less stringent classification thresholds in <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5</a>.</li>
 </ul>
 </div>
 </div>

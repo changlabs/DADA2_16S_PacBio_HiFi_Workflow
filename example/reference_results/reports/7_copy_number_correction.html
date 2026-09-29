@@ -5506,7 +5506,7 @@ font-size: 14px;
 <h2><span class="header-section-number">1.1</span> Purpose</h2>
 <p>This notebook is <strong>Step 7</strong> of the 16S rRNA sequencing
 data processing pipeline. It performs 16S rRNA gene copy-number
-correction on the ASV table produced in <a href="5_dada2_pipeline.md">Step 5</a>, using <a href="https://github.com/picrust/picrust2/wiki">PICRUSt2</a>’s
+correction on the ASV table produced in <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5</a>, using <a href="https://github.com/picrust/picrust2/wiki">PICRUSt2</a>’s
 phylogenetic-placement-based hidden-state prediction.</p>
 <p>The 16S rRNA gene is present in a variable number of copies per
 genome across bacterial and archaeal taxa — anywhere from a single copy
@@ -5530,13 +5530,13 @@ the same correction is run for each pool and the report provides links
 to those self-contained pool folders without duplicating their full
 processing summaries inline.</p>
 <div class="alert alert-info">
-<p><strong>Why you might want this step</strong>: <a href="8_microbial_load_correction.md">Step 8 (Microbial Load
+<p><strong>Why you might want this step</strong>: <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8 (Microbial Load
 Correction)</a>, which converts relative ASV abundances into
 cell-count-scaled Quantitative Microbiome Profiles, specifically
 requires a <strong>copy-number-corrected</strong> abundance table as its
 input (Vandeputte et al. 2017). If you have flow-cytometry cell-count
-data for your samples and plan to run <a href="8_microbial_load_correction.md">Step 8</a>, run this step first.
-<a href="9_phyloseq_object.md">Step 9 (Phyloseq Object)</a> also picks
+data for your samples and plan to run <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8</a>, run this step first.
+<a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/9_phyloseq_object.md">Step 9 (Phyloseq Object)</a> also picks
 up this step’s output automatically if present, building an extra
 phyloseq object from copy-number-corrected counts alongside its
 raw-counts object. If you do not need copy-number correction for any of
@@ -5552,11 +5552,11 @@ successfully, producing <a href="../5_dada2_pipeline/asv_count_table.csv">asv_co
 and <a href="../5_dada2_pipeline/asv_sequences.csv">asv_sequences.csv</a>
 in <a href="../5_dada2_pipeline/">results/5_dada2_pipeline/</a>.</li>
 <li><strong>PICRUSt2 is installed</strong> in a dedicated conda
-environment — run <a href="../../setup/install_picrust2.sh">install_picrust2.sh</a> from the
+environment — run <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_picrust2.sh">install_picrust2.sh</a> from the
 repository root once per machine. This notebook expects the environment
 to be named <code>picrust2</code> (the default created by that
 script).</li>
-<li>Required R packages are installed — run <a href="../../setup/install_R_dependencies.R">setup/install_R_dependencies.R</a>
+<li>Required R packages are installed — run <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_R_dependencies.R">setup/install_R_dependencies.R</a>
 once per R environment if you have not already done so.</li>
 </ol>
 </div>
@@ -5578,8 +5578,8 @@ raw per-sample counts by its predicted copy number.</li>
 <li><strong>Exports the corrected table</strong> as a standalone
 <code>.csv</code> file, in the same sample-rows / ASV-columns layout as
 Step 5’s <code>asv_count_table.csv</code>, so it can be dropped into any
-downstream analysis that expects that format — including <a href="8_microbial_load_correction.md">Step 8 (Microbial Load
-Correction)</a> and <a href="9_phyloseq_object.md">Step 9 (Phyloseq
+downstream analysis that expects that format — including <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8 (Microbial Load
+Correction)</a> and <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/9_phyloseq_object.md">Step 9 (Phyloseq
 Object)</a>.</li>
 <li><strong>Builds a before/after Excel comparison workbook</strong>:
 the raw predicted copy numbers from <code>hsp.py</code>, per-sample and
@@ -5592,7 +5592,7 @@ documenting every sheet.</li>
 <h2><span class="header-section-number">1.4</span> Expected Input</h2>
 <ul>
 <li><a href="../5_dada2_pipeline/asv_count_table.csv">results/5_dada2_pipeline/asv_count_table.csv</a>
-— sample x ASV abundance table from <a href="5_dada2_pipeline.md">Step
+— sample x ASV abundance table from <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step
 5</a> (<code>SampleID</code> column followed by one column per ASV
 ID).</li>
 <li><a href="../5_dada2_pipeline/asv_sequences.csv">results/5_dada2_pipeline/asv_sequences.csv</a>
@@ -5612,8 +5612,8 @@ ID).</li>
 <li><a href="../7_copy_number_correction/copy_number_corrected_asv_count_table.csv">results/7_copy_number_correction/copy_number_corrected_asv_count_table.csv</a>
 — the corrected ASV count table, in the same sample x ASV layout as Step
 5’s <code>asv_count_table.csv</code> (this notebook’s primary
-deliverable, and <a href="8_microbial_load_correction.md">Step 8</a>’s
-expected input; <a href="9_phyloseq_object.md">Step 9</a> also picks it
+deliverable, and <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8</a>’s
+expected input; <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/9_phyloseq_object.md">Step 9</a> also picks it
 up automatically if present).</li>
 <li><a href="../7_copy_number_correction/copy_number_correction_summary.xlsx">results/7_copy_number_correction/copy_number_correction_summary.xlsx</a>
 — provenance and before/after comparison workbook:
@@ -5631,8 +5631,8 @@ a trailing <code>Column_Dictionary</code> sheet.</li>
 <h1><span class="header-section-number">2</span> Environment Setup</h1>
 <div class="alert alert-info">
 <p><strong>Before running this notebook</strong>: install the required R
-packages by running <a href="../../setup/install_R_dependencies.R">setup/install_R_dependencies.R</a>,
-and install PICRUSt2 itself by running <a href="../../setup/install_picrust2.sh">install_picrust2.sh</a> from the
+packages by running <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_R_dependencies.R">setup/install_R_dependencies.R</a>,
+and install PICRUSt2 itself by running <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_picrust2.sh">install_picrust2.sh</a> from the
 repository root once per machine. Neither needs to be repeated before
 every run of this notebook.</p>
 </div>
@@ -5642,7 +5642,7 @@ Packages</h2>
 <p>The chunk below loads every R package this notebook depends on, plus
 four helper functions shared across the whole pipeline: Excel writing,
 column-dictionary documentation, and clickable output links (each
-sourced from <a href="../functions/">R/functions/</a>).</p>
+sourced from <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/R/functions">R/functions/</a>).</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># </span><span class="al">NOTE</span><span class="co">: This chunk assumes the packages below are already installed. If any</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># library() call fails with &quot;there is no package called ...&quot;, run</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># setup/install_R_dependencies.R once to install every package this</span></span>
@@ -5814,7 +5814,7 @@ below and rarely need manual editing.</p>
 <div id="define-paths" class="section level2" number="3.2">
 <h2><span class="header-section-number">3.2</span> Define Path
 Parameters</h2>
-<p>This chunk resolves every input and output path relative to the <a href="../../">project root</a> via <code>here()</code>, creates this
+<p>This chunk resolves every input and output path relative to the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/example">project root</a> via <code>here()</code>, creates this
 step’s own output folder (and its <a title="Not included in the compact curated reference set">logs/</a> subfolder)
 if they do not already exist, and fails fast with an informative error
 if either of Step 5’s required input files cannot be found – so a
@@ -5928,10 +5928,10 @@ PICRUSt2 call begins.</p>
 <span id="cb8-106"><a href="#cb8-106" tabindex="-1"></a>  <span class="st">&quot;- Log folder:&quot;</span>, log_folder, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
 <span id="cb8-107"><a href="#cb8-107" tabindex="-1"></a>)</span></code></pre></div>
 <pre><code>## Path Configuration:
-##  - Input ASV count table: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/asv_count_table.csv 
-##  - Input ASV sequences: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/5_dada2_pipeline/asv_sequences.csv 
-##  - Placement tree output: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/placed_seqs.tre 
-##  - Log folder: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/logs</code></pre>
+##  - Input ASV count table: PROJECT_ROOT/example/run_results/5_dada2_pipeline/asv_count_table.csv
+##  - Input ASV sequences: PROJECT_ROOT/example/run_results/5_dada2_pipeline/asv_sequences.csv
+##  - Placement tree output: PROJECT_ROOT/example/run_results/7_copy_number_correction/placed_seqs.tre
+##  - Log folder: PROJECT_ROOT/example/run_results/7_copy_number_correction/logs</code></pre>
 <hr />
 </div>
 </div>
@@ -6015,7 +6015,7 @@ one to the other.</p>
 <span id="cb10-68"><a href="#cb10-68" tabindex="-1"></a>  <span class="st">&quot;Wrote&quot;</span>, <span class="fu">length</span>(asv_sequence_set), <span class="st">&quot;ASV sequences to FASTA:</span><span class="sc">\n</span><span class="st">&quot;</span>, asv_fasta_path, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
 <span id="cb10-69"><a href="#cb10-69" tabindex="-1"></a>)</span></code></pre></div>
 <pre><code>## Wrote 238 ASV sequences to FASTA:
-##  /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/asv_sequences.fasta</code></pre>
+##  PROJECT_ROOT/example/run_results/7_copy_number_correction/asv_sequences.fasta</code></pre>
 <p>The portable link below opens the FASTA file supplied to PICRUSt2
 placement.</p>
 <ul>
@@ -6030,7 +6030,7 @@ example/run_results/7_copy_number_correction/asv_sequences.fasta</a></li>
 <h1><span class="header-section-number">5</span> Verify PICRUSt2
 Installation</h1>
 <p>Confirm that conda is available and that the <code>picrust2</code>
-environment (created by <a href="../../setup/install_picrust2.sh">install_picrust2.sh</a>) exists,
+environment (created by <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_picrust2.sh">install_picrust2.sh</a>) exists,
 before attempting to run anything.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>conda_version_output <span class="ot">&lt;-</span> <span class="fu">tryCatch</span>(</span>
 <span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="fu">system2</span>(conda_executable, <span class="at">args =</span> <span class="st">&quot;--version&quot;</span>, <span class="at">stdout =</span> <span class="cn">TRUE</span>, <span class="at">stderr =</span> <span class="cn">TRUE</span>),</span>
@@ -6223,7 +6223,7 @@ actually succeeded by checking for its expected output file.</p>
 <div id="run-place-seqs" class="section level2" number="6.2">
 <h2><span class="header-section-number">6.2</span> Phylogenetic
 Placement</h2>
-<p>Places every ASV into PICRUSt2’s reference tree using <a href="http://github.com/pierrebarbera/epa-ng">EPA-NG</a>.</p>
+<p>Places every ASV into PICRUSt2’s reference tree using <a href="https://github.com/pierrebarbera/epa-ng">EPA-NG</a>.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>placement_checkpoint <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="sc">!</span>save_intermediate_files) {</span>
 <span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="fu">load_stage_checkpoint</span>(</span>
 <span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>    <span class="st">&quot;1_placement&quot;</span>, <span class="fu">c</span>(<span class="st">&quot;placed_tree_lines&quot;</span>, <span class="st">&quot;place_log_lines&quot;</span>, <span class="st">&quot;placement_result&quot;</span>)</span>
@@ -6276,12 +6276,12 @@ Placement</h2>
 <span id="cb15-50"><a href="#cb15-50" tabindex="-1"></a>)</span>
 <span id="cb15-51"><a href="#cb15-51" tabindex="-1"></a>}</span></code></pre></div>
 <pre><code>## Running Phylogenetic placement (place_seqs.py) ...
-##  Command: conda run -p &#39;/opt/anaconda3/envs/picrust2&#39; --no-capture-output place_seqs.py -s &#39;/Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/asv_sequences.fasta&#39; -o &#39;/Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/placed_seqs.tre&#39; -p 4 --intermediate &#39;/Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/intermediate&#39; --verbose 
+##  Command: conda run -p &#39;/opt/anaconda3/envs/picrust2&#39; --no-capture-output place_seqs.py -s &#39;PROJECT_ROOT/example/run_results/7_copy_number_correction/asv_sequences.fasta&#39; -o &#39;PROJECT_ROOT/example/run_results/7_copy_number_correction/placed_seqs.tre&#39; -p 4 --intermediate &#39;PROJECT_ROOT/example/run_results/7_copy_number_correction/intermediate&#39; --verbose
 ## 
 ## 
 ##  Phylogenetic placement (place_seqs.py) finished in 0.9 minutes  (reported exit code: 0 ). Verifying output...
 ## Phylogenetic placement (place_seqs.py) verified — found expected output file:
-##   /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/placed_seqs.tre</code></pre>
+##   PROJECT_ROOT/example/run_results/7_copy_number_correction/placed_seqs.tre</code></pre>
 <p>After successful placement, optional working files are removed only
 when intermediate-file retention is disabled; the validated placement
 tree and log remain available.</p>
@@ -6341,16 +6341,16 @@ Sequenced Taxon Index (NSTI) as a free byproduct.</p>
 <span id="cb17-38"><a href="#cb17-38" tabindex="-1"></a>)</span>
 <span id="cb17-39"><a href="#cb17-39" tabindex="-1"></a>}</span></code></pre></div>
 <pre><code>## Running 16S copy number prediction (hsp.py) ...
-##  Command: conda run -p &#39;/opt/anaconda3/envs/picrust2&#39; --no-capture-output hsp.py -i 16S -t &#39;/Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/placed_seqs.tre&#39; -o &#39;/var/folders/y1/590wqwm9055bbzw8tbgptt0r0000gn/T//Rtmpk3iYwU/16S_marker_predicted_and_nsti_16719264f66f3.tsv&#39; -p 4 -n 
+##  Command: conda run -p &#39;/opt/anaconda3/envs/picrust2&#39; --no-capture-output hsp.py -i 16S -t &#39;PROJECT_ROOT/example/run_results/7_copy_number_correction/placed_seqs.tre&#39; -o &#39;TEMP_DIR/16S_marker_predicted_and_nsti.tsv&#39; -p 4 -n
 ## 
 ## 
 ##  16S copy number prediction (hsp.py) finished in 0.2 minutes  (reported exit code: 0 ). Verifying output...
 ## 16S copy number prediction (hsp.py) verified — found expected output file:
-##   /var/folders/y1/590wqwm9055bbzw8tbgptt0r0000gn/T//Rtmpk3iYwU/16S_marker_predicted_and_nsti_16719264f66f3.tsv</code></pre>
+##   TEMP_DIR/16S_marker_predicted_and_nsti.tsv</code></pre>
 <p>The following gate checks prediction status and reports the complete
 log location if PICRUSt2 did not produce a usable result.</p>
 <pre><code>## Removed intermediate placement files after successful HSP prediction:
-##  /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/intermediate</code></pre>
+##  PROJECT_ROOT/example/run_results/7_copy_number_correction/intermediate</code></pre>
 <pre><code>## Note: hsp_16S.log is empty or nearly empty ( 0 byte(s) ).  This is expected -- hsp.py is a quiet tool by default. Confirm success via the ASV count  reported in the next section instead of via this log&#39;s length.</code></pre>
 <ul>
 <li><a title="Not included in the compact curated reference set">16S
@@ -6557,7 +6557,7 @@ it can be used as a drop-in replacement anywhere downstream.</p>
 <span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a>  <span class="st">&quot;(&quot;</span>, <span class="fu">nrow</span>(corrected_asv_count_table_export), <span class="st">&quot;samples x&quot;</span>, <span class="fu">ncol</span>(corrected_count_matrix), <span class="st">&quot;ASVs )</span><span class="sc">\n</span><span class="st">&quot;</span></span>
 <span id="cb29-16"><a href="#cb29-16" tabindex="-1"></a>)</span></code></pre></div>
 <pre><code>## Copy-number-corrected ASV count table written to:
-##  /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/copy_number_corrected_asv_count_table.csv 
+##  PROJECT_ROOT/example/run_results/7_copy_number_correction/copy_number_corrected_asv_count_table.csv
 ##  ( 4 samples x 238 ASVs )</code></pre>
 <p>The primary corrected abundance table is linked below in the
 sample-by-ASV layout used throughout the workflow.</p>
@@ -6674,12 +6674,12 @@ section confirms that no ASVs were excluded.</p>
 Comparison Sheets</h2>
 <p>The <code>Predicted_16S_Copy_Numbers</code> sheet contains the raw
 output exactly as PICRUSt2 produced it.</p>
-<pre><code>## Sheet Run_Provenance added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
-<pre><code>## Sheet Predicted_16S_Copy_Numbers added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
-<pre><code>## Sheet Per_Sample_Comparison added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
-<pre><code>## Sheet Per_ASV_Comparison added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
+<pre><code>## Sheet Run_Provenance added successfully to the workbook: PROJECT_ROOT/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
+<pre><code>## Sheet Predicted_16S_Copy_Numbers added successfully to the workbook: PROJECT_ROOT/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
+<pre><code>## Sheet Per_Sample_Comparison added successfully to the workbook: PROJECT_ROOT/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
+<pre><code>## Sheet Per_ASV_Comparison added successfully to the workbook: PROJECT_ROOT/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
 <pre><code>## Before/after comparison workbook written to:
-##  /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
+##  PROJECT_ROOT/example/run_results/7_copy_number_correction/copy_number_correction_summary.xlsx</code></pre>
 </div>
 <div id="column-dictionary" class="section level2" number="10.2">
 <h2><span class="header-section-number">10.2</span> Document and Export
@@ -6715,7 +6715,7 @@ Summary</h1>
 deliverables are retired before external processing begins, command
 outputs are recreated or restored only from signature-validated
 checkpoints, and incompatible checkpoints are removed.</p>
-<pre><code>## Final checkpoint saved: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/7_copy_number_correction/checkpoints/checkpoint_final.rds</code></pre>
+<pre><code>## Final checkpoint saved: PROJECT_ROOT/example/run_results/7_copy_number_correction/checkpoints/checkpoint_final.rds</code></pre>
 <pre>
 example/run_results/7_copy_number_correction/
 ├── <a href="../7_copy_number_correction/asv_sequences.fasta">asv_sequences.fasta</a>                        # ASV representative sequences (FASTA)
@@ -6742,11 +6742,11 @@ Step</h1>
 optional downstream paths, and which one to take depends on whether you
 have microbial-load data. If you have an independent,
 flow-cytometry-derived microbial-load (cell-count) measurement for your
-samples, proceed to <a href="8_microbial_load_correction.md">Step 8 —
+samples, proceed to <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8 —
 Microbial Load Correction</a>, which specifically requires this
 notebook’s output as its input to compute a Quantitative Microbiome
 Profile. If you do not have (or do not need) microbial-load data, you
-can instead skip directly to <a href="9_phyloseq_object.md">Step 9 —
+can instead skip directly to <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/9_phyloseq_object.md">Step 9 —
 Phyloseq Object Assembly</a>, which automatically detects and
 incorporates this notebook’s output
 (<code>copy_number_corrected_asv_count_table.csv</code>) if present,
@@ -6865,12 +6865,12 @@ Placement of Genetic Sequences. <em>Systematic Biology</em>
 <div id="related" class="section level2" number="14.3">
 <h2><span class="header-section-number">14.3</span> Related</h2>
 <ul>
-<li><a href="5_dada2_pipeline.md">Step 5 — DADA2 Pipeline</a> — this
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5 — DADA2 Pipeline</a> — this
 notebook’s required input.</li>
-<li><a href="8_microbial_load_correction.md">Step 8 — Microbial Load
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Step 8 — Microbial Load
 Correction</a> — optional next step; requires this notebook’s
 copy-number-corrected output as its own input.</li>
-<li><a href="9_phyloseq_object.md">Step 9 — Phyloseq Object Assembly</a>
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/9_phyloseq_object.md">Step 9 — Phyloseq Object Assembly</a>
 — automatically incorporates this notebook’s output if present, whether
 or not Step 8 is also run.</li>
 </ul>
@@ -6895,7 +6895,7 @@ Solutions</h2>
 <li>Confirm which conda installation and environment you expect to use
 by running <code>echo $CONDA_EXE</code> and <code>conda env list</code>
 directly in a terminal.</li>
-<li>If the environment does not exist yet, run <a href="../../setup/install_picrust2.sh">install_picrust2.sh</a> from the
+<li>If the environment does not exist yet, run <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_picrust2.sh">install_picrust2.sh</a> from the
 repository root to create it.</li>
 <li>If <code>resolve_conda_executable()</code> is still resolving the
 wrong installation, override it manually in <a href="#adjust-run-parameters">Configuration</a>:

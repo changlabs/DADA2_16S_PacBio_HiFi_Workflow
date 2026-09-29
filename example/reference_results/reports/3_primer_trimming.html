@@ -5402,9 +5402,14 @@ border-radius: 0px;
 
 
 
+<style id="reference-report-link-status">
+.reference-report-note { margin: 1rem auto; max-width: 1200px; padding: .8rem 1rem; border-left: 4px solid #2f6f73; background: #eef7f7; color: #243b3d; font-size: .95rem; }
+.reference-omitted { color: #5f6368; text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
+</style>
 </head>
 
 <body>
+<aside class="reference-report-note" role="note"><strong>Compact reference report:</strong> Links remain active for bundled outputs and tracked workflow source files. Dotted labels identify runtime tools or reproducible files intentionally omitted from the compact bundle. Run <code>Rscript example/run_example.R</code> to recreate the complete local output tree under <code>example/run_results/</code>.</aside>
 
 
 <div class="container-fluid main-container">
@@ -5505,8 +5510,8 @@ font-size: 14px;
 <div id="purpose" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> Purpose</h2>
 <p>This notebook is <strong>Step 3</strong> of the PacBio HiFi
-full-length 16S pipeline. <a href="1_data_integrity_and_sample_mapping.md">Step 1</a> mapped each
-demultiplexed barcode-pair FASTQ to its stable sample identity, and <a href="2_quality_filtering.md">Step 2</a> retained reads with mean Q ≥
+full-length 16S pipeline. <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/1_data_integrity_and_sample_mapping.md">Step 1</a> mapped each
+demultiplexed barcode-pair FASTQ to its stable sample identity, and <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step 2</a> retained reads with mean Q ≥
 20. This step uses <a href="https://cutadapt.readthedocs.io/">Cutadapt</a> to identify the
 complete linked forward–reverse primer structure, remove both primers,
 and orient every retained amplicon consistently. The default F27–R1492
@@ -5533,13 +5538,13 @@ interfere with database matching</li>
 <p>Before running this notebook, ensure that:</p>
 <ol style="list-style-type: decimal">
 <li>Q ≥ 20 FASTQ files are present in <a title="Not included in the compact curated reference set">results/2_quality_filtered_reads/Q20_filtered_fastq/</a></li>
-<li><strong>Cutadapt</strong> is installed in the project-local <a href="../../tools/cutadapt/">tools/cutadapt/</a> environment using the
-<a href="../../setup/install_required_tools.R">setup/install_required_tools.R</a>
+<li><strong>Cutadapt</strong> is installed in the project-local <span class="reference-omitted" title="Created or installed by a complete local example run; intentionally omitted from the compact reference bundle.">tools/cutadapt/</span> environment using the
+<a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_required_tools.R">setup/install_required_tools.R</a>
 script</li>
-<li><strong><a href="1_data_integrity_and_sample_mapping.md">Step 1
+<li><strong><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/1_data_integrity_and_sample_mapping.md">Step 1
 (Data Integrity and Sample Mapping)</a></strong> has completed
 successfully</li>
-<li><strong><a href="2_quality_filtering.md">Step 2 (Quality
+<li><strong><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step 2 (Quality
 Filtering)</a></strong> has completed successfully</li>
 </ol>
 </div>
@@ -5547,7 +5552,7 @@ Filtering)</a></strong> has completed successfully</li>
 <h2><span class="header-section-number">1.3</span> What This Notebook
 Does</h2>
 <ol style="list-style-type: decimal">
-<li><strong>Discovers FASTQ Files</strong>: Scans the <a href="2_quality_filtering.md">Step 2 (Quality Filtering)</a>
+<li><strong>Discovers FASTQ Files</strong>: Scans the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step 2 (Quality Filtering)</a>
 Q20-filtered directory for one single-end HiFi FASTQ per sample</li>
 <li><strong>Counts Primers Before Trimming</strong>: Uses a custom,
 anchored search to count, for every sample, primer, and sequence
@@ -5582,7 +5587,7 @@ sample, using standard four-line FASTQ records</li>
 <div class="alert alert-warning">
 <p><strong>Downstream note</strong>: The FASTQ files in <a title="Not included in the compact curated reference set">primer_trimmed_reads/</a>
 are Q20-filtered, primer-trimmed, and consistently oriented. DADA2 will
-subsequently apply its own length, N, and expected-error filters in <a href="5_dada2_pipeline.md">Step 5</a>.</p>
+subsequently apply its own length, N, and expected-error filters in <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5</a>.</p>
 </div>
 <hr />
 </div>
@@ -5595,7 +5600,7 @@ Packages</h2>
 <p>The chunk below loads every R package this notebook depends on, plus
 four helper functions shared across the whole pipeline: Excel writing,
 column-dictionary documentation, and clickable output links (each
-sourced from <a href="../functions/">R/functions/</a>).</p>
+sourced from <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/R/functions">R/functions/</a>).</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Biostrings: Biological string manipulation (Bioconductor)</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># Provides functions for handling DNA/RNA sequences, generating orientations,</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># and pattern counting (vcountPattern) for the custom primer-hit counter</span></span>
@@ -5661,7 +5666,7 @@ sourced from <a href="../functions/">R/functions/</a>).</p>
 <h2><span class="header-section-number">3.1</span> Define Path
 Parameters</h2>
 <p>Set up the input and output directory paths. Using
-<code>here()</code> ensures paths are relative to the <a href="../../">project root</a>, making the script portable across
+<code>here()</code> ensures paths are relative to the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/example">project root</a>, making the script portable across
 different systems.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Input folder containing the Q20-filtered FASTQ files written by Step 2.</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>fastq_input_folder <span class="ot">&lt;-</span> <span class="fu">workflow_results_dir</span>(<span class="st">&quot;2_quality_filtered_reads&quot;</span>, <span class="st">&quot;Q20_filtered_fastq&quot;</span>)</span>
@@ -5697,7 +5702,7 @@ different systems.</p>
 <h2><span class="header-section-number">3.2</span> Define File Pattern
 Parameters</h2>
 <p>Configure the file naming pattern used to identify the single-end,
-Q20-filtered HiFi reads written by <a href="2_quality_filtering.md">Step
+Q20-filtered HiFi reads written by <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step
 2</a>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Match the uncompressed Q20 FASTQs written by Step 2. Removing this processing</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co"># suffix recovers the complete biological SampleID; PoolNumber is stored only</span></span>
@@ -5814,7 +5819,7 @@ cutadapt execution.</p>
 ##  - Threads for processing: 1 
 ##  - Primer anchor buffer (bp): 2 
 ##  - FASTQ counting chunk size: 100000 reads
-##  - Cutadapt path: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/tools/cutadapt/venv/bin/cutadapt</code></pre>
+##  - Cutadapt path: PROJECT_ROOT/tools/cutadapt/venv/bin/cutadapt</code></pre>
 <hr />
 </div>
 </div>
@@ -5838,7 +5843,7 @@ Directories</h1>
 <span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>} <span class="cf">else</span> {</span>
 <span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Using existing output directory:&quot;</span>, output_folder, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
 <span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>}</span></code></pre></div>
-<pre><code>## Created output directory: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/3_primer_trimming</code></pre>
+<pre><code>## Created output directory: PROJECT_ROOT/example/run_results/3_primer_trimming</code></pre>
 <hr />
 </div>
 <div id="define-helper-functions" class="section level1" number="5">
@@ -6070,7 +6075,7 @@ output directory</a> for single-end PacBio HiFi FASTQ files.</p>
 <span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a>    <span class="st">&quot;- HiFi FASTQ files found:&quot;</span>, <span class="fu">length</span>(raw_paths), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
 <span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a>    <span class="st">&quot;- Samples identified:&quot;</span>, <span class="fu">length</span>(sample_names), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## File Discovery Results:
-##  - Input directory: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/2_quality_filtered_reads/Q20_filtered_fastq 
+##  - Input directory: PROJECT_ROOT/example/run_results/2_quality_filtered_reads/Q20_filtered_fastq
 ##  - HiFi FASTQ files found: 4 
 ##  - Samples identified: 4</code></pre>
 </div>
@@ -6199,7 +6204,7 @@ Installation</h2>
 <span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>    <span class="st">&quot;- Path:&quot;</span>, cutadapt_path, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
 <span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>    <span class="st">&quot;- Version:&quot;</span>, cutadapt_version, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Cutadapt Configuration:
-##  - Path: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/tools/cutadapt/venv/bin/cutadapt 
+##  - Path: PROJECT_ROOT/tools/cutadapt/venv/bin/cutadapt
 ##  - Version: 5.2</code></pre>
 </div>
 <div id="execute-primer-trimming" class="section level2" number="9.2">
@@ -6324,7 +6329,7 @@ published Cutadapt logs and provides a clickable link to their
 folder.</p>
 <pre><code>## 
 ## Cutadapt primer trimming complete.
-##  Log files saved to: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/3_primer_trimming/cutadapt_logs</code></pre>
+##  Log files saved to: PROJECT_ROOT/example/run_results/3_primer_trimming/cutadapt_logs</code></pre>
 <ul>
 <li><a title="Not included in the compact curated reference set">Cutadapt
 log files (folder):
@@ -6490,9 +6495,9 @@ aid.</p>
 <span id="cb37-40"><a href="#cb37-40" tabindex="-1"></a>    <span class="at">overwrite =</span> <span class="cn">FALSE</span></span>
 <span id="cb37-41"><a href="#cb37-41" tabindex="-1"></a>  )</span>
 <span id="cb37-42"><a href="#cb37-42" tabindex="-1"></a>}</span></code></pre></div>
-<pre><code>## Sheet Sample_Summary added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/3_primer_trimming/primer_trimming_summary.xlsx</code></pre>
-<pre><code>## Sheet Primer_Hit_Counts added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/3_primer_trimming/primer_trimming_summary.xlsx</code></pre>
-<pre><code>## Sheet Primer_Orientations added successfully to the workbook: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/3_primer_trimming/primer_trimming_summary.xlsx</code></pre>
+<pre><code>## Sheet Sample_Summary added successfully to the workbook: PROJECT_ROOT/example/run_results/3_primer_trimming/primer_trimming_summary.xlsx</code></pre>
+<pre><code>## Sheet Primer_Hit_Counts added successfully to the workbook: PROJECT_ROOT/example/run_results/3_primer_trimming/primer_trimming_summary.xlsx</code></pre>
+<pre><code>## Sheet Primer_Orientations added successfully to the workbook: PROJECT_ROOT/example/run_results/3_primer_trimming/primer_trimming_summary.xlsx</code></pre>
 <p>The report lists the result sheets written to the primer-trimming
 workbook so the export can be checked without opening Excel.</p>
 <pre><code>## Added sheets: Sample_Summary, Primer_Hit_Counts, Primer_Orientations</code></pre>
@@ -6500,7 +6505,7 @@ workbook so the export can be checked without opening Excel.</p>
 sample summaries.</p>
 <pre><code>## 
 ## Results exported to:
-##  File: /Users/amro/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/3_primer_trimming/primer_trimming_summary.xlsx</code></pre>
+##  File: PROJECT_ROOT/example/run_results/3_primer_trimming/primer_trimming_summary.xlsx</code></pre>
 </div>
 <div id="column-dictionary" class="section level2" number="11.2">
 <h2><span class="header-section-number">11.2</span> Document and Export
@@ -6547,7 +6552,7 @@ example/run_results/3_primer_trimming/
 <h1><span class="header-section-number">13</span> Recommended Next
 Step</h1>
 <p>The primer-trimmed, consistently oriented FASTQ files and per-sample
-diagnostics exported above are ready for <a href="5_dada2_pipeline.md">Step 5 — DADA2 Pipeline</a>. Step 5 reads <a title="Not included in the compact curated reference set">primer_trimmed_reads/</a>
+diagnostics exported above are ready for <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5 — DADA2 Pipeline</a>. Step 5 reads <a title="Not included in the compact curated reference set">primer_trimmed_reads/</a>
 and applies length, N, and expected-error filtering before ASV inference
 and chimera removal.</p>
 <hr />
@@ -6647,10 +6652,10 @@ primer-hit counter.</li>
 <div id="related" class="section level2" number="15.2">
 <h2><span class="header-section-number">15.2</span> Related</h2>
 <ul>
-<li><a href="1_data_integrity_and_sample_mapping.md">Step 1 — Data
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/1_data_integrity_and_sample_mapping.md">Step 1 — Data
 Integrity and Sample Mapping</a> — validates and maps the supplied pool
 FASTQs.</li>
-<li><a href="2_quality_filtering.md">Step 2 — Quality Filtering</a> —
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step 2 — Quality Filtering</a> —
 calculates PacBio read statistics and writes the Q ≥ 20 inputs used
 here.</li>
 <li><a href="https://github.com/PacificBiosciences/HiFi-16S-workflow">PacBio
@@ -6674,10 +6679,10 @@ Found</h3>
 <code>Cutadapt could not be started</code></p>
 <p><strong>Solutions</strong>:</p>
 <ul>
-<li>Recreate the project-local installation with <a href="../../setup/install_required_tools.R">setup/install_required_tools.R</a></li>
+<li>Recreate the project-local installation with <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/setup/install_required_tools.R">setup/install_required_tools.R</a></li>
 <li>Verify that <code>cutadapt_path</code> points to the recreated
 project-local executable</li>
-<li>Do not copy <a href="../../tools/cutadapt/venv/">tools/cutadapt/venv/</a> between
+<li>Do not copy <span class="reference-omitted" title="Created or installed by a complete local example run; intentionally omitted from the compact reference bundle.">tools/cutadapt/venv/</span> between
 project locations or machines; Python virtual environments contain
 absolute interpreter paths</li>
 </ul>
