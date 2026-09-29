@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Executable R Markdown notebooks for the DADA2 PacBio HiFi full-length 16S rRNA amplicon sequencing workflow.">
+  <meta name="description" content="Rendered all-step reports for the bundled DADA2 PacBio HiFi full-length 16S rRNA example dataset.">
   <meta name="theme-color" content="#315f72">
   <title>DADA2 PacBio HiFi 16S Workflow</title>
   <style>
@@ -239,6 +239,7 @@
     <div class="hero">
       <div>
         <h1>DADA2 PacBio HiFi Full-Length 16S Workflow</h1>
+        <p class="intro">Browse executed reports from the bundled Callahan et al. PacBio Sequel V1–V9 example. The complete example runs Steps 1–9 with both SILVA and GTDB; Step 4 is the rendered guide for the prepared parameter handoff used by Step 5. Current setup files install SILVA 144 and SBDI-GTDB R11-RS232-1; these historical reports were not rerun for that database-only update and retain their original provenance.</p>
       </div>
     </div>
   </header>
@@ -246,9 +247,7 @@
   <main id="notebooks">
     <div class="section-head">
       <div class="legend" aria-label="Step status legend">
-        <span>Required</span>
-        <span class="recommended">Recommended</span>
-        <span class="optional">Optional</span>
+        <span>All steps included</span>
       </div>
     </div>
 
@@ -257,70 +256,70 @@
         <div class="card-top"><span class="step">Step 1</span></div>
         <h4>Data Integrity and Sample Mapping</h4>
         <p>Validate pool archives, map Lima barcode pairs to sample identities, and extract workflow-ready FASTQs.</p>
-        <div class="actions"><a class="report-link" href="notebooks/1_data_integrity_and_sample_mapping.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/1_data_integrity_and_sample_mapping.md">GitHub</a></div>
+        <div class="actions"><a class="report-link" href="reports/1_data_integrity_and_sample_mapping.html">Executed example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/1_data_integrity_and_sample_mapping.md">Source</a></div>
       </article>
 
       <article class="card">
         <div class="card-top"><span class="step">Step 2</span></div>
         <h4>Quality Filtering</h4>
         <p>Calculate PacBio read statistics and retain full-length reads with mean read quality Q ≥ 20.</p>
-        <div class="actions"><a class="report-link" href="notebooks/2_quality_filtering.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">GitHub</a></div>
+        <div class="actions"><a class="report-link" href="reports/2_quality_filtering.html">Executed example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Source</a></div>
       </article>
 
       <article class="card">
         <div class="card-top"><span class="step">Step 3</span></div>
         <h4>Primer Trimming</h4>
         <p>Trim linked F27–R1492 primers with Cutadapt and orient all retained HiFi reads consistently.</p>
-        <div class="actions"><a class="report-link" href="notebooks/3_primer_trimming.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">GitHub</a></div>
+        <div class="actions"><a class="report-link" href="reports/3_primer_trimming.html">Executed example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">Source</a></div>
       </article>
 
-      <article class="card recommended">
+      <article class="card">
         <div class="card-top"><span class="step">Step 4</span></div>
         <h4>DADA2 maxEE Selection</h4>
-        <p>Use the PacBio Shiny app to inspect complete-read expected-error retention, validate a representative sample set with real DADA2, and export maxEE for Step 5.</p>
-        <div class="actions"><a class="report-link" href="notebooks/4_dada2_parameter_selection.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/4_dada2_parameter_selection.md">GitHub</a></div>
+        <p>Review the prepared complete-read expected-error selection guide and the maxEE = 2 workbook read directly by Step 5.</p>
+        <div class="actions"><a class="report-link" href="reports/4_dada2_parameter_selection.html">Example guide</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/dada2_filter_parameters.xlsx">Parameter workbook</a></div>
       </article>
 
       <article class="card">
         <div class="card-top"><span class="step">Step 5</span></div>
         <h4>DADA2 Pipeline</h4>
         <p>Filter full-length reads, learn PacBio errors, infer ASVs, remove chimeras, and assign taxonomy.</p>
-        <div class="actions"><a class="report-link" href="notebooks/5_dada2_pipeline.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">GitHub</a></div>
+        <div class="actions"><a class="report-link" href="reports/5_dada2_pipeline.html">Executed example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Source</a></div>
       </article>
 
-      <article class="card optional">
+      <article class="card">
         <div class="card-top"><span class="step">Step 6</span></div>
         <h4>Phylogenetic Tree</h4>
         <p>Align ASV sequences and construct combined and pool-specific maximum-likelihood trees.</p>
-        <div class="actions"><a class="report-link" href="notebooks/6_phylogenetic_tree.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/6_phylogenetic_tree.md">GitHub</a></div>
+        <div class="actions"><a class="report-link" href="reports/6_phylogenetic_tree.html">Executed example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/6_phylogenetic_tree.md">Source</a></div>
       </article>
 
-      <article class="card optional">
+      <article class="card">
         <div class="card-top"><span class="step">Step 7</span></div>
         <h4>Copy Number Correction</h4>
         <p>Predict and correct ASV-level 16S rRNA gene copy-number variation with PICRUSt2.</p>
-        <div class="actions"><a class="report-link" href="notebooks/7_copy_number_correction.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/7_copy_number_correction.md">GitHub</a></div>
+        <div class="actions"><a class="report-link" href="reports/7_copy_number_correction.html">Executed example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/7_copy_number_correction.md">Source</a></div>
       </article>
 
-      <article class="card optional">
+      <article class="card">
         <div class="card-top"><span class="step">Step 8</span></div>
         <h4>Microbial Load Correction</h4>
         <p>Generate cell-count-scaled quantitative microbiome profiles from copy-number-corrected abundances.</p>
-        <div class="actions"><a class="report-link" href="notebooks/8_microbial_load_correction.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">GitHub</a></div>
+        <div class="actions"><a class="report-link" href="reports/8_microbial_load_correction.html">Executed example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/8_microbial_load_correction.md">Source</a></div>
       </article>
 
-      <article class="card optional">
+      <article class="card">
         <div class="card-top"><span class="step">Step 9</span></div>
         <h4>Phyloseq Objects</h4>
         <p>Assemble taxonomy, metadata, trees, and every available abundance source into analysis-ready objects.</p>
-        <div class="actions"><a class="report-link" href="notebooks/9_phyloseq_object.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/9_phyloseq_object.md">GitHub</a></div>
+        <div class="actions"><a class="report-link" href="reports/9_phyloseq_object.html">Executed example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/9_phyloseq_object.md">Source</a></div>
       </article>
     </div>
 
     <section class="repo-panel" aria-labelledby="repository-title">
       <div>
-        <h2 id="repository-title">Run the workflow with your own data</h2>
-        <p>Open the repository for setup instructions, data templates, editable notebooks, source functions, and pool-aware outputs.</p>
+        <h2 id="repository-title">Run or inspect the bundled example</h2>
+        <p>Open the repository for the source FASTQ subset, provenance, one-command test instructions, prepared Step 4 handoff, and curated SILVA + GTDB deliverables.</p>
       </div>
       <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow">Open GitHub repository</a>
     </section>

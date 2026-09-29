@@ -10,6 +10,7 @@ A reproducible R-based pipeline for processing **PacBio HiFi full-length 16S rRN
 
 - [Key Features](#key-features)
 - [Pipeline Overview](#pipeline-overview)
+- [Bundled PacBio HiFi Example](#bundled-pacbio-hifi-example)
 - [Setup](#setup)
 - [Running the Pipeline](#running-the-pipeline)
 - [Pool-Specific Processing](#pool-specific-processing)
@@ -97,6 +98,28 @@ A reproducible R-based pipeline for processing **PacBio HiFi full-length 16S rRN
 
 ------------------------------------------------------------------------
 
+## Bundled PacBio HiFi Example
+
+The repository includes an isolated, clone-ready example derived from the PacBio full-length 16S fecal dataset in BioProject [`PRJNA521754`](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA521754), which was used in the official [DADA2 PacBio analysis](https://benjjneb.github.io/LRASManuscript/LRASms_fecal.html). It contains deterministic 5,000-read subsets from four PacBio Sequel CCS/HiFi runs (20,000 reads total) targeting the bacterial **full-length V1–V9 16S rRNA gene**.
+
+The source reads retain the F27 and R1492 primer sequences, so Step 3 performs genuine linked-primer detection, orientation, and trimming. The example also includes descriptive sample names, metadata in this workflow's TSV layout, and clearly labelled synthetic fecal cell counts so every step—including microbial-load correction and Step 9—runs as part of the test.
+
+After completing the setup below, run from the repository root:
+
+```bash
+Rscript example/run_example.R
+```
+
+The runner executes all Steps 1–9 in order, uses the supplied Step 4 `maxEE = 2` workbook directly in Step 5, and requires both SILVA and GTDB through the downstream taxonomy-dependent results. It writes only to the ignored `example/run_results/` directory; it does not read or modify `data/fastq/` or `results/`, so it remains unaffected when another dataset is added to the normal input folder.
+
+Users who do not want to run the workflow can browse the committed reports under [`example/reference_results/reports/`](example/reference_results/reports/) or on GitHub Pages. The full source-run mapping, primer definitions, transformation details, cell-count warning, third-party-data notice, and required citations are documented in [`example/README.md`](example/README.md).
+
+Please cite the dataset-generating study when using the example:
+
+> Callahan BJ, Wong J, Heiner C, Oh S, Theriot CM, Gulati AS, McGill SK, Dougherty MK. (2019). High-throughput amplicon sequencing of the full-length 16S rRNA gene with single-nucleotide resolution. *Nucleic Acids Research*, 47(18), e103. <https://doi.org/10.1093/nar/gkz569>
+
+------------------------------------------------------------------------
+
 ## Setup
 
 ### 1. Clone the Repository
@@ -115,7 +138,7 @@ Open [DADA2_16S_PacBio_HiFi_Workflow.Rproj](DADA2_16S_PacBio_HiFi_Workflow.Rproj
 
 Open [setup/install_R_dependencies.R](setup/install_R_dependencies.R) and run it with **Source**. It installs the CRAN and [Bioconductor](https://bioconductor.org/) packages used across the workflow, including [`dada2`](https://benjjneb.github.io/dada2/), [`DECIPHER`](http://www2.decipher.codes/), [`phyloseq`](https://joey711.github.io/phyloseq/), [`Biostrings`](https://bioconductor.org/packages/release/bioc/html/Biostrings.html), [`ShortRead`](https://bioconductor.org/packages/release/bioc/html/ShortRead.html), [`ape`](https://cran.r-project.org/package=ape), [`data.table`](https://cran.r-project.org/package=data.table), [`openxlsx`](https://cran.r-project.org/package=openxlsx), [`DT`](https://cran.r-project.org/web/package=DT), and the reporting packages.\
 \
-This package set covers all notebooks, including optional Steps [6](6_phylogenetic_tree.md)–[9](9_phyloseq_object.md). [Step 7](7_copy_number_correction.md) additionally requires the external PICRUSt2 installation described below, but none of the optional notebooks needs a separate R-package installation step.
+This package set covers all notebooks, including optional Steps [6](R/notebooks/6_phylogenetic_tree.md)–[9](R/notebooks/9_phyloseq_object.md). [Step 7](R/notebooks/7_copy_number_correction.md) additionally requires the external PICRUSt2 installation described below, but none of the optional notebooks needs a separate R-package installation step.
 
 On Linux you may need system libraries before running the script:
 
@@ -141,9 +164,11 @@ Then open [`setup/install_required_tools.R`](setup/install_required_tools.R) in 
 
 FastTree is compiled for the current computer. The installer tries an OpenMP build first and falls back to a single-threaded build when OpenMP is unavailable, which is normal with Apple clang on macOS.
 
-### 5. Install PICRUSt2 (Optional — for [Step 7](7_copy_number_correction.md))
+### 5. Install PICRUSt2 (Optional — for [Step 7](R/notebooks/7_copy_number_correction.md))
 
 **Skip this step if you do not plan to run the optional [Step 7](#step-7--16s-copy-number-correction-optional) notebook for 16S copy number correction.**
+
+PICRUSt2 is required for the bundled example because that test deliberately runs every step through Step 9.
 
 [PICRUSt2](https://github.com/picrust/picrust2/wiki) is a conda package with several compiled phylogenetics dependencies (HMMER, EPA-ng, gappa, SEPP) that are not practical to manage inside the plain pip virtual environments used above, so it is installed separately, into its own dedicated conda environment. This requires a working conda/miniconda installation already present on your machine.
 
@@ -161,6 +186,8 @@ A `download_manifest.txt` file is written to each subfolder recording the source
 
 [SILVA](https://www.arb-silva.de/) is appropriate for most studies. [GTDB](https://gtdb.ecogenomic.org/) uses a rank-normalized, genome-based taxonomy and is better suited for prokaryote-focused analyses where consistent genus/species nomenclature matters.
 
+The setup script installs SILVA 144 and the SBDI Sativa-curated GTDB R11-RS232-1 DADA2 files. Step 5 uses their exact versioned filenames, preventing older files left in an existing `tools/trainsets/` directory from being selected accidentally. The committed example reports predate this reference update and retain their original database provenance; they were not regenerated for this setup-only change.
+
 ### 7. Add PacBio FASTQ Archives and the Sample Sheet
 
 Copy your FASTQ files into the [`data/fastq/`](data/fastq/) directory. Place one `.fastq.zip` archive per supplied pool under a lowercase folder:
@@ -176,13 +203,13 @@ See [data/README.md](data/README.md) for the complete format and consistency che
 
 ### 8. Copy Your Cell Count File (Optional)
 
-Only needed for [Step 8 (Microbial Load Correction)](8_microbial_load_correction.md) if you have independent microbial load (cell count) measurements per sample -- e.g. from flow cytometry or qPCR. Skip this if you don't; every other step works on relative abundances without it.
+Only needed for [Step 8 (Microbial Load Correction)](R/notebooks/8_microbial_load_correction.md) if you have independent microbial load (cell count) measurements per sample -- e.g. from flow cytometry or qPCR. Skip this if you don't; every other step works on relative abundances without it.
 
 The cell-count template is provided at [`data/cell_count/cell_count.tsv`](data/cell_count/cell_count.tsv), which is also this pipeline's default expected input path. Replace its generic sample IDs and placeholder counts with your measurements. See [`data/README.md`](data/README.md) for the full file format.
 
 ### 9. Add Your Metadata File (Optional)
 
-Only needed for [Step 9](9_phyloseq_object.md) if you want experimental sample information included in the generated phyloseq objects. Replace the template at [`data/metadata.tsv`](data/metadata.tsv) with metadata whose sample identifiers match your data. If no metadata file is provided, Step 9 still runs and generates the phyloseq objects without metadata. - See [`data/README.md`](data/README.md) for the full file format.
+Only needed for [Step 9](R/notebooks/9_phyloseq_object.md) if you want experimental sample information included in the generated phyloseq objects. Replace the template at [`data/metadata.tsv`](data/metadata.tsv) with metadata whose sample identifiers match your data. If no metadata file is provided, Step 9 still runs and generates the phyloseq objects without metadata. See [`data/README.md`](data/README.md) for the full file format.
 
 ------------------------------------------------------------------------
 
@@ -204,13 +231,13 @@ Uses linked primers with Cutadapt to retain full primer-to-primer amplicons, rem
 
 ### Step 4 — [DADA2 Parameter Selection](R/notebooks/4_dada2_parameter_selection.md) *(recommended)*
 
-A guide to the [DADA2 Parameter Selection](R/shiny/dada2_parameter_selection_app.R) Shiny app, which calculates expected errors for complete primer-trimmed reads, shows pooled and per-sample retention across candidate thresholds, and optionally validates the selected value with real DADA2 filtering, PacBio error learning, and sample inference. The exported workbook is loaded automatically by [Step 5](5_dada2_pipeline.md).
+A guide to the [DADA2 Parameter Selection](R/shiny/dada2_parameter_selection_app.R) Shiny app, which calculates expected errors for complete primer-trimmed reads, shows pooled and per-sample retention across candidate thresholds, and optionally validates the selected value with real DADA2 filtering, PacBio error learning, and sample inference. The exported workbook is loaded automatically by [Step 5](R/notebooks/5_dada2_pipeline.md).
 
 ### Step 5 — [DADA2 Pipeline](R/notebooks/5_dada2_pipeline.md) *(required)*
 
 Applies target-length, ambiguous-base (N), and expected-error filtering; learns the PacBio error model; infers ASVs; removes chimeras; and assigns taxonomy with the available SILVA and/or GTDB references. It exports CSV ASV/taxonomy tables, an Excel processing summary, plots, logs, and checkpoints.
 
-If more than one pool is represented, [Step 5](5_dada2_pipeline.md) also creates self-contained pool-specific ASV sequence, count, taxonomy, and processing-summary files.
+If more than one pool is represented, [Step 5](R/notebooks/5_dada2_pipeline.md) also creates self-contained pool-specific ASV sequence, count, taxonomy, and processing-summary files.
 
 ### Step 6 — [Phylogenetic Tree](R/notebooks/6_phylogenetic_tree.md) *(optional)*
 
@@ -222,7 +249,7 @@ Uses PICRUSt2 to predict ASV-level 16S rRNA gene copy number and produce a copy-
 
 ### Step 8 — [Microbial Load Correction](R/notebooks/8_microbial_load_correction.md) *(optional)*
 
-Requires [Step 7](7_copy_number_correction.md) and positive cell-count measurements. It rarefies samples to a common sampling depth per cell and rescales by measured cell count to generate a Quantitative Microbiome Profile.
+Requires [Step 7](R/notebooks/7_copy_number_correction.md) and positive cell-count measurements. It rarefies samples to a common sampling depth per cell and rescales by measured cell count to generate a Quantitative Microbiome Profile.
 
 ### Step 9 — [Phyloseq Object](R/notebooks/9_phyloseq_object.md) *(optional)*
 
@@ -232,9 +259,9 @@ Combines taxonomy, sample metadata, the optional tree, and every validated abund
 
 ## Pool-Specific Processing
 
-[Step 5](5_dada2_pipeline.md) performs DADA2 inference globally so identical biological sequences retain the same `ASV_ID` across pools. It then subsets counts, representative sequences, taxonomy, and processing summaries into `separate_pools/pool<number>/`.
+[Step 5](R/notebooks/5_dada2_pipeline.md) performs DADA2 inference globally so identical biological sequences retain the same `ASV_ID` across pools. It then subsets counts, representative sequences, taxonomy, and processing summaries into `separate_pools/pool<number>/`.
 
-Steps [6](6_phylogenetic_tree.md)–[9](9_phyloseq_object.md) behave as follows:
+Steps [6](R/notebooks/6_phylogenetic_tree.md)–[9](R/notebooks/9_phyloseq_object.md) behave as follows:
 
 1.  Process the combined upstream output normally.
 2.  Check whether the required upstream `separate_pools` directory exists.
@@ -278,8 +305,7 @@ DADA2_16S_PacBio_HiFi_Workflow/
 │   │   ├── 7_copy_number_correction.Rmd
 │   │   ├── 8_microbial_load_correction.Rmd
 │   │   ├── 9_phyloseq_object.Rmd
-│   │   ├── *.md
-│   │   └── *.html
+│   │   └── *.md
 │   ├── shiny/
 │   │   └── dada2_parameter_selection_app.R
 │   └── functions/
@@ -293,6 +319,17 @@ DADA2_16S_PacBio_HiFi_Workflow/
 │   ├── metadata.tsv
 │   ├── cell_count/cell_count.tsv
 │   └── fastq/pool<number>/*.fastq.zip
+├── example/
+│   ├── README.md
+│   ├── run_example.R
+│   ├── data/
+│   │   ├── fastq/pool1/Callahan-Fecal-HiFi-Example.fastq.zip
+│   │   ├── sample_sheet.xlsx
+│   │   ├── metadata.tsv
+│   │   ├── dada2_filter_parameters.xlsx
+│   │   └── cell_count/cell_count.tsv
+│   └── reference_results/
+│       └── reports/*.html
 ├── results/
 │   └── <step_name>/separate_pools/<pool_name>/
 └── tools/
@@ -321,8 +358,9 @@ DADA2_16S_PacBio_HiFi_Workflow/
 
 ### Taxonomy Databases
 
-- Quast C, et al. (2013). The SILVA ribosomal RNA gene database project. *Nucleic Acids Research* 41:D590–D596.
-- Parks DH, et al. (2022). GTDB: an ongoing census of bacterial and archaeal diversity. *Nucleic Acids Research* 50:D785–D794.
+- Quast C, et al. (2013). The SILVA ribosomal RNA gene database project. *Nucleic Acids Research* 41:D590–D596. [Official SILVA 144 DADA2 files](https://www.arb-silva.de/archive/release_144/DADA2/1.36.0/SSU)
+- Parks DH, et al. (2022). GTDB: an ongoing census of bacterial and archaeal diversity. *Nucleic Acids Research* 50:D785–D794. [GTDB](https://gtdb.ecogenomic.org/)
+- Lundin D, Andersson A. SBDI Sativa curated 16S GTDB database. [SBDI-GTDB R11-RS232-1 DADA2 files](https://doi.org/10.17044/scilifelab.14869077)
 
 ------------------------------------------------------------------------
 
@@ -343,4 +381,4 @@ This project is released under the [MIT License](LICENSE).
 ------------------------------------------------------------------------
 
 **Author**: Amro Abbas - Generated with Claude AI assistance\
-**Last Updated**: August 2026
+**Last Updated**: September 2026

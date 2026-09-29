@@ -1,0 +1,5 @@
+PoolNumber	SampleID	OriginalSampleID	SubjectID	Treatment	Timepoint	SampleType	Batch	SourceAccession	BioSample
+1	Subject-R3-Timepoint-1	R3_1_P3C3	R3	Not_reported	1	Human_feces	PacBio_Replicate_2	SRR8557472	SAMN10910592
+1	Subject-R3-Timepoint-2	R3_2_P3C3	R3	Not_reported	2	Human_feces	PacBio_Replicate_2	SRR8557475	SAMN10910593
+1	Subject-R3-Timepoint-3	R3_3_P3C3	R3	Not_reported	3	Human_feces	PacBio_Replicate_2	SRR8557476	SAMN10910594
+1	Subject-R11-Timepoint-1	R11_1_P3C3	R11	Not_reported	1	Human_feces	PacBio_Replicate_2	SRR8557478	SAMN10910600

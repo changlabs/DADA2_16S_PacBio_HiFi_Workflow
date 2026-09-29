@@ -1,6 +1,18 @@
 # Workflow input data
 
-This folder contains the PacBio HiFi FASTQ archives, sequencing sample sheet, and optional sample-level tables used by the workflow. The supplied tables are templates populated with a small demonstration dataset. Replace all placeholder metadata and cell counts with study-specific values before interpreting downstream results.
+This folder contains the PacBio HiFi FASTQ archives, sequencing sample sheet, and optional sample-level tables used for a user's normal workflow run. The supplied tables are editable templates populated with placeholder rows; replace them with study-specific values before interpreting downstream results.
+
+## Bundled example data
+
+The clone-ready example is intentionally stored under [`example/data/`](../example/data/) instead of this normal input directory. It is a 20,000-read PacBio Sequel CCS/HiFi subset from BioProject [`PRJNA521754`](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA521754), targeting the full-length bacterial 16S rRNA gene (V1–V9). Its primer-bearing reads exercise Step 3, and its metadata follows the layout documented below.
+
+Run the complete example from the repository root with:
+
+```bash
+Rscript example/run_example.R
+```
+
+This runs all Steps 1–9 with both SILVA and GTDB and writes only to the ignored `example/run_results/` directory. The prepared Step 4 workbook is read directly by Step 5. Rendered reports and curated outputs can be viewed without running anything under [`example/reference_results/`](../example/reference_results/). See [`example/README.md`](../example/README.md) for source accessions, primer sequences, synthetic cell-count disclosure, third-party-data notice, and the Callahan et al. (2019) dataset citation.
 
 ## Folder contents
 

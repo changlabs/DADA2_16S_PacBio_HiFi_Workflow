@@ -15,9 +15,9 @@
 #     exist on disk, since a clickable link to a file that was not created
 #     (e.g. because an optional tool was unavailable, or a step failed) would
 #     otherwise be misleading.
-#   - Displays a short, project-relative path (starting at results/) as the
-#     link text, and builds the link TARGET itself as a path relative to
-#     R/notebooks/ (where every notebook's rendered .html always lives) --
+#   - Displays a short, project-relative path as the link text, and builds the
+#     link TARGET relative to the active report directory (R/notebooks/ for a
+#     normal knit, or DADA2_REPORT_DIR for an isolated example render) --
 #     so long absolute paths do not overflow the page margin in a knitted
 #     HTML report, the link remains fully clickable, AND the link keeps
 #     working if the whole project folder is copied, renamed, or shared with
@@ -80,9 +80,9 @@
 #' the TEXT is shortened to a project-relative path starting at `results/`
 #' (since every output this function links to lives somewhere under the
 #' project's `results/` folder), and the TARGET (href) is expressed relative
-#' to `R/notebooks/` -- the folder every notebook's rendered .html file
-#' always lives in -- so the link actually resolves correctly from inside
-#' that .html file. Using a relative href (instead of the full absolute
+#' to the active report directory (`R/notebooks/` by default, or the
+#' `DADA2_REPORT_DIR` override used by the bundled example) so the link
+#' resolves correctly from inside that report. Using a relative href
 #' path) also means the link keeps working if the entire project folder is
 #' copied, renamed, or shared with someone else on a different machine,
 #' where the original absolute path would no longer exist. This keeps the
@@ -147,16 +147,16 @@ render_output_links <- function(paths, labels = NULL) {
   # a "../"-prefixed relative path instead of failing.
   project_root <- here::here()
 
-  # The link HREF, unlike the link TEXT above, must be expressed relative to
-  # where the rendered .html file itself will live -- R/notebooks/, the same
-  # folder every .Rmd notebook in this project is knit from -- not relative
-  # to the project root. A browser resolves a relative href against the
-  # current document's own location, so an href built relative to the
-  # project root would be wrong by exactly the "R/notebooks/" prefix. Using
-  # a relative href here (instead of the previous absolute path) is what
-  # makes every link this function prints continue to work if the whole
-  # project folder is copied, renamed, or shared with someone else.
-  notebooks_root <- here::here("R", "notebooks")
+  # The link HREF must be relative to the rendered report's directory.
+  # Normal knits use R/notebooks; the isolated example supplies
+  # DADA2_REPORT_DIR so links remain correct when its reports and curated
+  # step folders are copied together under example/reference_results.
+  report_root <- if (exists("workflow_report_dir", mode = "function")) {
+    workflow_report_dir()
+  } else {
+    configured_report_dir <- trimws(Sys.getenv("DADA2_REPORT_DIR", unset = ""))
+    if (nzchar(configured_report_dir)) configured_report_dir else here::here("R", "notebooks")
+  }
 
   escape_markdown_text <- function(value) {
     value <- gsub("\\", "\\\\", as.character(value), fixed = TRUE)
@@ -179,7 +179,7 @@ render_output_links <- function(paths, labels = NULL) {
     current_path   <- paths[path_index]
     path_exists    <- fs::file_exists(current_path) || fs::dir_exists(current_path)
     display_path   <- as.character(fs::path_rel(current_path, start = project_root))
-    href_path      <- as.character(fs::path_rel(current_path, start = notebooks_root))
+    href_path      <- as.character(fs::path_rel(current_path, start = report_root))
     display_label  <- if (is.null(labels)) NULL else labels[path_index]
     link_text      <- if (is.null(display_label)) display_path else paste0(display_label, ": ", display_path)
     safe_link_text <- escape_markdown_text(link_text)

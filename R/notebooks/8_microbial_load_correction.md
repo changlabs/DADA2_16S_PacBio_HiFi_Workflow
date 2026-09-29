@@ -307,6 +307,7 @@ source(here("R", "functions", "render_output_links_function.R"))
 # scanned live from disk at knit time so it always matches what was actually
 # produced on this run.
 source(here("R", "functions", "render_output_tree_function.R"))
+source(here("R", "functions", "workflow_paths_function.R"))
 ```
 
 ------------------------------------------------------------------------
@@ -326,7 +327,7 @@ subsample.
 # ------------------------------------------------------------------
 # Path to your cell-count TSV file (see "Cell Count File Format" above).
 # ------------------------------------------------------------------
-cell_counts_path <- here("data", "cell_count", "cell_count.tsv")  # <-- EDIT THIS if your file lives elsewhere
+cell_counts_path <- workflow_data_dir("cell_count", "cell_count.tsv")  # <-- EDIT THIS if your file lives elsewhere
 
 # ------------------------------------------------------------------
 # Random seed for phyloseq::rarefy_even_depth(), so rarefaction is
@@ -367,7 +368,7 @@ begins.
 
 ``` r
 # Base results folder for all pipeline outputs
-results_folder <- here("results")
+results_folder <- workflow_results_dir()
 
 # A blank pool name processes the combined table. Pool-specific renders use
 # the corresponding Step 7 result folder and retain the same pool name.

@@ -344,6 +344,7 @@ source(here("R", "functions", "render_output_links_function.R"))
 # scanned live from disk at knit time so it always matches what was actually
 # produced on this run.
 source(here("R", "functions", "render_output_tree_function.R"))
+source(here("R", "functions", "workflow_paths_function.R"))
 ```
 
 ------------------------------------------------------------------------
@@ -358,7 +359,7 @@ portable across different systems.
 
 ``` r
 # Base results folder for all pipeline outputs
-results_folder <- here("results")
+results_folder <- workflow_results_dir()
 
 # A blank pool name processes the combined inputs. A pool-specific render uses
 # the same pool folder at every available upstream step.
@@ -464,7 +465,7 @@ disk.
 # and values with your own before drawing conclusions from metadata-based
 # groupings. Set to NULL to build phyloseq
 # objects without any metadata.
-metadata_path <- here("data", "metadata.tsv")
+metadata_path <- workflow_data_dir("metadata.tsv")
 
 # Whether to include the phylogenetic tree (if available from Step 6)
 include_tree <- TRUE
@@ -1500,15 +1501,15 @@ for (combo_id in names(top_genera_list)) {
         stop("Interactive barplot was not written successfully: ", barplot_path)
     }
 
-    # Portable link text/href, matching render_output_links()'s own
-    # convention (display path relative to the project root; href relative
-    # to R/notebooks/, where this notebook's own rendered .html lives) --
+    # Portable link text/href, matching render_output_links()'s convention:
+    # display path relative to the project root and href relative to the active
+    # report directory (R/notebooks normally, DADA2_REPORT_DIR for the example).
     # built natively as htmltools tags here, rather than by calling
     # render_output_links() itself, since that function returns Markdown
     # text meant for results='asis' + cat(), not for embedding inside an
     # htmltools tag tree.
     barplot_display_path <- as.character(path_rel(barplot_path, start = here()))
-    barplot_href <- as.character(path_rel(barplot_path, start = here("R", "notebooks")))
+    barplot_href <- as.character(path_rel(barplot_path, start = workflow_report_dir()))
 
     report_tags[[length(report_tags) + 1]] <- htmltools::h4(paste(meta$db_name, "-", meta$source_display))
     report_tags[[length(report_tags) + 1]] <- plot_top

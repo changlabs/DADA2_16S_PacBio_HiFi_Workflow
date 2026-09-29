@@ -31,12 +31,13 @@ library(shiny)
 # workflow workbooks, including styled sheets and a Column_Dictionary sheet.
 source(here::here("R", "functions", "add_sheet_to_excel_function.R"))
 source(here::here("R", "functions", "build_column_dictionary_function.R"))
+source(here::here("R", "functions", "workflow_paths_function.R"))
 
-default_fastq_folder <- here::here(
-  "results", "3_primer_trimming", "primer_trimmed_reads"
+default_fastq_folder <- workflow_results_dir(
+  "3_primer_trimming", "primer_trimmed_reads"
 )
-default_export_path <- here::here(
-  "results", "4_dada2_parameter_selection", "dada2_filter_parameters.xlsx"
+default_export_path <- workflow_results_dir(
+  "4_dada2_parameter_selection", "dada2_filter_parameters.xlsx"
 )
 
 # Return uncompressed and gzip-compressed FASTQ files in a deterministic order.

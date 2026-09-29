@@ -309,6 +309,7 @@ source(here("R", "functions", "render_output_links_function.R"))
 # scanned live from disk at knit time so it always matches what was actually
 # produced on this run.
 source(here("R", "functions", "render_output_tree_function.R"))
+source(here("R", "functions", "workflow_paths_function.R"))
 ```
 
 ------------------------------------------------------------------------
@@ -436,7 +437,7 @@ call begins.
 
 ``` r
 # Base results folder for all pipeline outputs
-results_folder <- here("results")
+results_folder <- workflow_results_dir()
 
 # A blank pool name processes the combined tables. Pool-specific renders use
 # the matching Step 5 bundle discovered under separate_pools.

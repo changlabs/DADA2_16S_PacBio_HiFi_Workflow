@@ -122,15 +122,21 @@ remain visible throughout the workflow.
 For each base with Phred quality score (Q), the estimated probability
 that the base is incorrect is:
 
-$$P(error) = 10^{-Q/10}$$
+$$
+P(error) = 10^{-Q/10}
+$$
 
 DADA2 sums these probabilities across every base in a read:
 
-$$EE = \sum_i 10^{-Q_i/10}$$
+$$
+EE = \sum_i 10^{-Q_i/10}
+$$
 
 A read passes when:
 
-$$EE \leq maxEE$$
+$$
+EE \leq maxEE
+$$
 
 This is a read-level filter. It differs from the mean-Q20 filter in
 [Step 2](2_quality_filtering.md): two reads with the same mean quality

@@ -1,4 +1,4 @@
-name: Deploy notebook reports to GitHub Pages
+name: Deploy example reports to GitHub Pages
 
 on:
   push:
@@ -28,9 +28,11 @@ jobs:
 
       - name: Assemble static site
         run: |
-          mkdir -p _site/notebooks _site/images
+          mkdir -p _site/reports _site/images
           cp pages/index.html _site/index.html
-          cp R/notebooks/*.html _site/notebooks/
+          cp example/reference_results/reports/*.html _site/reports/
+          find example/reference_results -mindepth 1 -maxdepth 1 \
+            ! -name reports ! -name README.md -exec cp -R {} _site/ \;
           cp R/images/* _site/images/
           touch _site/.nojekyll
 

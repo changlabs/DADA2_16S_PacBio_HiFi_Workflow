@@ -166,6 +166,7 @@ source(here("R", "functions", "add_sheet_to_excel_function.R"))
 source(here("R", "functions", "build_column_dictionary_function.R"))
 source(here("R", "functions", "render_output_links_function.R"))
 source(here("R", "functions", "render_output_tree_function.R"))
+source(here("R", "functions", "workflow_paths_function.R"))
 
 # Every HTML table uses the same fixed-height, horizontally scrollable layout.
 # Sorting, searching, pagination, and the information footer are deliberately
@@ -206,26 +207,26 @@ Set up all the input and output paths for this step of the workflow.
 ```{r define-paths}
 # Input folder containing the Q20-filtered, primer-trimmed, consistently
 # oriented FASTQ files written by Step 3.
-input_folder <- here("results", "3_primer_trimming", "primer_trimmed_reads")
+input_folder <- workflow_results_dir("3_primer_trimming", "primer_trimmed_reads")
 
 # Step 3 workbook containing authoritative SampleID and PoolNumber metadata.
-step3_workbook <- here(
-  "results", "3_primer_trimming", "primer_trimming_summary.xlsx"
+step3_workbook <- workflow_results_dir(
+  "3_primer_trimming", "primer_trimming_summary.xlsx"
 )
 
 # Earlier workflow workbooks provide the raw-read and Q20-filtered counts used
 # in the complete Reads_Tracking table.
-step1_workbook <- here(
-  "results", "1_data_integrity_and_sample_mapping",
+step1_workbook <- workflow_results_dir(
+  "1_data_integrity_and_sample_mapping",
   "data_integrity_and_sample_mapping.xlsx"
 )
-step2_workbook <- here(
-  "results", "2_quality_filtered_reads",
+step2_workbook <- workflow_results_dir(
+  "2_quality_filtered_reads",
   "quality_and_read_length_summary.xlsx"
 )
 
 # This notebook owns all files under results/5_dada2_pipeline/.
-results_folder <- here("results")
+results_folder <- workflow_results_dir()
 output_folder <- here(results_folder, "5_dada2_pipeline")
 filtered_reads_folder <- here(output_folder, "filtered_reads")
 checkpoints_folder <- here(output_folder, "checkpoints")
@@ -258,9 +259,12 @@ maximum_read_length <- 1600L
 # Use maxEE = 2 only as a fallback when Step 4 has not exported a selection.
 # The active value and its source are resolved and validated immediately below.
 fallback_maximum_expected_errors <- 2
-step4_parameter_workbook <- here(
-  "results", "4_dada2_parameter_selection", "dada2_filter_parameters.xlsx"
-)
+configured_step4_workbook <- trimws(Sys.getenv("DADA2_PARAMETER_FILE", unset = ""))
+step4_parameter_workbook <- if (nzchar(configured_step4_workbook)) {
+  normalizePath(path.expand(configured_step4_workbook), winslash = "/", mustWork = FALSE)
+} else {
+  workflow_results_dir("4_dada2_parameter_selection", "dada2_filter_parameters.xlsx")
+}
 
 # "maxEE" means maximum expected errors. For each base, its quality score Q is
 # converted to an error probability P using P = 10^(-Q/10); DADA2 then sums
@@ -401,19 +405,14 @@ Use the workflow's SILVA/GTDB reference-database layout. Both databases are sele
 ```{r define-taxonomy-database}
 trainsets_folder <- here("tools", "trainsets")
 
-find_reference <- function(folder, pattern) {
-  matches <- list.files(folder, pattern = pattern, ignore.case = TRUE, full.names = TRUE)
-  if (length(matches)) matches[[1L]] else NA_character_
-}
-
 database_config <- list(
   SILVA = list(
-    trainset = find_reference(here(trainsets_folder, "SILVA"), "genus.*\\.fa(\\.gz)?$"),
-    species = find_reference(here(trainsets_folder, "SILVA"), "species.*\\.fa(\\.gz)?$")
+    trainset = here(trainsets_folder, "SILVA", "silva_nr99_v144_toGenus_trainset.fa.gz"),
+    species = here(trainsets_folder, "SILVA", "silva_v144_assignSpecies.fa.gz")
   ),
   GTDB = list(
-    trainset = find_reference(here(trainsets_folder, "GTDB"), "genus.*\\.fa(\\.gz)?$"),
-    species = find_reference(here(trainsets_folder, "GTDB"), "species.*\\.fa(\\.gz)?$")
+    trainset = here(trainsets_folder, "GTDB", "sbdi-gtdb-sativa.r11rs232-1.1genome.assignTaxonomy.fna.gz"),
+    species = here(trainsets_folder, "GTDB", "sbdi-gtdb-sativa.r11rs232-1.20genomes.addSpecies.fna.gz")
   )
 )
 
@@ -1229,6 +1228,13 @@ if (length(databases_to_use)) {
           seqs = non_chimeric_table,
           # Database-specific genus-level training FASTA selected above.
           refFasta = database_config[[database_name]]$trainset,
+          # SBDI-GTDB provides Domain through Species; SILVA 144 toGenus
+          # provides Domain through Genus. Name each reference's ranks explicitly.
+          taxLevels = if (identical(database_name, "GTDB")) {
+            c("Domain", "Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+          } else {
+            c("Domain", "Kingdom", "Phylum", "Class", "Order", "Family", "Genus")
+          },
           # Use the configured CPU threads for classification.
           multithread = nr_threads,
           # Print classification progress to the console log.
@@ -1244,6 +1250,16 @@ if (length(databases_to_use)) {
         invokeRestart("muffleMessage")
       })
       cat("\n", database_name, "taxonomy assignment complete.\n")
+
+      # The SBDI-GTDB assignTaxonomy file includes a seventh, classifier-level
+      # Species rank. This workflow uses exact sequence matching in addSpecies()
+      # for species calls, so discard any provisional Species column before
+      # appending the exact-match result. SILVA's toGenus file is unchanged.
+      if ("Species" %in% colnames(taxonomy_assignments)) {
+        taxonomy_assignments <- taxonomy_assignments[
+          , colnames(taxonomy_assignments) != "Species", drop = FALSE
+        ]
+      }
 
       cat("\nAssigning species using", database_name, "database...\n\n")
       taxonomy_with_species <- withCallingHandlers({

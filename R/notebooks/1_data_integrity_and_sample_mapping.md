@@ -220,6 +220,7 @@ source(here("R", "functions", "add_sheet_to_excel_function.R"))
 source(here("R", "functions", "build_column_dictionary_function.R"))
 source(here("R", "functions", "render_output_links_function.R"))
 source(here("R", "functions", "render_output_tree_function.R"))
+source(here("R", "functions", "workflow_paths_function.R"))
 ```
 
 ------------------------------------------------------------------------
@@ -237,14 +238,14 @@ across machines.
 ``` r
 # Resolve all locations from the project root so the notebook remains portable
 # after cloning and does not embed a user-specific absolute path in its source.
-raw_fastq_root <- here("data", "fastq")
-sequencing_sheet_path <- here("data", "sample_sheet.xlsx")
+raw_fastq_root <- workflow_data_dir("fastq")
+sequencing_sheet_path <- workflow_data_dir("sample_sheet.xlsx")
 sequencing_sheet_name <- 1
 
 # Keep every artifact owned by this step under one results directory. The
 # mapped FASTQs become inputs to downstream notebooks; the workbook is the
 # audit trail that explains exactly how they were created.
-results_folder <- here("results", "1_data_integrity_and_sample_mapping")
+results_folder <- workflow_results_dir("1_data_integrity_and_sample_mapping")
 mapped_fastq_folder <- here(results_folder, "mapped_fastq")
 workbook_path <- here(results_folder, "data_integrity_and_sample_mapping.xlsx")
 

@@ -42,9 +42,9 @@
 # ==============================================================================
 # fs::dir_info() / fs::path_rel() / fs::path() build the recursive file
 # listing, the tree's nesting structure, and the relative paths used for
-# links. here::here() (namespace-qualified below, so no library(here) needed)
-# locates the R/notebooks/ folder every rendered notebook lives in, the same
-# anchor render_output_links() already builds its hrefs from.
+# links. The active report directory is R/notebooks/ for normal knits and the
+# DADA2_REPORT_DIR override for isolated example renders, matching
+# render_output_links().
 # Calls are namespace-qualified so sourcing this helper does not attach fs.
 
 # ==============================================================================
@@ -99,7 +99,7 @@
 # continues (for its own children) with "|   "; the last child at a given
 # level is prefixed with "`-- " and continues with "    " (no vertical bar),
 # since nothing remains below it to connect to.
-.render_output_tree_lines <- function(node, output_folder, notebooks_root, box_prefix = "", path_prefix = "") {
+.render_output_tree_lines <- function(node, output_folder, report_root, box_prefix = "", path_prefix = "") {
 
   entry_names   <- names(node)
   n_entries     <- length(entry_names)
@@ -129,7 +129,7 @@
       # Branch node: a folder. Build its own clickable label here (rather
       # than at insertion time), since only now do we know its full path.
       folder_rel_path <- if (nzchar(path_prefix)) paste0(path_prefix, "/", entry_name) else entry_name
-      folder_href     <- as.character(fs::path_rel(fs::path(output_folder, folder_rel_path), start = notebooks_root))
+      folder_href     <- as.character(fs::path_rel(fs::path(output_folder, folder_rel_path), start = report_root))
       folder_href     <- utils::URLencode(paste0(folder_href, "/"), reserved = FALSE)
       folder_label    <- paste0(
         '<a href="', htmltools::htmlEscape(folder_href, attribute = TRUE), '">',
@@ -141,7 +141,7 @@
       line_path    <- c(line_path, folder_rel_path)
 
       child_lines <- .render_output_tree_lines(
-        entry_value$.children, output_folder, notebooks_root,
+        entry_value$.children, output_folder, report_root,
         paste0(box_prefix, continuation), folder_rel_path
       )
       line_text    <- c(line_text, child_lines$text)
@@ -160,8 +160,8 @@
 #'
 #' Scans `output_folder` recursively and prints every file and subfolder it
 #' currently contains as a directory tree, with a clickable link on every
-#' entry (relative to `R/notebooks/`, so links resolve correctly from this
-#' notebook's own rendered location) and an optional inline description after
+#' entry (relative to the active report directory, so links resolve correctly
+#' from this report) and an optional inline description after
 #' each file, right-aligned into a single column -- matching the style of
 #' this project's root README.md project-structure tree. Because the folder
 #' is scanned live at knit time, the tree always reflects exactly what this
@@ -224,10 +224,14 @@ render_output_tree <- function(output_folder, descriptions = character(0), root_
   # ---------------------------------------------------------------------------
   # Step 2: Compute relative paths for display, linking, and tree structure
   # ---------------------------------------------------------------------------
-  # notebooks_root is the folder every rendered notebook (.html and .md) lives
-  # in -- the same anchor render_output_links() builds its hrefs from, so a
-  # link built here resolves correctly from inside the knitted document.
-  notebooks_root <- here::here("R", "notebooks")
+  # Match render_output_links(): normal knits use R/notebooks, while the
+  # bundled example supplies DADA2_REPORT_DIR.
+  report_root <- if (exists("workflow_report_dir", mode = "function")) {
+    workflow_report_dir()
+  } else {
+    configured_report_dir <- trimws(Sys.getenv("DADA2_REPORT_DIR", unset = ""))
+    if (nzchar(configured_report_dir)) configured_report_dir else here::here("R", "notebooks")
+  }
   project_root   <- here::here()
 
   if (is.null(root_label)) {
@@ -244,9 +248,8 @@ render_output_tree <- function(output_folder, descriptions = character(0), root_
   all_files     <- all_files[sort_order, ]
   rel_to_output <- rel_to_output[sort_order]
 
-  # Path of each file relative to R/notebooks/ -- used as the clickable
-  # link's href, identical in spirit to render_output_links()'s href_path.
-  href_paths <- as.character(fs::path_rel(all_files$path, start = notebooks_root))
+  # Path of each file relative to the active report directory.
+  href_paths <- as.character(fs::path_rel(all_files$path, start = report_root))
 
   # ---------------------------------------------------------------------------
   # Step 3: Build a nested list representing the folder's structure
@@ -277,7 +280,7 @@ render_output_tree <- function(output_folder, descriptions = character(0), root_
   # ---------------------------------------------------------------------------
   # Step 4: Recursively render every line, with comments kept separate
   # ---------------------------------------------------------------------------
-  rendered <- .render_output_tree_lines(tree, output_folder, notebooks_root)
+  rendered <- .render_output_tree_lines(tree, output_folder, report_root)
 
   # Folders can also carry a caller-supplied comment. Each rendered line keeps
   # its exact path relative to output_folder, so nested folders with the same

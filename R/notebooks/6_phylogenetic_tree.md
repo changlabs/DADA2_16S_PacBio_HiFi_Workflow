@@ -291,6 +291,7 @@ source(here("R", "functions", "render_output_links_function.R"))
 # scanned live from disk at knit time so it always matches what was actually
 # produced on this run.
 source(here("R", "functions", "render_output_tree_function.R"))
+source(here("R", "functions", "workflow_paths_function.R"))
 ```
 
 ## Helper Function: Transpose Summary Tables for Excel Export
@@ -360,7 +361,7 @@ portable across different systems.
 
 ``` r
 # Base results folder for all pipeline outputs
-results_folder <- here("results")
+results_folder <- workflow_results_dir()
 
 # A blank pool name processes the combined Step 5 outputs. Pool-specific
 # renders reuse this same notebook with one folder discovered under

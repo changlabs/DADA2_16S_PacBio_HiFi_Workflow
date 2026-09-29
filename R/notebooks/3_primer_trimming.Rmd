@@ -208,6 +208,7 @@ source(here("R", "functions", "render_output_links_function.R"))
 # scanned live from disk at knit time so it always matches what was actually
 # produced on this run.
 source(here("R", "functions", "render_output_tree_function.R"))
+source(here("R", "functions", "workflow_paths_function.R"))
 ```
 
 ------------------------------------------------------------------------
@@ -220,10 +221,10 @@ Set up the input and output directory paths. Using `here()` ensures paths are re
 
 ```{r define-paths}
 # Input folder containing the Q20-filtered FASTQ files written by Step 2.
-fastq_input_folder <- here("results", "2_quality_filtered_reads", "Q20_filtered_fastq")
+fastq_input_folder <- workflow_results_dir("2_quality_filtered_reads", "Q20_filtered_fastq")
 
 # Base results folder for all pipeline outputs
-results_folder <- here("results")
+results_folder <- workflow_results_dir()
 
 # Step 2 workbook carrying the authoritative SampleID-to-PoolNumber mapping.
 # PoolNumber is deliberately read as metadata rather than parsed from SampleID.

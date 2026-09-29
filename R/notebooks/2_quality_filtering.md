@@ -226,6 +226,7 @@ source(here("R", "functions", "add_sheet_to_excel_function.R"))
 source(here("R", "functions", "build_column_dictionary_function.R"))
 source(here("R", "functions", "render_output_links_function.R"))
 source(here("R", "functions", "render_output_tree_function.R"))
+source(here("R", "functions", "workflow_paths_function.R"))
 ```
 
 ------------------------------------------------------------------------
@@ -241,12 +242,12 @@ project so copied projects remain portable.
 
 ``` r
 # Step 1 inputs used by this notebook.
-step1_folder <- here("results", "1_data_integrity_and_sample_mapping")
+step1_folder <- workflow_results_dir("1_data_integrity_and_sample_mapping")
 step1_workbook <- here(step1_folder, "data_integrity_and_sample_mapping.xlsx")
 mapped_fastq_folder <- here(step1_folder, "mapped_fastq")
 
 # Step 2 owns this complete output subtree.
-results_folder <- here("results", "2_quality_filtered_reads")
+results_folder <- workflow_results_dir("2_quality_filtered_reads")
 filtered_fastq_folder <- here(results_folder, "Q20_filtered_fastq")
 # The per-read table is streamed through a temporary TSV to keep memory bounded,
 # imported into Excel, and deleted before the notebook finishes.
