@@ -16,7 +16,7 @@
 
 required_packages <- c(
   "shiny", "bslib", "shinyFiles", "shinyjs", "DT", "plotly", "ggplot2",
-  "dada2", "ShortRead", "fs", "here", "openxlsx"
+  "dada2", "ShortRead", "fs", "here", "openxlsx", "digest", "callr"
 )
 missing_packages <- required_packages[!vapply(required_packages, requireNamespace,
                                                logical(1), quietly = TRUE)]
@@ -62,7 +62,7 @@ sample_id_from_path <- function(path) {
   sub("_primer_trimmed$", "", name, ignore.case = TRUE)
 }
 
-# Read at most max_reads complete FASTQ records and calculate each read's total
+# Sample at most max_reads records across the complete FASTQ and calculate total
 # expected errors directly from its Phred+33 quality string:
 #       EE = sum(10^(-Q/10))
 # Reading in chunks avoids loading an entire production FASTQ into memory.
@@ -94,7 +94,7 @@ read_fastq_expected_errors <- function(path, max_reads = 20000L,
   on.exit(close(connection), add = TRUE)
 
   set.seed(as.integer(seed))
-  expected_errors <- numeric(max_reads)
+  quality_sample <- character(max_reads)
   read_lengths <- integer(max_reads)
   reads_seen <- 0L
   reads_kept <- 0L
@@ -116,21 +116,11 @@ read_fastq_expected_errors <- function(path, max_reads = 20000L,
     malformed_records <- malformed_records + sum(!matching_width)
     if (!any(matching_width)) next
 
-    sequence_lines <- sequence_lines[matching_width]
-    quality_lines <- quality_lines[matching_width]
-    chunk_ee <- vapply(
-      quality_lines,
-      function(quality_string) {
-        phred_scores <- utf8ToInt(quality_string) - 33L
-        if (any(phred_scores < 0L)) return(NA_real_)
-        sum(10^(-phred_scores / 10))
-      },
-      numeric(1)
-    )
-    valid <- is.finite(chunk_ee)
-    chunk_ee <- chunk_ee[valid]
+    valid <- matching_width & grepl("^[!-~]+$", quality_lines)
+    malformed_records <- malformed_records + sum(matching_width & !valid)
+    quality_lines <- quality_lines[valid]
     chunk_lengths <- nchar(sequence_lines[valid], type = "bytes")
-    for (record_index in seq_along(chunk_ee)) {
+    for (record_index in seq_along(quality_lines)) {
       reads_seen <- reads_seen + 1L
       if (reads_kept < max_reads) {
         reads_kept <- reads_kept + 1L
@@ -139,7 +129,7 @@ read_fastq_expected_errors <- function(path, max_reads = 20000L,
         slot <- sample.int(reads_seen, 1L)
         if (slot > max_reads) next
       }
-      expected_errors[[slot]] <- chunk_ee[[record_index]]
+      quality_sample[[slot]] <- quality_lines[[record_index]]
       read_lengths[[slot]] <- chunk_lengths[[record_index]]
     }
   }
@@ -148,7 +138,9 @@ read_fastq_expected_errors <- function(path, max_reads = 20000L,
     expected_errors <- numeric()
     read_lengths <- integer()
   } else {
-    expected_errors <- expected_errors[seq_len(reads_kept)]
+    error_lookup <- 10^(-(0:93) / 10)
+    expected_errors <- vapply(quality_sample[seq_len(reads_kept)],
+      function(q) sum(error_lookup[utf8ToInt(q) - 32L]), numeric(1))
     read_lengths <- read_lengths[seq_len(reads_kept)]
   }
 
@@ -160,6 +152,219 @@ read_fastq_expected_errors <- function(path, max_reads = 20000L,
   ) |>
     structure(malformed_records = malformed_records, reads_seen = reads_seen,
               sampling_seed = as.integer(seed))
+}
+
+# Cache numeric profiles only; fingerprint the complete compressed input so edits
+# cannot silently reuse old profiles. Workers stream separate files, never copies
+# of the cohort data. PSOCK works on Windows, macOS, and Linux.
+PROCESSOR_LIMIT <- parallel::detectCores(logical = TRUE)
+if (is.na(PROCESSOR_LIMIT)) PROCESSOR_LIMIT <- 1L
+profile_cache_dir <- workflow_results_dir("4_dada2_parameter_selection", ".quality_profile_cache")
+read_cached_profile <- function(path, max_reads, seed, cache_directory) {
+  signature <- list(version = 2L, path = normalizePath(path),
+    checksum = unname(tools::md5sum(path)), max_reads = max_reads, seed = seed)
+  dir.create(cache_directory, recursive = TRUE, showWarnings = FALSE)
+  cache_path <- file.path(cache_directory, paste0(digest::digest(signature, algo = "sha256"), ".rds"))
+  cached <- if (file.exists(cache_path)) tryCatch(suppressWarnings(readRDS(cache_path)), error = function(e) NULL) else NULL
+  if (is.list(cached) && identical(cached$signature, signature) && is.data.frame(cached$profile)) {
+    attr(cached$profile, "cache_hit") <- TRUE
+    return(cached$profile)
+  }
+  profile <- read_fastq_expected_errors(path, max_reads = max_reads, seed = seed)
+  temporary <- tempfile(tmpdir = cache_directory)
+  on.exit(unlink(temporary), add = TRUE)
+  saveRDS(list(signature = signature, profile = profile), temporary)
+  if (!file.rename(temporary, cache_path)) warning("Could not save quality-profile cache.")
+  attr(profile, "cache_hit") <- FALSE
+  profile
+}
+load_quality_profiles <- function(files, max_reads, seeds, processors = 1L,
+                                  cache_directory = profile_cache_dir, progress = function(...) NULL) {
+  workers <- min(as.integer(processors), PROCESSOR_LIMIT, length(files))
+  if (workers < 1L) stop("At least one processor and FASTQ are required.")
+  cluster <- NULL
+  if (workers > 1L) {
+    cluster <- parallel::makePSOCKcluster(workers)
+    on.exit(parallel::stopCluster(cluster), add = TRUE)
+    parallel::clusterExport(cluster, c("read_fastq_expected_errors", "read_cached_profile"),
+      envir = environment(read_cached_profile))
+  }
+  jobs <- lapply(seq_along(files), function(i) list(path = files[[i]], max_reads = max_reads,
+    seed = seeds[[i]], cache_directory = cache_directory))
+  run_job <- function(job) do.call(read_cached_profile, job)
+  # Keep the closure small: do not serialize this loader's cluster or dataset.
+  environment(run_job) <- .GlobalEnv
+  profiles <- vector("list", length(files))
+  for (start in seq.int(1L, length(files), by = workers)) {
+    indices <- seq.int(start, min(start + workers - 1L, length(files)))
+    profiles[indices] <- if (is.null(cluster)) lapply(jobs[indices], run_job) else
+      parallel::parLapply(cluster, jobs[indices], run_job)
+    progress(length(indices) / length(files), basename(files[[tail(indices, 1L)]]))
+  }
+  profiles
+}
+
+# Validation runs in a separate R process so Shiny can deliver live console
+# output while long native DADA2 calls are running. Only file paths and small
+# settings are sent to the worker, not the cohort quality-profile table.
+run_validation_worker <- function(selected_files, selected_samples, validation_selection,
+                                  threshold, processors,
+                                  validation_directory = tempfile("pacbio_maxee_validation_")) {
+    fs::dir_create(validation_directory)
+    on.exit(unlink(validation_directory, recursive = TRUE, force = TRUE), add = TRUE)
+    length_folder <- fs::path(validation_directory, "length_filtered")
+    n_folder <- fs::path(validation_directory, "no_ambiguous_bases")
+    final_folder <- fs::path(validation_directory, "maxee_filtered")
+    fs::dir_create(c(length_folder, n_folder, final_folder))
+    length_paths <- fs::path(length_folder, paste0(selected_samples, ".fastq.gz"))
+    n_paths <- fs::path(n_folder, paste0(selected_samples, ".fastq.gz"))
+    filtered_paths <- fs::path(final_folder, paste0(selected_samples, ".fastq.gz"))
+
+    append_message <- function(...) {
+      cat("[stage] ", paste0(...), "\n", sep = "")
+      flush.console()
+    }
+        append_message("Applying the fixed 1,000–1,600 bp target-length filter ...")
+        length_counts <- dada2::filterAndTrim(
+          fwd = selected_files,
+          filt = length_paths,
+          truncLen = 0,
+          minLen = 1000,
+          maxLen = 1600,
+          maxN = Inf,
+          maxEE = Inf,
+          truncQ = 0,
+          minQ = 0,
+          rm.phix = FALSE,
+          compress = TRUE,
+          multithread = if (processors > 1L) processors else FALSE,
+          verbose = TRUE
+        )
+        rownames(length_counts) <- selected_samples
+        append_message("Length filter complete: ", format(sum(length_counts[, "reads.out"]), big.mark = ","),
+          " / ", format(sum(length_counts[, "reads.in"]), big.mark = ","), " reads retained.")
+
+        append_message("Removing reads containing ambiguous bases ...")
+        n_counts <- dada2::filterAndTrim(
+          fwd = length_paths,
+          filt = n_paths,
+          truncLen = 0,
+          minLen = 1,
+          maxLen = Inf,
+          maxN = 0,
+          maxEE = Inf,
+          truncQ = 0,
+          minQ = 0,
+          rm.phix = FALSE,
+          compress = TRUE,
+          multithread = if (processors > 1L) processors else FALSE,
+          verbose = TRUE
+        )
+        rownames(n_counts) <- selected_samples
+        append_message("Ambiguous-base filter complete: ", format(sum(n_counts[, "reads.out"]), big.mark = ","),
+          " / ", format(sum(n_counts[, "reads.in"]), big.mark = ","), " reads retained.")
+
+        append_message("Filtering with maxEE = ", threshold, " ...")
+        maxee_counts <- dada2::filterAndTrim(
+          fwd = n_paths,
+          filt = filtered_paths,
+          truncLen = 0,
+          minLen = 1,
+          maxLen = Inf,
+          maxN = 0,
+          maxEE = threshold,
+          truncQ = 0,
+          minQ = 0,
+          rm.phix = TRUE,
+          compress = TRUE,
+          multithread = if (processors > 1L) processors else FALSE,
+          verbose = TRUE
+        )
+        rownames(maxee_counts) <- selected_samples
+        append_message("maxEE filter complete: ", format(sum(maxee_counts[, "reads.out"]), big.mark = ","),
+          " / ", format(sum(maxee_counts[, "reads.in"]), big.mark = ","), " reads retained.")
+
+        retained_samples <- selected_samples[maxee_counts[, "reads.out"] > 0]
+        if (!length(retained_samples)) {
+          stop("No reads remained after filtering at maxEE = ", threshold, ".")
+        }
+        retained_paths <- filtered_paths[match(retained_samples, selected_samples)]
+
+        append_message("Learning a PacBio error model from retained reads ...")
+        error_model <- dada2::learnErrors(
+          retained_paths,
+          errorEstimationFunction = dada2::PacBioErrfun,
+          # Keep error-learning depth fixed, as in the Illumina app; maxEE is
+          # the only parameter this PacBio selection step asks users to tune.
+          nbases = 1e8,
+          randomize = TRUE,
+          BAND_SIZE = 32,
+          multithread = if (processors > 1L) processors else FALSE,
+          verbose = TRUE,
+          MAX_CONSIST = 25
+        )
+
+        append_message("Dereplicating retained reads ...")
+        dereplicated <- dada2::derepFastq(retained_paths, verbose = TRUE)
+        names(dereplicated) <- retained_samples
+        append_message("Inferring ASVs independently ...")
+        denoised <- dada2::dada(
+          dereplicated,
+          err = error_model,
+          BAND_SIZE = 32,
+          pool = FALSE,
+          multithread = if (processors > 1L) processors else FALSE,
+          verbose = TRUE
+        )
+
+        # Complete empirical validation by assembling inferred sequences into
+        # a sequence table and removing chimeras before calculating final
+        # sample retention.
+        append_message("Building the sequence table ...")
+        sequence_table <- dada2::makeSequenceTable(denoised)
+        append_message("Removing chimeras ...")
+        nonchim_sequence_table <- dada2::removeBimeraDenovo(
+          sequence_table,
+          method = "consensus",
+          multithread = if (processors > 1L) processors else FALSE,
+          verbose = TRUE
+        )
+        nonchim_reads_by_sample <- rowSums(nonchim_sequence_table)
+
+        rows <- lapply(selected_samples, function(sample_id) {
+          input_reads <- as.numeric(length_counts[sample_id, "reads.in"])
+          after_length <- as.numeric(length_counts[sample_id, "reads.out"])
+          after_n <- as.numeric(n_counts[sample_id, "reads.out"])
+          filtered_reads <- as.numeric(maxee_counts[sample_id, "reads.out"])
+          if (sample_id %in% names(denoised)) {
+            denoised_reads <- sum(dada2::getUniques(denoised[[sample_id]]))
+            inferred_asvs <- length(dada2::getUniques(denoised[[sample_id]]))
+          } else {
+            denoised_reads <- 0
+            inferred_asvs <- 0
+          }
+          nonchim_reads <- if (sample_id %in% names(nonchim_reads_by_sample)) {
+            as.numeric(nonchim_reads_by_sample[[sample_id]])
+          } else 0
+          data.frame(
+            SampleID = sample_id,
+            maxEE = threshold,
+            Input_Reads = input_reads,
+            After_Length_Filter = after_length,
+            After_N_Filter = after_n,
+            After_maxEE_Filter = filtered_reads,
+            maxEE_Retained_Percent = if (after_n > 0) {
+              round(100 * filtered_reads / after_n, 2)
+            } else NA_real_,
+            Overall_Retained_Percent = round(100 * filtered_reads / input_reads, 2),
+            Denoised_Reads = denoised_reads,
+            Nonchim_Reads = nonchim_reads,
+            Inferred_ASVs = inferred_asvs,
+            stringsAsFactors = FALSE
+          )
+        })
+        result_table <- do.call(rbind, rows)
+        merge(validation_selection, result_table, by = "SampleID", sort = FALSE)
 }
 
 # Use a retention-stratified spread for real DADA2 validation, matching the
@@ -329,7 +534,10 @@ ui <- bslib::page_navbar(
             p(class = "small text-muted mb-1", "Select the maximum expected-error threshold for complete reads."),
             p(class = "small text-muted mb-2", "Lower values are stricter; use the plots and per-sample results to guide the choice."),
             div(class = "maxee-slider", sliderInput("selected_maxee", "Maximum expected errors (maxEE)", min = 0, max = 10, value = 2, step = .1)),
-            helpText("A read passes when its summed expected errors are ≤ maxEE.")
+            helpText("A read passes when its summed expected errors are ≤ maxEE."),
+            numericInput("processors", "Processors", value = min(2L, PROCESSOR_LIMIT),
+              min = 1L, max = PROCESSOR_LIMIT, step = 1L),
+            helpText("Used for FASTQ loading and DADA2 validation. More processors use more memory; start with 2.")
           )
         ),
         console_panel,
@@ -431,11 +639,26 @@ ui <- bslib::page_navbar(
 )
 
 server <- function(input, output, session) {
+  processors <- reactive({
+    value <- suppressWarnings(as.integer(input$processors))
+    if (length(value) != 1L || is.na(value)) return(1L)
+    max(1L, min(value, PROCESSOR_LIMIT))
+  })
   loaded_reads <- reactiveVal(NULL)
   loaded_files <- reactiveVal(NULL)
   selected_fastq_folder <- reactiveVal(fs::path_abs(default_fastq_folder))
   sampling_depth <- reactiveVal(NA_integer_)
   validation_results <- reactiveVal(NULL)
+  validation_job <- reactiveVal(NULL)
+  validation_controls <- c("run_validation", "load_fastq", "selected_maxee", "processors",
+    "validation_n_samples", "validate_all_samples", "save_parameters")
+  session$onSessionEnded(function() {
+    state <- isolate(validation_job())
+    if (!is.null(state)) {
+      if (state$process$is_alive()) state$process$kill_tree()
+      unlink(state$directory, recursive = TRUE)
+    }
+  })
   export_message <- reactiveVal(NULL)
 
   # Keep one shared, color-coded processing console and move its single DOM
@@ -466,6 +689,7 @@ server <- function(input, output, session) {
   output$export_path_display <- renderText(fs::path_abs(default_export_path))
 
   observeEvent(input$load_fastq, {
+    if (!is.null(validation_job())) return()
     folder <- selected_fastq_folder()
     files <- find_fastq_files(folder)
     if (!length(files)) {
@@ -489,18 +713,22 @@ server <- function(input, output, session) {
                            " reads per sample; base seed ", SAMPLING_BASE_SEED, "."), "info")
     add_console_msg("Reservoir-sampling across each complete FASTQ ...", "progress")
 
-    profiles <- withProgress(message = "Reading FASTQ quality scores", value = 0, {
-      lapply(seq_along(files), function(index) {
-        incProgress(1 / length(files), detail = sample_ids[[index]])
-        profile <- read_fastq_expected_errors(
-          files[[index]],
-          max_reads = target_reads,
-          seed = SAMPLING_BASE_SEED + index
-        )
-        profile$SampleID <- sample_ids[[index]]
-        profile$FASTQ_File <- files[[index]]
-        profile
-      })
+    profiles <- tryCatch(withProgress(message = "Reading FASTQ quality scores", value = 0, {
+      load_quality_profiles(files, target_reads, SAMPLING_BASE_SEED + seq_along(files),
+        processors = processors(), progress = function(amount, detail) incProgress(amount, detail = detail))
+    }), error = function(e) {
+      add_console_msg(conditionMessage(e), "error")
+      showNotification(conditionMessage(e), type = "error")
+      NULL
+    })
+    if (is.null(profiles)) return()
+    add_console_msg(paste(sum(vapply(profiles, function(p) isTRUE(attr(p, "cache_hit")), logical(1))),
+      "profiles reused from cache; processors:", processors()), "info")
+    profiles <- lapply(seq_along(profiles), function(i) {
+      profile <- profiles[[i]]
+      profile$SampleID <- sample_ids[[i]]
+      profile$FASTQ_File <- files[[i]]
+      profile
     })
 
     empty_samples <- sample_ids[vapply(profiles, nrow, integer(1)) == 0L]
@@ -524,27 +752,31 @@ server <- function(input, output, session) {
     )
   })
 
-  retention_summary <- reactive({
+  sorted_sample_errors <- reactive({
     reads <- loaded_reads()
     req(reads)
-    threshold <- as.numeric(input$selected_maxee)
-    # Preserve the FASTQ manifest order; plain split() would alphabetically
-    # reorder character SampleIDs (for example, Sample10 before Sample2).
-    sample_order <- unique(reads$SampleID)
-    split_reads <- split(reads, factor(reads$SampleID, levels = sample_order))
-    rows <- lapply(split_reads, function(sample_reads) {
-      retained <- sum(sample_reads$ExpectedErrors <= threshold)
-      data.frame(
-        SampleID = sample_reads$SampleID[[1]],
-        Reads_Evaluated = nrow(sample_reads),
-        Reads_EE_le_maxEE = retained,
-        Retained_Percent = round(100 * retained / nrow(sample_reads), 2),
-        Median_EE = round(stats::median(sample_reads$ExpectedErrors), 3),
-        P95_EE = round(as.numeric(stats::quantile(sample_reads$ExpectedErrors, 0.95)), 3),
-        stringsAsFactors = FALSE
-      )
-    })
-    do.call(rbind, rows)
+    lapply(split(reads$ExpectedErrors, factor(reads$SampleID, levels = unique(reads$SampleID))), sort)
+  })
+  static_sample_summary <- reactive({
+    errors <- sorted_sample_errors()
+    data.frame(SampleID = names(errors), Reads_Evaluated = lengths(errors),
+      Median_EE = vapply(errors, function(x) round(median(x), 3), numeric(1)),
+      P95_EE = vapply(errors, function(x) round(as.numeric(quantile(x, .95)), 3), numeric(1)),
+      row.names = NULL)
+  })
+  pooled_errors <- reactive(sort(loaded_reads()$ExpectedErrors))
+  cached_retention_curve <- reactive({
+    errors <- pooled_errors()
+    req(length(errors))
+    thresholds <- seq(0, 20, by = .1)
+    data.frame(maxEE = thresholds, RetainedPercent = 100 * findInterval(thresholds, errors) / length(errors))
+  })
+  retention_summary <- reactive({
+    summary <- static_sample_summary()
+    summary$Reads_EE_le_maxEE <- vapply(sorted_sample_errors(),
+      function(x) findInterval(as.numeric(input$selected_maxee), x), integer(1))
+    summary$Retained_Percent <- round(100 * summary$Reads_EE_le_maxEE / summary$Reads_Evaluated, 2)
+    summary[c("SampleID", "Reads_Evaluated", "Reads_EE_le_maxEE", "Retained_Percent", "Median_EE", "P95_EE")]
   })
 
   output$selection_content <- renderUI({
@@ -626,16 +858,8 @@ server <- function(input, output, session) {
   output$retention_curve <- plotly::renderPlotly({
     reads <- loaded_reads()
     req(reads)
-    thresholds <- seq(0, 20, by = 0.1)
-    curve <- data.frame(
-      maxEE = thresholds,
-      RetainedPercent = vapply(
-        thresholds,
-        function(threshold) 100 * mean(reads$ExpectedErrors <= threshold),
-        numeric(1)
-      )
-    )
-    selected_retention <- 100 * mean(reads$ExpectedErrors <= input$selected_maxee)
+    curve <- cached_retention_curve()
+    selected_retention <- 100 * findInterval(input$selected_maxee, pooled_errors()) / nrow(reads)
     plot <- ggplot2::ggplot(curve, ggplot2::aes(maxEE, RetainedPercent)) +
       ggplot2::geom_line(linewidth = 1, colour = "#18bc9c") +
       ggplot2::geom_vline(xintercept = input$selected_maxee, linetype = 2, colour = "#e74c3c") +
@@ -659,12 +883,19 @@ server <- function(input, output, session) {
       plotly::config(displaylogo = FALSE, modeBarButtonsToRemove = c("select2d", "lasso2d"))
   })
 
+  cached_sample_curves <- reactive({
+    errors <- sorted_sample_errors()
+    limit <- max(20, as.numeric(quantile(pooled_errors(), .99)))
+    grid <- seq(0, limit, length.out = 401L)
+    do.call(rbind, lapply(names(errors), function(id) data.frame(
+      SampleID = id, ExpectedErrors = grid,
+      CumulativePercent = 100 * findInterval(grid, errors[[id]]) / length(errors[[id]]))))
+  })
   output$ee_distribution <- plotly::renderPlotly({
-    reads <- loaded_reads()
-    req(reads)
-    plot_limit <- max(20, as.numeric(stats::quantile(reads$ExpectedErrors, 0.99)))
-    plot <- ggplot2::ggplot(reads, ggplot2::aes(ExpectedErrors, colour = SampleID)) +
-      ggplot2::stat_ecdf(ggplot2::aes(y = ggplot2::after_stat(y) * 100), linewidth = 0.8) +
+    curves <- cached_sample_curves()
+    plot_limit <- max(curves$ExpectedErrors)
+    plot <- ggplot2::ggplot(curves, ggplot2::aes(ExpectedErrors, CumulativePercent, colour = SampleID)) +
+      ggplot2::geom_step(linewidth = 0.8) +
       ggplot2::geom_vline(xintercept = input$selected_maxee, linetype = 2, colour = "#e74c3c") +
       ggplot2::coord_cartesian(xlim = c(0, plot_limit)) +
       ggplot2::scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20),
@@ -738,6 +969,7 @@ server <- function(input, output, session) {
   }, server = FALSE)
 
   observeEvent(input$run_validation, {
+    if (!is.null(validation_job())) return()
     files <- loaded_files()
     req(files)
     retention <- retention_summary()
@@ -757,173 +989,71 @@ server <- function(input, output, session) {
         validation_selection$Estimated_Retention_Percent[[index]]), "info")
     }
 
-    validation_directory <- tempfile("pacbio_maxee_validation_")
-    fs::dir_create(validation_directory)
-    on.exit(unlink(validation_directory, recursive = TRUE, force = TRUE), add = TRUE)
-    length_folder <- fs::path(validation_directory, "length_filtered")
-    n_folder <- fs::path(validation_directory, "no_ambiguous_bases")
-    final_folder <- fs::path(validation_directory, "maxee_filtered")
-    fs::dir_create(c(length_folder, n_folder, final_folder))
-    length_paths <- fs::path(length_folder, paste0(selected_samples, ".fastq.gz"))
-    n_paths <- fs::path(n_folder, paste0(selected_samples, ".fastq.gz"))
-    filtered_paths <- fs::path(final_folder, paste0(selected_samples, ".fastq.gz"))
-
-    append_message <- function(...) {
-      add_console_msg(paste0(...), "progress")
+    if (!is.null(validation_job())) {
+      showNotification("Validation is already running.", type = "message")
+      return()
     }
-
-    result <- tryCatch(
-      withProgress(message = "Running real DADA2 validation", value = 0, {
-        append_message("Applying the fixed 1,000–1,600 bp target-length filter ...")
-        length_counts <- dada2::filterAndTrim(
-          fwd = selected_files,
-          filt = length_paths,
-          truncLen = 0,
-          minLen = 1000,
-          maxLen = 1600,
-          maxN = Inf,
-          maxEE = Inf,
-          truncQ = 0,
-          minQ = 0,
-          rm.phix = FALSE,
-          compress = TRUE,
-          multithread = FALSE,
-          verbose = FALSE
-        )
-        rownames(length_counts) <- selected_samples
-
-        append_message("Removing reads containing ambiguous bases ...")
-        n_counts <- dada2::filterAndTrim(
-          fwd = length_paths,
-          filt = n_paths,
-          truncLen = 0,
-          minLen = 1,
-          maxLen = Inf,
-          maxN = 0,
-          maxEE = Inf,
-          truncQ = 0,
-          minQ = 0,
-          rm.phix = FALSE,
-          compress = TRUE,
-          multithread = FALSE,
-          verbose = FALSE
-        )
-        rownames(n_counts) <- selected_samples
-
-        append_message("Filtering with maxEE = ", threshold, " ...")
-        maxee_counts <- dada2::filterAndTrim(
-          fwd = n_paths,
-          filt = filtered_paths,
-          truncLen = 0,
-          minLen = 1,
-          maxLen = Inf,
-          maxN = 0,
-          maxEE = threshold,
-          truncQ = 0,
-          minQ = 0,
-          rm.phix = TRUE,
-          compress = TRUE,
-          multithread = FALSE,
-          verbose = FALSE
-        )
-        rownames(maxee_counts) <- selected_samples
-        incProgress(0.25, detail = "Filtering complete")
-
-        retained_samples <- selected_samples[maxee_counts[, "reads.out"] > 0]
-        if (!length(retained_samples)) {
-          stop("No reads remained after filtering at maxEE = ", threshold, ".")
-        }
-        retained_paths <- filtered_paths[match(retained_samples, selected_samples)]
-
-        append_message("Learning a PacBio error model from retained reads ...")
-        error_model <- dada2::learnErrors(
-          retained_paths,
-          errorEstimationFunction = dada2::PacBioErrfun,
-          # Keep error-learning depth fixed, as in the Illumina app; maxEE is
-          # the only parameter this PacBio selection step asks users to tune.
-          nbases = 1e8,
-          randomize = TRUE,
-          BAND_SIZE = 32,
-          multithread = FALSE,
-          verbose = FALSE,
-          MAX_CONSIST = 25
-        )
-        incProgress(0.30, detail = "Error model learned")
-
-        append_message("Dereplicating and inferring ASVs independently ...")
-        dereplicated <- dada2::derepFastq(retained_paths, verbose = FALSE)
-        names(dereplicated) <- retained_samples
-        denoised <- dada2::dada(
-          dereplicated,
-          err = error_model,
-          BAND_SIZE = 32,
-          pool = FALSE,
-          multithread = FALSE,
-          verbose = FALSE
-        )
-        incProgress(0.30, detail = "Sample inference complete")
-
-        # Complete empirical validation by assembling inferred sequences into
-        # a sequence table and removing chimeras before calculating final
-        # sample retention.
-        append_message("Building the sequence table and removing chimeras ...")
-        sequence_table <- dada2::makeSequenceTable(denoised)
-        nonchim_sequence_table <- dada2::removeBimeraDenovo(
-          sequence_table,
-          method = "consensus",
-          multithread = FALSE,
-          verbose = FALSE
-        )
-        nonchim_reads_by_sample <- rowSums(nonchim_sequence_table)
-        incProgress(0.15, detail = "Chimera removal complete")
-
-        rows <- lapply(selected_samples, function(sample_id) {
-          input_reads <- as.numeric(length_counts[sample_id, "reads.in"])
-          after_length <- as.numeric(length_counts[sample_id, "reads.out"])
-          after_n <- as.numeric(n_counts[sample_id, "reads.out"])
-          filtered_reads <- as.numeric(maxee_counts[sample_id, "reads.out"])
-          if (sample_id %in% names(denoised)) {
-            denoised_reads <- sum(dada2::getUniques(denoised[[sample_id]]))
-            inferred_asvs <- length(dada2::getUniques(denoised[[sample_id]]))
-          } else {
-            denoised_reads <- 0
-            inferred_asvs <- 0
-          }
-          nonchim_reads <- if (sample_id %in% names(nonchim_reads_by_sample)) {
-            as.numeric(nonchim_reads_by_sample[[sample_id]])
-          } else 0
-          data.frame(
-            SampleID = sample_id,
-            maxEE = threshold,
-            Input_Reads = input_reads,
-            After_Length_Filter = after_length,
-            After_N_Filter = after_n,
-            After_maxEE_Filter = filtered_reads,
-            maxEE_Retained_Percent = if (after_n > 0) {
-              round(100 * filtered_reads / after_n, 2)
-            } else NA_real_,
-            Overall_Retained_Percent = round(100 * filtered_reads / input_reads, 2),
-            Denoised_Reads = denoised_reads,
-            Nonchim_Reads = nonchim_reads,
-            Inferred_ASVs = inferred_asvs,
-            stringsAsFactors = FALSE
-          )
-        })
-        result_table <- do.call(rbind, rows)
-        merge(validation_selection, result_table, by = "SampleID", sort = FALSE)
-      }),
-      error = function(error) {
-        append_message("Validation stopped: ", conditionMessage(error))
-        showNotification(conditionMessage(error), type = "error", duration = NULL)
+    validation_results(NULL)
+    log_directory <- tempfile("pacbio_validation_console_")
+    dir.create(log_directory)
+    log_path <- file.path(log_directory, "validation.log")
+    job <- tryCatch(callr::r_bg(run_validation_worker,
+      args = list(selected_files = selected_files, selected_samples = selected_samples,
+        validation_selection = validation_selection, threshold = threshold,
+        processors = processors(), validation_directory = file.path(log_directory, "reads")), stdout = log_path, stderr = "2>&1",
+      supervise = TRUE), error = function(e) {
+        unlink(log_directory, recursive = TRUE)
+        add_console_msg(paste("Could not start validation:", conditionMessage(e)), "error")
+        showNotification(conditionMessage(e), type = "error")
         NULL
-      }
-    )
+      })
+    if (is.null(job)) return()
+    validation_job(list2env(list(process = job, directory = log_directory, log_path = log_path,
+      lines_read = 0L, started = Sys.time(), last_heartbeat = Sys.time(),
+      stage = "Starting DADA2 validation"), parent = emptyenv()))
+    for (id in validation_controls) shinyjs::disable(id)
+    add_console_msg(paste("Validation started using", processors(), "processor(s). Live output follows."), "progress")
+  })
 
+  observe({
+    state <- validation_job()
+    if (is.null(state)) return()
+    invalidateLater(500, session)
+    # Poll the worker's log without blocking Shiny. Console messages and native
+    # package output reach the browser on every observer flush.
+    alive <- state$process$is_alive()
+    lines <- if (file.exists(state$log_path))
+      readLines(state$log_path, warn = FALSE) else character()
+    if (length(lines) > state$lines_read) {
+      for (line in lines[seq.int(state$lines_read + 1L, length(lines))]) {
+        if (!nzchar(trimws(line))) next
+        if (startsWith(line, "[stage] ")) state$stage <- substring(line, 9L)
+        add_console_msg(line, "progress")
+      }
+      state$lines_read <- length(lines)
+    }
+    elapsed <- as.numeric(difftime(Sys.time(), state$started, units = "secs"))
+    if (alive) {
+      if (as.numeric(difftime(Sys.time(), state$last_heartbeat, units = "secs")) >= 10) {
+        add_console_msg(sprintf("Still running: %s | elapsed %.0f s", state$stage, elapsed), "progress")
+        state$last_heartbeat <- Sys.time()
+      }
+      # Mutable job state keeps log offsets without invalidating this observer.
+      return()
+    }
+    result <- tryCatch(state$process$get_result(), error = function(e) {
+      add_console_msg(paste("Validation stopped:", conditionMessage(e)), "error")
+      showNotification(conditionMessage(e), type = "error", duration = NULL)
+      NULL
+    })
     if (!is.null(result)) {
       validation_results(result)
-      add_console_msg("Validation completed successfully.", "success")
+      add_console_msg(sprintf("Validation completed successfully in %.0f s.", elapsed), "success")
       showNotification("Real DADA2 validation completed.", type = "message")
     }
+    unlink(state$directory, recursive = TRUE)
+    isolate(validation_job(NULL))
+    for (id in validation_controls) shinyjs::enable(id)
   })
 
   # Match the Illumina app's useful empty state instead of rendering a one-cell
@@ -1031,6 +1161,7 @@ server <- function(input, output, session) {
   output$export_parameter_preview <- renderTable(parameter_preview(), align = "l")
 
   observeEvent(input$save_parameters, {
+    if (!is.null(validation_job())) return()
     req(loaded_reads())
     workbook_path <- fs::path_abs(default_export_path)
     add_console_msg("=== Export parameter workbook ===", "progress")
@@ -1043,7 +1174,7 @@ server <- function(input, output, session) {
       Field = c(
         "Created", "FASTQ_Folder", "Samples", "Reads_Evaluated",
         "Selection_Method", "Sampling_Method", "Requested_Reads_Per_Sample",
-        "Sampling_Base_Seed", "Validation_Run", "DADA2_Version"
+        "Sampling_Base_Seed", "Processors", "Validation_Run", "DADA2_Version"
       ),
       Value = c(
         format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"),
@@ -1054,6 +1185,7 @@ server <- function(input, output, session) {
         "Reproducible reservoir sample across each complete FASTQ",
         sampling_depth(),
         SAMPLING_BASE_SEED,
+        processors(),
         if (is.null(validation_results())) "No" else "Yes",
         as.character(utils::packageVersion("dada2"))
       ),

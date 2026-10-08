@@ -5520,9 +5520,10 @@ overflow-x: auto !important;
 full-length 16S rRNA workflow. It validates the demultiplexed
 gzip-compressed <a href="https://doi.org/10.1093/nar/gkp1137">FASTQ</a>
 files and converts sample-sheet barcode-pair filenames into stable
-biological sample identities using <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a>.</p>
-<p>Only FASTQ files that match an active sample-sheet row are copied and
-written to the result folder for downstream notebooks.</p>
+biological sample identities using <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a>.</p>
+<p>Only FASTQ files that match an active sample-sheet row are validated
+and included in the mapping table. Reads remain at their original input
+paths; no FASTQ copies are created.</p>
 </div>
 <div id="prerequisites" class="section level2" number="1.2">
 <h2><span class="header-section-number">1.2</span> Prerequisites</h2>
@@ -5531,7 +5532,7 @@ written to the result folder for downstream notebooks.</p>
 <li>Place the demultiplexed <code>.fastq.gz</code> files in its supplied
 pool folder under <a href="../../data/fastq/">data/fastq/</a>, for
 example <code>data/fastq/pool&lt;number&gt;/</code>.</li>
-<li>Use the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> template
+<li>Use the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> template
 to provide <code>PoolNumber</code>, <code>SampleID</code>,
 <code>ForwardBarcodeID</code>, and <code>ReverseBarcodeID</code>.</li>
 <li>Install the R dependencies used by this workflow using the scripts
@@ -5548,12 +5549,12 @@ Does</h2>
 identifiers exactly as supplied.</li>
 <li><strong>Match samples</strong> using pool number and the literal
 forward/reverse pair in each filename.</li>
-<li><strong>Copy matched gzip files</strong> under stable sample names,
-preserving the raw inputs.</li>
+<li><strong>Record project-relative source paths</strong> in the sample
+manifest without copying or renaming reads.</li>
 <li><strong>Validate complete FASTQs</strong>, recording read counts and
 compressed sizes.</li>
 <li><strong>Export the audit workbook</strong> with Run_Summary,
-Sample_Manifest, FASTQ_Inventory, optional inactive rows, and
+Sample_Manifest, optional Unlisted_FASTQs and inactive rows, and
 Column_Dictionary.</li>
 </ol>
 </div>
@@ -5562,15 +5563,13 @@ Column_Dictionary.</li>
 <ul>
 <li><code>data/fastq/pool&lt;number&gt;/*.fastq.gz</code> — multiple
 demultiplexed files per supplied pool.</li>
-<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
 sample-to-pool and barcode-pair mapping.</li>
 </ul>
 </div>
 <div id="expected-output" class="section level2" number="1.5">
 <h2><span class="header-section-number">1.5</span> Expected Output</h2>
 <ul>
-<li><a title="Not included in the compact curated reference set">results/1_data_integrity_and_sample_mapping/mapped_fastq/</a>
-— workflow-ready, sample-named FASTQ files.</li>
 <li><a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx</a>
 — excel workbook.</li>
 </ul>
@@ -5625,7 +5624,7 @@ output-tree summary.</p>
 <h2><span class="header-section-number">3.1</span> Define Path and
 Validation Parameters</h2>
 <p>Define the project-relative input and output paths, the whether every
-copied FASTQ should be parsed completely. Using <a href="https://here.r-lib.org/">here()</a> keeps these paths portable
+original FASTQ should be parsed completely. Using <a href="https://here.r-lib.org/">here()</a> keeps these paths portable
 across machines.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Resolve all locations from the project root so the notebook remains portable</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co"># after cloning and does not embed a user-specific absolute path in its source.</span></span>
@@ -5634,14 +5633,13 @@ across machines.</p>
 <span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>sequencing_sheet_name <span class="ot">&lt;-</span> <span class="dv">1</span></span>
 <span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
 <span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co"># Keep every artifact owned by this step under one results directory. The</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># mapped FASTQs become inputs to downstream notebooks; the workbook is the</span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co"># audit trail that explains exactly how they were created.</span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>results_folder <span class="ot">&lt;-</span> <span class="fu">workflow_results_dir</span>(<span class="st">&quot;1_data_integrity_and_sample_mapping&quot;</span>)</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>mapped_fastq_folder <span class="ot">&lt;-</span> <span class="fu">here</span>(results_folder, <span class="st">&quot;mapped_fastq&quot;</span>)</span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>workbook_path <span class="ot">&lt;-</span> <span class="fu">here</span>(results_folder, <span class="st">&quot;data_integrity_and_sample_mapping.xlsx&quot;</span>)</span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co"># Parse every mapped FASTQ completely before downstream processing.</span></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>validate_complete_fastq <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span></code></pre></div>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># workbook maps validated original FASTQs to sample identities for Step 2.</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>results_folder <span class="ot">&lt;-</span> <span class="fu">workflow_results_dir</span>(<span class="st">&quot;1_data_integrity_and_sample_mapping&quot;</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>project_root <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>()</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>workbook_path <span class="ot">&lt;-</span> <span class="fu">here</span>(results_folder, <span class="st">&quot;data_integrity_and_sample_mapping.xlsx&quot;</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co"># Parse every mapped FASTQ completely before downstream processing.</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>validate_complete_fastq <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span></code></pre></div>
 <hr />
 </div>
 </div>
@@ -5816,10 +5814,9 @@ Sample Mapping</h1>
 <div id="validate-input-paths" class="section level2" number="5.1">
 <h2><span class="header-section-number">5.1</span> Validate Input
 Paths</h2>
-<p>Confirm that the raw FASTQ root and <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">sample_sheet.xlsx</a> exist, then
+<p>Confirm that the raw FASTQ root and <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/data/sample_sheet.xlsx">sample_sheet.xlsx</a> exist, then
 create this step’s <a href="../1_data_integrity_and_sample_mapping/">results/1_data_integrity_and_sample_mapping/</a>
-and <a title="Not included in the compact curated reference set">mapped_fastq/</a>
-output folders if necessary.</p>
+output folder if necessary.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Fail before creating outputs if either required input location is absent.</span></span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir_exists</span>(raw_fastq_root)) {</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Raw FASTQ root does not exist: &quot;</span>, raw_fastq_root)</span>
@@ -5829,13 +5826,13 @@ output folders if necessary.</p>
 <span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>}</span>
 <span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a></span>
 <span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co"># These directories are owned by Step 1 and are safe to create when missing.</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="fu">dir_create</span>(mapped_fastq_folder, <span class="at">recurse =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="fu">dir_create</span>(results_folder, <span class="at">recurse =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <p>The report now records the resolved input and output locations. These
 paths help diagnose an incorrect project root without exposing the
 simple reporting code as a separate visible block.</p>
 <pre><code>## Raw FASTQ root: /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/data/fastq</code></pre>
 <pre><code>## Sample sheet: /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/data/sample_sheet.xlsx</code></pre>
-<pre><code>## Results folder: /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/1_data_integrity_and_sample_mapping</code></pre>
+<pre><code>## Results folder: /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/mapping_only/1_data_integrity_and_sample_mapping</code></pre>
 </div>
 <div id="discover-pools" class="section level2" number="5.2">
 <h2><span class="header-section-number">5.2</span> Discover Pools and
@@ -5875,8 +5872,8 @@ sample-sheet rows.</p>
 <span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a>}))</span>
 <span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(fastq_inventory<span class="sc">$</span>Compressed_Size_Bytes <span class="sc">&lt;=</span> <span class="dv">0</span>)) <span class="fu">stop</span>(<span class="st">&quot;One or more supplied FASTQ files are zero bytes.&quot;</span>)</span>
 <span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="fu">render_table</span>(pool_inventory[, .(Pool_ID, Pool_Directory, FASTQ_Count)], <span class="st">&quot;Supplied PacBio pools&quot;</span>)</span></code></pre></div>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-0c05e5e6f92e62afaf50" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-0c05e5e6f92e62afaf50">{"x":{"filter":"none","vertical":false,"caption":"<caption>Supplied PacBio pools<\/caption>","data":[[1],["pool1"],[4]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Pool_Directory<\/th>\n      <th>FASTQ_Count<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Pool_Directory","targets":1},{"name":"FASTQ_Count","targets":2}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-0de9136c47d12451a016" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-0de9136c47d12451a016">{"x":{"filter":"none","vertical":false,"caption":"<caption>Supplied PacBio pools<\/caption>","data":[[1],["pool1"],[4]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Pool_Directory<\/th>\n      <th>FASTQ_Count<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Pool_Directory","targets":1},{"name":"FASTQ_Count","targets":2}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="validate-sample-sheet" class="section level2" number="5.3">
 <h2><span class="header-section-number">5.3</span> Read and Validate the
@@ -5978,8 +5975,8 @@ ignored.</p>
 <span id="cb9-88"><a href="#cb9-88" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
 <span id="cb9-89"><a href="#cb9-89" tabindex="-1"></a><span class="fu">setorder</span>(sheet_pool_summary, Pool_ID)</span>
 <span id="cb9-90"><a href="#cb9-90" tabindex="-1"></a><span class="fu">render_table</span>(sheet_pool_summary, <span class="st">&quot;Sequencing-sheet pool coverage&quot;</span>)</span></code></pre></div>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-f06dfb87ca9cfe8f01a9" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-f06dfb87ca9cfe8f01a9">{"x":{"filter":"none","vertical":false,"caption":"<caption>Sequencing-sheet pool coverage<\/caption>","data":[[1],[4],[true]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Sequencing_Sheet_Rows<\/th>\n      <th>Active_Pool<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Sequencing_Sheet_Rows","targets":1},{"name":"Active_Pool","targets":2}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-f8bdb3a8ce233cac9857" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-f8bdb3a8ce233cac9857">{"x":{"filter":"none","vertical":false,"caption":"<caption>Sequencing-sheet pool coverage<\/caption>","data":[[1],[4],[true]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Sequencing_Sheet_Rows<\/th>\n      <th>Active_Pool<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Sequencing_Sheet_Rows","targets":1},{"name":"Active_Pool","targets":2}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="match-samples" class="section level2" number="5.4">
 <h2><span class="header-section-number">5.4</span> Match Active Samples
@@ -5991,7 +5988,7 @@ For example,
 <code>m84157_260831_153015_s4.hifi_reads.Kinnex16S_Fwd_06--Kinnex16S_Rev_16.hifi_reads.fastq.gz</code>
 matches the supplied Kinnex barcode IDs. Each active sample must match
 exactly one file, and no file may match multiple samples. Unlisted files
-remain in the audit and are not copied.</p>
+remain in the audit and are not processed.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>active_samples <span class="ot">&lt;-</span> <span class="fu">copy</span>(sample_sheet[Active_Pool <span class="sc">==</span> <span class="cn">TRUE</span>])</span>
 <span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">nrow</span>(active_samples)) <span class="fu">stop</span>(<span class="st">&quot;No sample-sheet rows belong to the supplied pools.&quot;</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>matched_indices <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(active_samples)), <span class="cf">function</span>(i) {</span>
@@ -6019,78 +6016,60 @@ remain in the audit and are not copied.</p>
 <span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>}</span>
 <span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Matched samples:&quot;</span>, <span class="fu">nrow</span>(sample_manifest), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Matched samples: 4</code></pre>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Unlisted FASTQ files (not copied):&quot;</span>, <span class="fu">sum</span>(<span class="sc">!</span>fastq_inventory<span class="sc">$</span>Listed_In_Sequencing_Sheet), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Unlisted FASTQ files (not copied): 0</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Unlisted FASTQ files (not processed):&quot;</span>, <span class="fu">sum</span>(<span class="sc">!</span>fastq_inventory<span class="sc">$</span>Listed_In_Sequencing_Sheet), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<pre><code>## Unlisted FASTQ files (not processed): 0</code></pre>
 </div>
-<div id="copy-fastq" class="section level2" number="5.5">
-<h2><span class="header-section-number">5.5</span> Copy and Rename
-Matched FASTQ Files</h2>
-<p>Copy matched gzip files to deterministic sample filenames without
-decompressing them. Source files remain unchanged. Stale FASTQs in this
-notebook’s managed output folder are removed after all active samples
-have unique matches.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>sample_manifest[, Output_FASTQ <span class="sc">:=</span> <span class="fu">as.character</span>(<span class="fu">path</span>(mapped_fastq_folder, <span class="fu">paste0</span>(SampleID, <span class="st">&quot;.fastq.gz&quot;</span>)))]</span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_manifest<span class="sc">$</span>Output_FASTQ)) <span class="fu">stop</span>(<span class="st">&quot;Multiple samples resolve to the same output FASTQ path.&quot;</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>stale_fastq_outputs <span class="ot">&lt;-</span> <span class="fu">dir_ls</span>(mapped_fastq_folder, <span class="at">regexp =</span> <span class="st">&quot;(?i)</span><span class="sc">\\</span><span class="st">.(fastq|fq)(</span><span class="sc">\\</span><span class="st">.gz)?$&quot;</span>,</span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>                             <span class="at">type =</span> <span class="st">&quot;file&quot;</span>, <span class="at">recurse =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(stale_fastq_outputs)) <span class="fu">file_delete</span>(stale_fastq_outputs)</span>
-<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(sample_manifest))) {</span>
-<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="fu">file_copy</span>(sample_manifest<span class="sc">$</span>Source_FASTQ[[i]], sample_manifest<span class="sc">$</span>Output_FASTQ[[i]])</span>
-<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>}</span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Copied&quot;</span>, <span class="fu">nrow</span>(sample_manifest), <span class="st">&quot;sample FASTQs to&quot;</span>, mapped_fastq_folder, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Copied 4 sample FASTQs to /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/1_data_integrity_and_sample_mapping/mapped_fastq</code></pre>
-</div>
-<div id="validate-fastq" class="section level2" number="5.6">
-<h2><span class="header-section-number">5.6</span> Validate Copied FASTQ
-Files</h2>
-<p>Every copied FASTQ is checked for existence, non-zero size, and
+<div id="validate-fastq" class="section level2" number="5.5">
+<h2><span class="header-section-number">5.5</span> Validate Original
+FASTQ Files</h2>
+<p>Every original FASTQ is checked for existence, non-zero size, and
 complete parsing. Read counts reported here are the input counts for the
 downstream primer-removal step.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Validate each copied file independently and keep the structured results in</span></span>
-<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co"># manifest row order.</span></span>
-<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>fastq_inspections <span class="ot">&lt;-</span> <span class="fu">lapply</span>(sample_manifest<span class="sc">$</span>Output_FASTQ, inspect_fastq_file)</span>
-<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a></span>
-<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="co"># Expand the per-file result lists into typed manifest columns for downstream</span></span>
-<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="co"># summaries and Excel export.</span></span>
-<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>sample_manifest[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(</span>
-<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>  <span class="at">FASTQ_Valid =</span> <span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">logical</span>(<span class="dv">1</span>), <span class="st">&quot;valid&quot;</span>),</span>
-<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>  <span class="at">Input_Reads =</span> <span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&quot;reads&quot;</span>),</span>
-<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>  <span class="at">Output_Size_MB =</span> <span class="fu">round</span>(<span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&quot;size_mb&quot;</span>), <span class="dv">3</span>),</span>
-<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a>  <span class="at">FASTQ_Issue =</span> <span class="fu">vapply</span>(</span>
-<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>    fastq_inspections,</span>
-<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>    <span class="cf">function</span>(x) <span class="cf">if</span> (<span class="fu">is.null</span>(x<span class="sc">$</span>issue) <span class="sc">||</span> <span class="fu">is.na</span>(x<span class="sc">$</span>issue)) <span class="cn">NA_character_</span> <span class="cf">else</span> <span class="fu">as.character</span>(x<span class="sc">$</span>issue),</span>
-<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a>    <span class="fu">character</span>(<span class="dv">1</span>)</span>
-<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a>  )</span>
-<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a>)]</span>
-<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a></span>
-<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a><span class="co"># Mapping failure takes precedence; otherwise parsing determines final status.</span></span>
-<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a>sample_manifest[, Integrity_Status <span class="sc">:=</span> <span class="fu">fifelse</span>(</span>
-<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a>  Mapping_Status <span class="sc">!=</span> <span class="st">&quot;PASS&quot;</span>, Mapping_Status,</span>
-<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a>  <span class="fu">fifelse</span>(FASTQ_Valid <span class="sc">==</span> <span class="cn">TRUE</span>, <span class="st">&quot;PASS&quot;</span>, <span class="st">&quot;FAIL: FASTQ parsing failed&quot;</span>)</span>
-<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a>)]</span>
-<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a></span>
-<span id="cb16-24"><a href="#cb16-24" tabindex="-1"></a><span class="co"># Display every invalid file and its captured parser message before stopping.</span></span>
-<span id="cb16-25"><a href="#cb16-25" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(sample_manifest<span class="sc">$</span>FASTQ_Valid <span class="sc">!=</span> <span class="cn">TRUE</span>)) {</span>
-<span id="cb16-26"><a href="#cb16-26" tabindex="-1"></a>  <span class="fu">render_table</span>(</span>
-<span id="cb16-27"><a href="#cb16-27" tabindex="-1"></a>    sample_manifest[FASTQ_Valid <span class="sc">!=</span> <span class="cn">TRUE</span>, .(SampleID, Output_FASTQ, FASTQ_Issue)],</span>
-<span id="cb16-28"><a href="#cb16-28" tabindex="-1"></a>    <span class="st">&quot;Invalid copied FASTQ files&quot;</span></span>
-<span id="cb16-29"><a href="#cb16-29" tabindex="-1"></a>  )</span>
-<span id="cb16-30"><a href="#cb16-30" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;One or more copied FASTQ files failed complete-file validation.&quot;</span>)</span>
-<span id="cb16-31"><a href="#cb16-31" tabindex="-1"></a>}</span>
-<span id="cb16-32"><a href="#cb16-32" tabindex="-1"></a></span>
-<span id="cb16-33"><a href="#cb16-33" tabindex="-1"></a><span class="co"># Summarize read depth and copied size by pool using numeric values.</span></span>
-<span id="cb16-34"><a href="#cb16-34" tabindex="-1"></a>sample_summary <span class="ot">&lt;-</span> sample_manifest[, .(</span>
-<span id="cb16-35"><a href="#cb16-35" tabindex="-1"></a>  <span class="at">Samples =</span> .N,</span>
-<span id="cb16-36"><a href="#cb16-36" tabindex="-1"></a>  <span class="at">Total_Reads =</span> <span class="fu">sum</span>(Input_Reads),</span>
-<span id="cb16-37"><a href="#cb16-37" tabindex="-1"></a>  <span class="at">Median_Reads =</span> <span class="fu">round</span>(stats<span class="sc">::</span><span class="fu">median</span>(Input_Reads)),</span>
-<span id="cb16-38"><a href="#cb16-38" tabindex="-1"></a>  <span class="at">Minimum_Reads =</span> <span class="fu">min</span>(Input_Reads),</span>
-<span id="cb16-39"><a href="#cb16-39" tabindex="-1"></a>  <span class="at">Maximum_Reads =</span> <span class="fu">max</span>(Input_Reads),</span>
-<span id="cb16-40"><a href="#cb16-40" tabindex="-1"></a>  <span class="at">Total_Size_MB =</span> <span class="fu">round</span>(<span class="fu">sum</span>(Output_Size_MB), <span class="dv">2</span>)</span>
-<span id="cb16-41"><a href="#cb16-41" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
-<span id="cb16-42"><a href="#cb16-42" tabindex="-1"></a></span>
-<span id="cb16-43"><a href="#cb16-43" tabindex="-1"></a><span class="fu">render_table</span>(sample_summary, <span class="st">&quot;Validated workflow-ready FASTQ files&quot;</span>)</span></code></pre></div>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-b32e69543fb64e3375b4" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-b32e69543fb64e3375b4">{"x":{"filter":"none","vertical":false,"caption":"<caption>Validated workflow-ready FASTQ files<\/caption>","data":[[1],[4],[20000],[5000],[5000],[5000],[5.32]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Samples<\/th>\n      <th>Total_Reads<\/th>\n      <th>Median_Reads<\/th>\n      <th>Minimum_Reads<\/th>\n      <th>Maximum_Reads<\/th>\n      <th>Total_Size_MB<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Samples","targets":1},{"name":"Total_Reads","targets":2},{"name":"Median_Reads","targets":3},{"name":"Minimum_Reads","targets":4},{"name":"Maximum_Reads","targets":5},{"name":"Total_Size_MB","targets":6}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Validate each original file independently and keep the structured results in</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co"># manifest row order.</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>fastq_inspections <span class="ot">&lt;-</span> <span class="fu">lapply</span>(sample_manifest<span class="sc">$</span>Source_FASTQ, inspect_fastq_file)</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co"># Expand the per-file result lists into typed manifest columns for downstream</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co"># summaries and Excel export.</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>sample_manifest[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  <span class="at">FASTQ_Valid =</span> <span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">logical</span>(<span class="dv">1</span>), <span class="st">&quot;valid&quot;</span>),</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  <span class="at">Input_Reads =</span> <span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&quot;reads&quot;</span>),</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>  <span class="at">Source_Size_MB =</span> <span class="fu">round</span>(<span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&quot;size_mb&quot;</span>), <span class="dv">3</span>),</span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>  <span class="at">FASTQ_Issue =</span> <span class="fu">vapply</span>(</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a>    fastq_inspections,</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>    <span class="cf">function</span>(x) <span class="cf">if</span> (<span class="fu">is.null</span>(x<span class="sc">$</span>issue) <span class="sc">||</span> <span class="fu">is.na</span>(x<span class="sc">$</span>issue)) <span class="cn">NA_character_</span> <span class="cf">else</span> <span class="fu">as.character</span>(x<span class="sc">$</span>issue),</span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>    <span class="fu">character</span>(<span class="dv">1</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a>  )</span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a>)]</span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co"># Mapping failure takes precedence; otherwise parsing determines final status.</span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a>sample_manifest[, Integrity_Status <span class="sc">:=</span> <span class="fu">fifelse</span>(</span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a>  Mapping_Status <span class="sc">!=</span> <span class="st">&quot;PASS&quot;</span>, Mapping_Status,</span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a>  <span class="fu">fifelse</span>(FASTQ_Valid <span class="sc">==</span> <span class="cn">TRUE</span>, <span class="st">&quot;PASS&quot;</span>, <span class="st">&quot;FAIL: FASTQ parsing failed&quot;</span>)</span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a>)]</span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a></span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co"># Display every invalid file and its captured parser message before stopping.</span></span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(sample_manifest<span class="sc">$</span>FASTQ_Valid <span class="sc">!=</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a>  <span class="fu">render_table</span>(</span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a>    sample_manifest[FASTQ_Valid <span class="sc">!=</span> <span class="cn">TRUE</span>, .(SampleID, Source_FASTQ, FASTQ_Issue)],</span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a>    <span class="st">&quot;Invalid original FASTQ files&quot;</span></span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a>  )</span>
+<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;One or more original FASTQ files failed complete-file validation.&quot;</span>)</span>
+<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a>}</span>
+<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a></span>
+<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a><span class="co"># Summarize read depth and original size by pool using numeric values.</span></span>
+<span id="cb14-34"><a href="#cb14-34" tabindex="-1"></a>sample_summary <span class="ot">&lt;-</span> sample_manifest[, .(</span>
+<span id="cb14-35"><a href="#cb14-35" tabindex="-1"></a>  <span class="at">Samples =</span> .N,</span>
+<span id="cb14-36"><a href="#cb14-36" tabindex="-1"></a>  <span class="at">Total_Reads =</span> <span class="fu">sum</span>(Input_Reads),</span>
+<span id="cb14-37"><a href="#cb14-37" tabindex="-1"></a>  <span class="at">Median_Reads =</span> <span class="fu">round</span>(stats<span class="sc">::</span><span class="fu">median</span>(Input_Reads)),</span>
+<span id="cb14-38"><a href="#cb14-38" tabindex="-1"></a>  <span class="at">Minimum_Reads =</span> <span class="fu">min</span>(Input_Reads),</span>
+<span id="cb14-39"><a href="#cb14-39" tabindex="-1"></a>  <span class="at">Maximum_Reads =</span> <span class="fu">max</span>(Input_Reads),</span>
+<span id="cb14-40"><a href="#cb14-40" tabindex="-1"></a>  <span class="at">Total_Size_MB =</span> <span class="fu">round</span>(<span class="fu">sum</span>(Source_Size_MB), <span class="dv">2</span>)</span>
+<span id="cb14-41"><a href="#cb14-41" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
+<span id="cb14-42"><a href="#cb14-42" tabindex="-1"></a></span>
+<span id="cb14-43"><a href="#cb14-43" tabindex="-1"></a><span class="fu">render_table</span>(sample_summary, <span class="st">&quot;Validated workflow-ready FASTQ files&quot;</span>)</span></code></pre></div>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-17686560c29d95f19d38" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-17686560c29d95f19d38">{"x":{"filter":"none","vertical":false,"caption":"<caption>Validated workflow-ready FASTQ files<\/caption>","data":[[1],[4],[20000],[5000],[5000],[5000],[5.32]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Samples<\/th>\n      <th>Total_Reads<\/th>\n      <th>Median_Reads<\/th>\n      <th>Minimum_Reads<\/th>\n      <th>Maximum_Reads<\/th>\n      <th>Total_Size_MB<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Samples","targets":1},{"name":"Total_Reads","targets":2},{"name":"Median_Reads","targets":3},{"name":"Minimum_Reads","targets":4},{"name":"Maximum_Reads","targets":5},{"name":"Total_Size_MB","targets":6}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <hr />
 </div>
 </div>
@@ -6099,17 +6078,25 @@ downstream primer-removal step.</p>
 <div id="save-excel" class="section level2" number="6.1">
 <h2><span class="header-section-number">6.1</span> Save the Manifest and
 Export Tables to Excel</h2>
-<p>Assemble the typed run summary, sample manifest, FASTQ inventory, and
-optional inactive-row table; document every exported column with the
-shared <a title="Not included in the compact curated reference set">build_column_dictionary_function.R</a>
+<p>Assemble the compact run summary and sample manifest, plus
+unlisted-file and inactive-row tables only when needed; document every
+exported column with the shared <a title="Not included in the compact curated reference set">build_column_dictionary_function.R</a>
 helper; and save the complete workbook as <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>.
 An extra <code>Inactive_Sheet_Rows</code> worksheet is included only
 when at least one sample-sheet row refers to a pool for which no FASTQ
 pool was supplied.</p>
+<p>The manifest contains <code>PoolNumber</code>, <code>SampleID</code>,
+<code>SourceFASTQPath</code>, <code>InputReads</code>,
+<code>SourceSizeMB</code>, and <code>IntegrityStatus</code>.
+<code>SourceSampleID</code> is added only if sanitization changed a
+sample name. Barcode IDs remain in the input sample sheet and optional
+inactive rows, without duplication in the validated manifest. The
+optional <code>Unlisted_FASTQs</code> sheet contains only delivered
+files that were not requested.</p>
 <p>The workbook path printed below identifies the complete audit
 artifact to review before accepting the final integrity decision.</p>
 <pre><code>## Results exported to:
-##  /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx</code></pre>
+##  /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/mapping_only/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx</code></pre>
 </div>
 <div id="final-decision" class="section level2" number="6.2">
 <h2><span class="header-section-number">6.2</span> Final Integrity
@@ -6118,22 +6105,22 @@ Decision</h2>
 Downstream notebooks should proceed only when every active sample maps
 exactly once, every mapped FASTQ parses completely, and every file
 contains at least one read.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Downstream work is allowed only when at least one sample exists and every</span></span>
-<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="co"># active sample mapped, parsed successfully, and contains at least one read.</span></span>
-<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>overall_pass <span class="ot">&lt;-</span></span>
-<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>  <span class="fu">nrow</span>(sample_manifest) <span class="sc">&gt;</span> <span class="dv">0</span><span class="dt">L</span> <span class="sc">&amp;&amp;</span></span>
-<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>Mapping_Status <span class="sc">==</span> <span class="st">&quot;PASS&quot;</span>) <span class="sc">&amp;&amp;</span></span>
-<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>FASTQ_Valid <span class="sc">==</span> <span class="cn">TRUE</span>) <span class="sc">&amp;&amp;</span></span>
-<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>Input_Reads <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a></span>
-<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="co"># Stop the notebook with a single gate failure after all detailed diagnostics</span></span>
-<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="co"># and the audit workbook have been produced.</span></span>
-<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span>overall_pass) {</span>
-<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Step 1 integrity checks failed. Review the audit workbook before continuing.&quot;</span>)</span>
-<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Downstream work is allowed only when at least one sample exists and every</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co"># active sample mapped, parsed successfully, and contains at least one read.</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>overall_pass <span class="ot">&lt;-</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="fu">nrow</span>(sample_manifest) <span class="sc">&gt;</span> <span class="dv">0</span><span class="dt">L</span> <span class="sc">&amp;&amp;</span></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>Mapping_Status <span class="sc">==</span> <span class="st">&quot;PASS&quot;</span>) <span class="sc">&amp;&amp;</span></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>FASTQ_Valid <span class="sc">==</span> <span class="cn">TRUE</span>) <span class="sc">&amp;&amp;</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>Input_Reads <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="co"># Stop the notebook with a single gate failure after all detailed diagnostics</span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co"># and the audit workbook have been produced.</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span>overall_pass) {</span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Step 1 integrity checks failed. Review the audit workbook before continuing.&quot;</span>)</span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>}</span></code></pre></div>
 <p>If every validation criterion passed, this final status line reports
 the number of workflow-ready samples and supplied pools.</p>
-<pre><code>## PASS — 4 samples from 1 supplied pool(s) were mapped, copied, and validated.</code></pre>
+<pre><code>## PASS — 4 samples from 1 supplied pool(s) were mapped and validated.</code></pre>
 <hr />
 </div>
 </div>
@@ -6146,7 +6133,7 @@ than a machine-specific absolute path.</p>
 <ul>
 <li><a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">Integrity
 and sample-mapping workbook:
-example/run_results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx</a></li>
+example/run_results/mapping_only/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx</a></li>
 </ul>
 <hr />
 </div>
@@ -6158,13 +6145,8 @@ as clickable links, generated live from disk by <a title="Not included in the co
 This avoids maintaining a separate output list that could drift away
 from the files actually produced.</p>
 <pre>
-example/run_results/1_data_integrity_and_sample_mapping/
-├── <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>  # Run summary, sample manifest, FASTQ inventory, optional inactive sample-sheet rows, and column dictionary
-└── <a title="Not included in the compact curated reference set">mapped_fastq/</a>                           # Gzip-compressed FASTQ files matched and renamed from the supplied PacBio pool directories
-    ├── <a title="Not included in the compact curated reference set">Subject-R11-Timepoint-1.fastq.gz</a>
-    ├── <a title="Not included in the compact curated reference set">Subject-R3-Timepoint-1.fastq.gz</a>
-    ├── <a title="Not included in the compact curated reference set">Subject-R3-Timepoint-2.fastq.gz</a>
-    └── <a title="Not included in the compact curated reference set">Subject-R3-Timepoint-3.fastq.gz</a>
+example/run_results/mapping_only/1_data_integrity_and_sample_mapping/
+└── <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>  # Run summary, original FASTQ mapping, optional unlisted FASTQs, optional inactive sample-sheet rows, and column dictionary
 </pre>
 <hr />
 </div>
@@ -6174,8 +6156,9 @@ Step</h1>
 <p>After this notebook passes, continue with <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Step 2 (PacBio HiFi Quality
 Filtering)</a>. That notebook reads sample identities from the
 <code>Sample_Manifest</code> worksheet in <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>
-and analyzes the validated FASTQ files in <a title="Not included in the compact curated reference set">mapped_fastq/</a>,
-rather than inferring sample names again.</p>
+resolves <code>SourceFASTQPath</code> relative to the project root,
+reads each original FASTQ, and writes its filtered output using
+<code>SampleID</code>.</p>
 <hr />
 </div>
 <div id="session-information" class="section level1" number="10">
@@ -6287,7 +6270,7 @@ documentation</a></li>
 <h2><span class="header-section-number">11.3</span> Related Project
 Files</h2>
 <ul>
-<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
+<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
 editable PacBio sample and barcode mapping.</li>
 <li><a title="Not included in the compact curated reference set">R/functions/</a> — shared report-writing and
 output-rendering helpers.</li>
@@ -6333,7 +6316,7 @@ must occur within the filename with identifier boundaries. Run prefixes
 and suffixes may vary. Check pool number, barcode direction, spelling,
 and case. Missing samples, multiple files for the same sample, and a
 file matching multiple samples stop processing; files not listed in the
-sheet are retained in <code>FASTQ_Inventory</code> and not copied.</p>
+sheet are retained in <code>Unlisted_FASTQs</code> and not original.</p>
 </div>
 <div id="invalid-fastq" class="section level2" number="12.5">
 <h2><span class="header-section-number">12.5</span> Invalid FASTQ</h2>

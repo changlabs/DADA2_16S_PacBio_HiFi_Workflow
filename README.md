@@ -197,7 +197,7 @@ data/fastq/pool1/<run>.<forward>--<reverse>.fastq.gz
 data/fastq/pool2/<run>.<forward>--<reverse>.fastq.gz
 ```
 
-Edit [data/sample_sheet.xlsx](data/sample_sheet.xlsx) using the four required columns: `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`. Each active barcode pair must map to a unique `SampleID` and numeric `PoolNumber`. `SampleID` must not include the pool number. Barcode nucleotide sequences are unnecessary because the supplied FASTQs have already been demultiplexed. [Step 1](R/notebooks/1_data_integrity_and_sample_mapping.md) copies only uniquely matched files. Barcode IDs are case-sensitive text from the sample sheet, including Kinnex names, and are matched literally as `ForwardBarcodeID--ReverseBarcodeID` within the filename. Each active sample must match exactly one file; missing or ambiguous matches stop processing. ZIP archives must be unpacked first.
+Edit [data/sample_sheet.xlsx](data/sample_sheet.xlsx) using the four required columns: `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`. Each active barcode pair must map to a unique `SampleID` and numeric `PoolNumber`. `SampleID` must not include the pool number. Barcode nucleotide sequences are unnecessary because the supplied FASTQs have already been demultiplexed. [Step 1](R/notebooks/1_data_integrity_and_sample_mapping.md) records uniquely matched original files in a mapping table, without copying or renaming reads. Barcode IDs are case-sensitive text from the sample sheet, including Kinnex names, and are matched literally as `ForwardBarcodeID--ReverseBarcodeID` within the filename. Each active sample must match exactly one file; missing or ambiguous matches stop processing. ZIP archives must be unpacked first.
 
 See [data/README.md](data/README.md) for the complete format and consistency checks.
 
@@ -219,11 +219,11 @@ Run the numbered notebooks in order from the project root. In RStudio, use **Kni
 
 ### Step 1 — [Data Integrity and Sample Mapping](R/notebooks/1_data_integrity_and_sample_mapping.md) *(required)*
 
-Discovers multiple compressed FASTQs per pool, checks the sample sheet, matches its literal barcode pairs (including Kinnex identifiers), and copies uniquely matched files under stable `.fastq.gz` sample names.
+Discovers multiple compressed FASTQs per pool, checks the sample sheet, matches its literal barcode pairs (including Kinnex identifiers), and validates the original files without making copies. `Sample_Manifest` records project-relative `SourceFASTQPath` values; Step 2 reads these originals and assigns `SampleID` to its filtered output filenames.
 
 ### Step 2 — [Quality Filtering](R/notebooks/2_quality_filtering.md) *(required)*
 
-Calculates per-sample PacBio read-quality, read-length, GC, and size statistics in R. Reads with mean **Q ≥ 20** are written as gzip-compressed `.fastq.gz` files. Every input read's length, GC percentage, QV, and filter decision are streamed to `per_read_statistics.tsv.gz`, avoiding Excel's worksheet row limit and loading the full audit into memory. The Excel workbook retains `Run_Summary`, `Sample_QC`, and `Column_Dictionary`; the dictionary also documents the external audit columns. No read-length filter or length truncation is applied in this step.
+Calculates per-sample PacBio read-quality, read-length, GC, and size statistics in R. Reads with mean **Q ≥ 20** are written as gzip-compressed `.fastq.gz` files. Every input read's length, GC percentage, QV, and filter decision are streamed to `per_read_statistics.tsv.gz`, avoiding Excel's worksheet row limit and loading the full audit into memory. The Excel workbook retains `Run_Summary`, `Sample_QC`, and `Column_Dictionary`; the dictionary also documents the external audit columns. No read-length filter or length truncation is applied in this step. Both distribution PDFs count all input reads, with six sample facets per page. Read-length facets report total reads and reads from 1,800 through 2,000 bp inclusive; QV facets report total reads and reads passing the QV cutoff. Streaming frequency counts and page-by-page rendering avoid loading the per-read TSV; length quantiles are exact across all reads.
 
 ### Step 3 — [Primer Trimming](R/notebooks/3_primer_trimming.md) *(required)*
 
@@ -231,7 +231,7 @@ Uses linked primers with Cutadapt to retain full primer-to-primer amplicons, rem
 
 ### Step 4 — [DADA2 Parameter Selection](R/notebooks/4_dada2_parameter_selection.md) *(recommended)*
 
-A guide to the [DADA2 Parameter Selection](R/shiny/dada2_parameter_selection_app.R) Shiny app, which calculates expected errors for complete primer-trimmed reads, shows pooled and per-sample retention across candidate thresholds, and optionally validates the selected value with real DADA2 filtering, PacBio error learning, and sample inference. The exported workbook is loaded automatically by [Step 5](R/notebooks/5_dada2_pipeline.md).
+A guide to the [DADA2 Parameter Selection](R/shiny/dada2_parameter_selection_app.R) Shiny app, which calculates expected errors for complete primer-trimmed reads, shows pooled and per-sample retention across candidate thresholds, and optionally validates the selected value with real DADA2 filtering, PacBio error learning, and sample inference. The exported workbook is loaded automatically by [Step 5](R/notebooks/5_dada2_pipeline.md). The app offers an adjustable processor count for parallel FASTQ loading and DADA2 validation, caches profiles using input-file checksums, and reuses retention calculations while adjusting maxEE. Its console streams validation stages and DADA2 output, with elapsed-time updates during quiet stages. Start with two processors and increase according to available memory; see the Step 4 guide for cache management and platform details.
 
 ### Step 5 — [DADA2 Pipeline](R/notebooks/5_dada2_pipeline.md) *(required)*
 
@@ -383,4 +383,4 @@ This project is released under the [MIT License](LICENSE).
 **Author**: Amro Abbas - Generated with Claude AI assistance\
 **Last Updated**: September 2026
 
-FASTQ outputs from Steps 1, 2, 3, and all three filtering stages in Step 5 are gzip-compressed. Steps 3–5 also accept legacy uncompressed FASTQs. Step 1 requires direct gzip inputs. The Step 4 app uses gzip for its temporary validation files.
+FASTQ outputs from Steps 2, 3, and all three filtering stages in Step 5 are gzip-compressed. Steps 3–5 also accept legacy uncompressed FASTQs. Step 1 requires direct gzip inputs and exports a mapping workbook only. The Step 4 app uses gzip for its temporary validation files.

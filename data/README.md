@@ -72,3 +72,5 @@ Before running the downstream steps, confirm that:
 Rows can be added or removed, but each retained row must still map unambiguously to one workflow sample and pool. Samples may be omitted from the optional metadata or cell-count table only when the downstream analysis that needs that table is also omitted; Step 8 specifically requires a valid positive cell count for every sample it processes.
 
 Place multiple demultiplexed `.fastq.gz` files directly in each pool folder. ZIP archives must be unpacked first. Barcode IDs are matched literally and case-sensitively from the sample sheet as `ForwardBarcodeID--ReverseBarcodeID` within each filename; Kinnex and conventional `bc` identifiers are both supported.
+
+Step 1 leaves the original FASTQs in these folders and writes `SourceFASTQPath` relative to the project root in `Sample_Manifest`. Step 2 reads these originals and names its filtered outputs by `SampleID`. Move the complete project with its input data to preserve the mapping; rerun Step 1 after relocating inputs within the project.

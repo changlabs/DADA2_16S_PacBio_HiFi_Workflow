@@ -166,6 +166,32 @@ and calculates one expected-error value per sampled read. Sampling
 limits memory while giving reads throughout each file the same chance of
 selection; it does not modify the FASTQs.
 
+Choose **Processors** in the Select tab before loading profiles or
+running validation. The default is two (or one on a single-core
+machine), capped at the processors detected on your computer. FASTQs are
+streamed in separate workers, and DADA2 validation uses the selected
+thread count where supported; DADA2 may run filtering serially on
+Windows. Start with two and increase only if memory permits. Each
+loading worker holds one bounded reservoir of quality strings plus a
+read chunk, rather than the entire FASTQ or cohort. More workers
+increase memory use, and validation can require substantially more
+memory than profile loading.
+
+Expected errors are calculated only after reservoir sampling. Numeric
+profiles are cached under
+`results/4_dada2_parameter_selection/.quality_profile_cache/`. A
+complete input-file checksum, sampling depth, seed, and algorithm
+version identify each cache entry; unchanged inputs avoid decompression
+and quality-score calculation on subsequent loads, although checksum
+verification still reads the compressed file. Delete this directory to
+clear the cache. Sampling is reproducible regardless of processor count.
+
+Slider changes reuse sorted expected-error values and precomputed
+retention curves. The per-sample distribution display uses 401 fixed
+thresholds to limit browser traffic; percentages at those thresholds
+include every sampled read. These interactive estimates remain sampled
+profiles, distinct from Step 2’s all-read distribution reports.
+
 The sampling depth is selected automatically according to cohort size:
 
 | Number of samples | Reads requested per sample |
@@ -258,6 +284,16 @@ downstream objectives.
 The fast curve reproduces the mathematical `maxEE` test from the FASTQ
 quality strings. The **Validate** tab goes further by running real DADA2
 processing on selected samples.
+
+The shared console streams validation stages and DADA2 output while
+processing runs. It reports filtering, error learning, dereplication,
+ASV inference, and chimera removal. During quiet stages, a message every
+10 seconds shows the current stage and total elapsed time; this is an
+activity indicator, not a percentage-complete estimate. Validation runs
+in a separate R process so the app can deliver these updates. Settings,
+loading, repeat validation, and export are disabled until it finishes.
+Closing the app session stops its validation process and removes
+temporary files.
 
 <figure>
 <img src="../images/4_dada2_parameter_selection_validate.png"

@@ -73,7 +73,7 @@ Step 2 now writes gzip-compressed Q20 FASTQs and the complete per-read audit to
 `run_results/2_quality_filtered_reads/per_read_statistics.tsv.gz`. Its Excel
 workbook contains sample summaries and column definitions. Step 3 reads these
 compressed FASTQs directly; its primer-trimmed outputs use `.fastq.gz`
-for Steps 4 and 5. Step 1 mapped reads and Step 5 filtering outputs also use gzip. The runner checks that both the audit and one compressed
+for Steps 4 and 5. Step 1 validates originals and exports their project-relative paths without copying reads. Step 5 filtering outputs also use gzip. The runner checks that both the audit and one compressed
 Q20 FASTQ per sample exist.
 
 Run the focused Step 1 mapping regression checks without Cutadapt or taxonomy databases:
@@ -82,4 +82,8 @@ Run the focused Step 1 mapping regression checks without Cutadapt or taxonomy da
 Rscript tests/test_step1_mapping.R
 ```
 
-These checks cover the supplied Kinnex filename, conventional barcode names, literal punctuation, unlisted files, inactive pools, unchanged gzip copies, and rejection of missing, duplicate, or ambiguous matches.
+These checks cover the supplied Kinnex filename, conventional barcode names, literal punctuation, unlisted files, inactive pools, unchanged original FASTQs and portable source paths, and rejection of missing, duplicate, or ambiguous matches.
+
+Step 2 distribution PDFs use all input reads and six sample facets per page, with total-read and inclusive 1,800–2,000 bp counts in each read-length facet. QV facets instead show total reads and reads passing the QV cutoff. Histograms and exact length quantiles use streamed frequencies rather than a bounded read sample or loading the audit TSV. Run `Rscript tests/test_step2_distributions.R` to check coverage beyond the former 50,000-read cap, boundary counts, quantiles, and PDF pagination.
+
+Step 1 workbook exports are compact: the manifest keeps sample/pool identifiers, original relative paths, read counts, compressed sizes, and integrity status. Original sample names are included only when sanitization changes them. Unlisted FASTQs and inactive rows have optional sheets; duplicated filenames, mapped barcode columns, and repeated success counts are omitted.

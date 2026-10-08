@@ -186,6 +186,8 @@ cat("  ✓ BiocManager available\n")
 cat("\n[2/4] Installing CRAN packages...\n")
 
 cran_packages <- c(
+    "callr", # Separate validation process with live console output
+    "digest", # Content-keyed quality-profile cache for the Shiny explorer
     # ------------------------------------------------------------------
     # Data manipulation
     # ------------------------------------------------------------------

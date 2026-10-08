@@ -43,8 +43,8 @@ run_tests <- function() {
     env$sequencing_sheet_path <- file.path(data_root, 'sample_sheet.xlsx')
     env$sequencing_sheet_name <- 1
     env$results_folder <- tempfile('results-', tmpdir = fixture)
-    env$mapped_fastq_folder <- file.path(env$results_folder, 'mapped_fastq')
-    dir.create(env$mapped_fastq_folder, recursive = TRUE)
+    env$project_root <- fixture
+    dir.create(env$results_folder, recursive = TRUE)
     env$workbook_path <- file.path(env$results_folder, 'summary.xlsx')
     env$validate_complete_fastq <- TRUE
     for (chunk in c('load-packages', 'helper-functions', 'discover-pools-and-fastqs', 'read-sequencing-sheet')) {
@@ -57,19 +57,49 @@ run_tests <- function() {
             env$extract_pool_number('Pool1') == 1L,
             env$extract_pool_number('POOL1') == 1L,
             is.na(env$extract_pool_number('Pool1_extra')))
-  for (chunk in c('match-samples', 'copy-matched-fastq', 'validate-copied-fastq', 'export-results', 'final-integrity-decision')) {
+  for (chunk in c('match-samples', 'validate-original-fastq', 'export-results', 'final-integrity-decision')) {
     invisible(eval(chunk_code(chunk), env))
   }
   stopifnot(nrow(env$sample_manifest) == 3L,
             sum(env$sample_manifest$Input_Reads) == 3,
             sum(!env$fastq_inventory$Listed_In_Sequencing_Sheet) == 1L,
             identical(unname(tools::md5sum(sources)), unname(checksums)),
-            identical(unname(tools::md5sum(env$sample_manifest$Source_FASTQ)),
-                      unname(tools::md5sum(env$sample_manifest$Output_FASTQ))))
+            !dir.exists(file.path(env$results_folder,'mapped_fastq')))
   manifest <- openxlsx::read.xlsx(env$workbook_path, sheet = 'Sample_Manifest')
-  stopifnot('FASTQ_Inventory' %in% openxlsx::getSheetNames(env$workbook_path),
+  stopifnot(all(file.exists(file.path(fixture,manifest$SourceFASTQPath))),
+            !any(grepl('^/',manifest$SourceFASTQPath)),
+            'Unlisted_FASTQs' %in% openxlsx::getSheetNames(env$workbook_path),
             'Inactive_Sheet_Rows' %in% openxlsx::getSheetNames(env$workbook_path),
-            manifest$ForwardBarcodeID[manifest$SampleID == 'IgAN61_fecal_bulk'] == 'Kinnex16S_Fwd_06')
+            !any(c('SourceFASTQ','ForwardBarcodeID','ReverseBarcodeID','SourceSampleID') %in% names(manifest)),
+            grepl('Kinnex16S_Fwd_06--Kinnex16S_Rev_16',manifest$SourceFASTQPath[manifest$SampleID == 'IgAN61_fecal_bulk'],fixed=TRUE))
+  # Move the input layout to another root and exercise Step 2's actual reader.
+  relocated <- file.path(fixture, 'relocated_project')
+  dir.create(relocated)
+  for (i in seq_len(nrow(manifest))) {
+    destination <- file.path(relocated, manifest$SourceFASTQPath[[i]])
+    dir.create(dirname(destination), recursive = TRUE, showWarnings = FALSE)
+    file.copy(file.path(fixture, manifest$SourceFASTQPath[[i]]), destination)
+  }
+  step2_lines <- readLines('R/notebooks/2_quality_filtering.Rmd')
+  start <- which(grepl('^```\\{r read-manifest', step2_lines))
+  end <- which(seq_along(step2_lines) > start & step2_lines == '```')[[1L]]
+  env$project_root <- relocated
+  env$step1_workbook <- env$workbook_path
+  invisible(eval(parse(text = step2_lines[seq.int(start + 1L, end - 1L)]), env))
+  stopifnot(all(file.exists(env$sample_manifest$FASTQ)),
+            all(startsWith(env$sample_manifest$FASTQ, as.character(fs::path_norm(relocated)))),
+            setequal(env$sample_manifest$SampleID, manifest$SampleID))
+  altered <- sheet
+  altered$SampleID[altered$SampleID == 'Literal'] <- 'Literal Name'
+  openxlsx::write.xlsx(altered, file.path(data_root, 'sample_sheet.xlsx'), overwrite = TRUE)
+  sanitized <- make_environment()
+  for (label in c('match-samples','validate-original-fastq','export-results')) {
+    invisible(eval(chunk_code(label), sanitized))
+  }
+  audited <- openxlsx::read.xlsx(sanitized$workbook_path, sheet = 'Sample_Manifest')
+  stopifnot('SourceSampleID' %in% names(audited),
+            audited$SourceSampleID[audited$SampleID == 'Literal-Name'] == 'Literal Name')
+  openxlsx::write.xlsx(sheet, file.path(data_root, 'sample_sheet.xlsx'), overwrite = TRUE)
   expect_error <- function(expr, message) {
     error <- tryCatch({force(expr); NULL}, error = identity)
     stopifnot(inherits(error, 'error'), grepl(message, conditionMessage(error), fixed = TRUE))
@@ -88,6 +118,6 @@ run_tests <- function() {
   expect_error(eval(chunk_code('match-samples'), env), 'missing from the supplied FASTQs')
   stopifnot(!env$matches_barcode_pair('run.bc030--bc04.fastq.gz', 'bc03', 'bc04'),
             !env$matches_barcode_pair(names[[1L]], 'kinnex16s_fwd_06', 'Kinnex16S_Rev_16'))
-  cat('PASS: Kinnex, conventional and literal punctuation identifiers; unlisted/inactive rows; immutable byte-identical copies; duplicate, ambiguous and missing match rejection.\n')
+  cat('PASS: Kinnex, conventional and literal punctuation identifiers; unlisted/inactive rows; unchanged originals and project-relative source mapping; duplicate, ambiguous and missing match rejection.\n')
 }
 run_tests()

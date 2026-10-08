@@ -222,8 +222,6 @@ required_outputs <- c(
   file.path(run_results, "2_quality_filtered_reads", "per_read_statistics.tsv.gz"),
   file.path(run_results, "2_quality_filtered_reads", "Q20_filtered_fastq",
             paste0(expected_sample_ids, "_filtered_Q20.fastq.gz")),
-  file.path(run_results, "1_data_integrity_and_sample_mapping", "mapped_fastq",
-            paste0(expected_sample_ids, ".fastq.gz")),
   file.path(run_results, "3_primer_trimming", "primer_trimming_summary.xlsx"),
   file.path(run_results, "3_primer_trimming", "primer_trimmed_reads",
             paste0(expected_sample_ids, "_primer_trimmed.fastq.gz")),
