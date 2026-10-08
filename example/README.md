@@ -6,8 +6,8 @@ The source material is a deterministic 5,000-read subset from each of four PacBi
 
 ## Contents
 
-- `data/fastq/pool1/Callahan-Fecal-HiFi-Example.fastq.zip`: 20,000 reads in four Lima-style archive members.
-- `data/sample_sheet.xlsx`: maps the archive barcodes to descriptive sample names.
+- `data/fastq/pool1/*.fastq.gz`: 20,000 reads in four gzip-compressed FASTQs with conventional barcode-pair filenames.
+- `data/sample_sheet.xlsx`: maps the filename barcodes to descriptive sample names.
 - `data/metadata.tsv`: sample annotations in the workflow's normal metadata layout, with SRA and BioSample provenance.
 - `data/cell_count/cell_count.tsv`: required, clearly labelled synthetic microbial loads for Steps 8 and 9.
 - `data/dada2_filter_parameters.xlsx`: prepared Step 4 handoff selecting `maxEE = 2`, which Step 5 reads directly.
@@ -34,7 +34,7 @@ The bundled result is methodologically comparable to the official analysis, but 
 
 ## Primers and read orientation
 
-The FASTQ archive contains the original sequenced primer-bearing CCS reads. Step 3 uses the same full-length bacterial primers as the source DADA2 analysis:
+The compressed FASTQs contain the original sequenced primer-bearing CCS reads. Step 3 uses the same full-length bacterial primers as the source DADA2 analysis:
 
 - F27: `AGRGTTYGATYMTGGCTCAG`
 - R1492 reference oligo: `RGYTACCTTGTTACGACTT`
@@ -51,7 +51,7 @@ Cutadapt is called with `F27...read-oriented-R1492`, `--trimmed-only`, `--revcom
 | `SRR8557476` | `SAMN10910594` | `R3_3_P3C3` | `Subject-R3-Timepoint-3` | 5,000 |
 | `SRR8557478` | `SAMN10910600` | `R11_1_P3C3` | `Subject-R11-Timepoint-1` | 5,000 |
 
-The subset selection used a fixed pseudorandom seed derived from BioProject `PRJNA521754`. Filenames were changed only inside the bundled archive so they follow this workflow's Lima barcode convention and remain understandable after mapping.
+The subset selection used a fixed pseudorandom seed derived from BioProject `PRJNA521754`. Filenames were changed in the bundled subset so they follow the source example's conventional barcode naming and remain understandable after mapping.
 
 ## Data provenance and citation
 
@@ -67,4 +67,19 @@ When describing the analysis, also cite DADA2:
 
 ## Third-party data notice
 
-The FASTQ reads are third-party human-fecal research data from the cited study. Their inclusion does not place them under this repository's MIT software license; attribution and any applicable rights remain with the original authors and data repository. The archive contains sequencing reads and public accession identifiers, not participant identifiers or clinical metadata.
+The FASTQ reads are third-party human-fecal research data from the cited study. Their inclusion does not place them under this repository's MIT software license; attribution and any applicable rights remain with the original authors and data repository. The files contain sequencing reads and public accession identifiers, not participant identifiers or clinical metadata.
+
+Step 2 now writes gzip-compressed Q20 FASTQs and the complete per-read audit to
+`run_results/2_quality_filtered_reads/per_read_statistics.tsv.gz`. Its Excel
+workbook contains sample summaries and column definitions. Step 3 reads these
+compressed FASTQs directly; its primer-trimmed outputs use `.fastq.gz`
+for Steps 4 and 5. Step 1 mapped reads and Step 5 filtering outputs also use gzip. The runner checks that both the audit and one compressed
+Q20 FASTQ per sample exist.
+
+Run the focused Step 1 mapping regression checks without Cutadapt or taxonomy databases:
+
+```sh
+Rscript tests/test_step1_mapping.R
+```
+
+These checks cover the supplied Kinnex filename, conventional barcode names, literal punctuation, unlisted files, inactive pools, unchanged gzip copies, and rejection of missing, duplicate, or ambiguous matches.

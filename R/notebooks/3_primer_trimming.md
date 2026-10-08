@@ -175,13 +175,14 @@ Before running this notebook, ensure that:
 
 - **Location**:
   [results/2_quality_filtered_reads/Q20_filtered_fastq/](../../results/2_quality_filtered_reads/Q20_filtered_fastq/)
-- **Naming Convention**: `{SampleID}_filtered_Q20.fastq`
-- **Format**: One uncompressed, single-end FASTQ per sample, using
+- **Naming Convention**: `{SampleID}_filtered_Q20.fastq.gz`
+- **Format**: One gzip-compressed, single-end FASTQ per sample, using
   standard four-line FASTQ records
 
 ## Expected Output
 
-- Primer-trimmed, consistently oriented reads in
+- Gzip-compressed (`{SampleID}_primer_trimmed.fastq.gz`), consistently
+  oriented reads in
   [results/3_primer_trimming/primer_trimmed_reads/](../../results/3_primer_trimming/primer_trimmed_reads/)
 - Cutadapt log files for each sample in
   [results/3_primer_trimming/cutadapt_logs/](../../results/3_primer_trimming/cutadapt_logs/)
@@ -316,10 +317,10 @@ Configure the file naming pattern used to identify the single-end,
 Q20-filtered HiFi reads written by [Step 2](2_quality_filtering.md).
 
 ``` r
-# Match the uncompressed Q20 FASTQs written by Step 2. Removing this processing
+# Match compressed Q20 FASTQs and legacy uncompressed outputs. Removing this processing
 # suffix recovers the complete biological SampleID; PoolNumber is stored only
 # in the Step 2 workbook and is not encoded in the identifier or filename.
-fastq_pattern <- "(?i)_filtered_Q20\\.(fastq|fq)$"
+fastq_pattern <- "(?i)_filtered_Q20\\.(fastq|fq)(\\.gz)?$"
 
 # Display configuration
 cat("File Pattern Configuration:\n",
@@ -472,7 +473,7 @@ This function extracts the sample identifier from a FASTQ filename.
 #   Character string containing the sample ID
 #
 # Example:
-#   extract_sample_id("Sample01_filtered_Q20.fastq", fastq_pattern)
+#   extract_sample_id("Sample01_filtered_Q20.fastq.gz", fastq_pattern)
 #   # Returns "Sample01"
 extract_sample_id <- function(filename, pattern) {
   # Remove the pattern from the filename. `pattern` is matched as a
@@ -706,7 +707,17 @@ if (anyDuplicated(sample_names)) {
   stop("Sample IDs are not unique after removing the Step 2 suffix: ",
        paste(unique(sample_names[duplicated(sample_names)]), collapse = ", "))
 }
-if (any(file_size(raw_paths) == 0)) stop("One or more Step 2 FASTQ files are empty.")
+# Compressed empty FASTQs have nonzero file sizes. Check for an actual record
+# using the same gzip-aware reader used for primer counting.
+empty_fastq <- vapply(raw_paths, function(fastq_path) {
+  streamer <- FastqStreamer(fastq_path, n = 1L)
+  on.exit(close(streamer))
+  length(ShortRead::yield(streamer)) == 0L
+}, logical(1))
+if (any(empty_fastq)) {
+  stop("One or more Step 2 FASTQ files contain no reads: ",
+       paste(basename(raw_paths[empty_fastq]), collapse = ", "))
+}
 if (!file_exists(quality_workbook_path)) {
   stop("Step 2 quality workbook does not exist: ", quality_workbook_path)
 }
@@ -863,8 +874,8 @@ staging_log_folder <- fs::path(staging_folder, "cutadapt_logs")
 dir_create(staging_trimmed_folder, recurse = TRUE)
 dir_create(staging_log_folder, recurse = TRUE)
 
-# Define one uncompressed, primer-trimmed FASTQ output per sample.
-staging_paths <- fs::path(staging_trimmed_folder, paste0(sample_names, "_primer_trimmed.fastq"))
+# Define one gzip-compressed, primer-trimmed FASTQ output per sample.
+staging_paths <- fs::path(staging_trimmed_folder, paste0(sample_names, "_primer_trimmed.fastq.gz"))
 
 cat("Running Cutadapt for primer trimming...\n",
     "Processing", length(sample_names), "samples.\n\n")
@@ -904,8 +915,17 @@ for (i in seq_along(sample_names)) {
     stderr = log_file
   )
 
-  # Check for errors
-  if (result != 0 || !file_exists(staging_paths[i]) || file_size(staging_paths[i]) == 0) {
+  # Check for execution failure and for an actual output record. Empty gzip
+  # files contain a header/trailer and therefore have nonzero file sizes.
+  output_has_reads <- FALSE
+  if (result == 0 && file_exists(staging_paths[i])) {
+    output_has_reads <- local({
+      streamer <- FastqStreamer(staging_paths[i], n = 1L)
+      on.exit(close(streamer))
+      length(ShortRead::yield(streamer)) > 0L
+    })
+  }
+  if (result != 0 || !output_has_reads) {
     stop("Cutadapt failed for sample ", sample_names[i],
          " (exit code ", result, "). See log: ", log_file)
   }

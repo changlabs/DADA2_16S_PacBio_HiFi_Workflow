@@ -45,14 +45,17 @@ if (length(missing_packages)) {
   )
 }
 
-archive_path <- file.path(
-  data_root, "fastq", "pool1", "Callahan-Fecal-HiFi-Example.fastq.zip"
+fastq_directory <- file.path(data_root, "fastq", "pool1")
+expected_files <- paste0(
+  "lima.bc", sprintf("%04d", 1001:1004), "--bc",
+  sprintf("%04d", 1001:1004), ".Q20.fastq.gz"
 )
+fastq_paths <- file.path(fastq_directory, expected_files)
 sample_sheet_path <- file.path(data_root, "sample_sheet.xlsx")
 metadata_path <- file.path(data_root, "metadata.tsv")
 cell_count_path <- file.path(data_root, "cell_count", "cell_count.tsv")
 required_inputs <- c(
-  archive_path, sample_sheet_path, metadata_path, cell_count_path,
+  fastq_paths, sample_sheet_path, metadata_path, cell_count_path,
   configuration_workbook
 )
 if (!all(file.exists(required_inputs))) {
@@ -63,16 +66,8 @@ if (!all(file.exists(required_inputs))) {
   )
 }
 
-archive_members <- utils::unzip(archive_path, list = TRUE)$Name
-expected_members <- paste0(
-  "lima.bc", sprintf("%04d", 1001:1004), "--bc",
-  sprintf("%04d", 1001:1004), ".Q20.fastq"
-)
-if (!identical(sort(archive_members), sort(expected_members))) {
-  stop(
-    "The example archive must contain exactly the four documented Lima-style FASTQs.",
-    call. = FALSE
-  )
+if (!identical(sort(list.files(fastq_directory, pattern = "[.]fastq[.]gz$")), sort(expected_files))) {
+  stop("The example pool must contain exactly the four documented compressed FASTQs.", call. = FALSE)
 }
 
 sample_sheet <- openxlsx::read.xlsx(sample_sheet_path, sheet = "SampleSheet")
@@ -224,7 +219,16 @@ for (report_file in report_files) {
 required_outputs <- c(
   file.path(run_results, "1_data_integrity_and_sample_mapping", "data_integrity_and_sample_mapping.xlsx"),
   file.path(run_results, "2_quality_filtered_reads", "quality_and_read_length_summary.xlsx"),
+  file.path(run_results, "2_quality_filtered_reads", "per_read_statistics.tsv.gz"),
+  file.path(run_results, "2_quality_filtered_reads", "Q20_filtered_fastq",
+            paste0(expected_sample_ids, "_filtered_Q20.fastq.gz")),
+  file.path(run_results, "1_data_integrity_and_sample_mapping", "mapped_fastq",
+            paste0(expected_sample_ids, ".fastq.gz")),
   file.path(run_results, "3_primer_trimming", "primer_trimming_summary.xlsx"),
+  file.path(run_results, "3_primer_trimming", "primer_trimmed_reads",
+            paste0(expected_sample_ids, "_primer_trimmed.fastq.gz")),
+  file.path(run_results, "5_dada2_pipeline", "filtered_reads",
+            paste0(expected_sample_ids, "_filtered.fastq.gz")),
   file.path(run_results, "4_dada2_parameter_selection", "dada2_filter_parameters.xlsx"),
   file.path(run_results, "5_dada2_pipeline", c(
     "asv_count_table.csv", "asv_sequences.csv", "silva_taxonomy_table.csv",

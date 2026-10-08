@@ -764,9 +764,9 @@ server <- function(input, output, session) {
     n_folder <- fs::path(validation_directory, "no_ambiguous_bases")
     final_folder <- fs::path(validation_directory, "maxee_filtered")
     fs::dir_create(c(length_folder, n_folder, final_folder))
-    length_paths <- fs::path(length_folder, paste0(selected_samples, ".fastq"))
-    n_paths <- fs::path(n_folder, paste0(selected_samples, ".fastq"))
-    filtered_paths <- fs::path(final_folder, paste0(selected_samples, ".fastq"))
+    length_paths <- fs::path(length_folder, paste0(selected_samples, ".fastq.gz"))
+    n_paths <- fs::path(n_folder, paste0(selected_samples, ".fastq.gz"))
+    filtered_paths <- fs::path(final_folder, paste0(selected_samples, ".fastq.gz"))
 
     append_message <- function(...) {
       add_console_msg(paste0(...), "progress")
@@ -786,7 +786,7 @@ server <- function(input, output, session) {
           truncQ = 0,
           minQ = 0,
           rm.phix = FALSE,
-          compress = FALSE,
+          compress = TRUE,
           multithread = FALSE,
           verbose = FALSE
         )
@@ -804,7 +804,7 @@ server <- function(input, output, session) {
           truncQ = 0,
           minQ = 0,
           rm.phix = FALSE,
-          compress = FALSE,
+          compress = TRUE,
           multithread = FALSE,
           verbose = FALSE
         )
@@ -822,7 +822,7 @@ server <- function(input, output, session) {
           truncQ = 0,
           minQ = 0,
           rm.phix = TRUE,
-          compress = FALSE,
+          compress = TRUE,
           multithread = FALSE,
           verbose = FALSE
         )

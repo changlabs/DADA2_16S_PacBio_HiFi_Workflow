@@ -40,6 +40,7 @@ Step 2: PacBio HiFi Quality Filtering
     Unexpected](#mean-quality-values-look-unexpected)
   - [Read Lengths Fall Outside the Expected
     Range](#read-lengths-fall-outside-the-expected-range)
+  - [Per-Read Audit for Large Runs](#per-read-audit-for-large-runs)
   - [Large Runs Use Too Much Plotting
     Memory](#large-runs-use-too-much-plotting-memory)
 
@@ -165,9 +166,10 @@ Before running this notebook:
     percentage, and quality value (QV) derived from mean base-error
     probability.
 4.  **Applies a quality threshold of Q20**, writing passing records to
-    new filtered FASTQ files
-5.  **Adds the complete per-read audit table to Excel** and retains a
-    bounded plotting sample so large runs remain memory efficient.
+    gzip-compressed filtered FASTQ files
+5.  **Streams the complete per-read audit table to a compressed TSV
+    file** and retains a bounded plotting sample so large runs remain
+    memory efficient.
 6.  **Creates pre-filter read-length and QV distributions** as inline
     figures and standalone PDFs.
 7.  **Exports a documented Excel workbook** with run settings,
@@ -181,6 +183,7 @@ Before running this notebook:
 ## Expected Output
 
 - [results/2_quality_filtered_reads/quality_and_read_length_summary.xlsx](../../results/2_quality_filtered_reads/quality_and_read_length_summary.xlsx)
+- [results/2_quality_filtered_reads/per_read_statistics.tsv.gz](../../results/2_quality_filtered_reads/per_read_statistics.tsv.gz)
 - [results/2_quality_filtered_reads/Q20_filtered_fastq/](../../results/2_quality_filtered_reads/Q20_filtered_fastq/)
 - [results/2_quality_filtered_reads/read_length_distribution.pdf](../../results/2_quality_filtered_reads/read_length_distribution.pdf)
 - [results/2_quality_filtered_reads/read_quality_distribution.pdf](../../results/2_quality_filtered_reads/read_quality_distribution.pdf)
@@ -249,9 +252,9 @@ mapped_fastq_folder <- here(step1_folder, "mapped_fastq")
 # Step 2 owns this complete output subtree.
 results_folder <- workflow_results_dir("2_quality_filtered_reads")
 filtered_fastq_folder <- here(results_folder, "Q20_filtered_fastq")
-# The per-read table is streamed through a temporary TSV to keep memory bounded,
-# imported into Excel, and deleted before the notebook finishes.
-read_statistics_path <- tempfile(pattern = "step2_per_read_", fileext = ".tsv")
+# Persist every read in a compressed TSV without Excel row limits or a full-table
+# import into memory. Excel contains only the compact summary tables.
+read_statistics_path <- here(results_folder, "per_read_statistics.tsv.gz")
 workbook_path <- here(results_folder, "quality_and_read_length_summary.xlsx")
 length_plot_path <- here(results_folder, "read_length_distribution.pdf")
 quality_plot_path <- here(results_folder, "read_quality_distribution.pdf")
@@ -460,7 +463,7 @@ summarize_fastq <- function(path, sample_id, filtered_path, statistics_connectio
     passing_reads <- passing_reads + sum(pass_qv)
     passing_bases <- passing_bases + sum(read_lengths[pass_qv])
 
-    # Write every per-read statistic to the uncompressed audit table. The table
+    # Write every per-read statistic to the compressed audit table. The table
     # mirrors the SeqKit fx2tab fields used by PacBio while remaining R-native.
     read_statistics <- data.table(
       SampleID = sample_id,
@@ -475,14 +478,14 @@ summarize_fastq <- function(path, sample_id, filtered_path, statistics_connectio
       con = statistics_connection
     )
 
-    # Append only QV-passing records to a new uncompressed FASTQ. An empty output is
+    # Append only QV-passing records to a new gzip-compressed FASTQ. An empty output is
     # still created below when no read passes, preserving one output per input.
     if (any(pass_qv)) {
       ShortRead::writeFastq(
         fastq_chunk[pass_qv],
         filtered_path,
         mode = "a",
-        compress = FALSE
+        compress = TRUE
       )
     }
 
@@ -500,7 +503,7 @@ summarize_fastq <- function(path, sample_id, filtered_path, statistics_connectio
 
   # Preserve a one-output-per-input contract even when no read reaches Q20.
   if (!file_exists(filtered_path)) {
-    empty_filtered_connection <- file(filtered_path, open = "wb")
+    empty_filtered_connection <- gzfile(filtered_path, open = "wb")
     close(empty_filtered_connection)
   }
 
@@ -639,7 +642,7 @@ Stream every validated FASTQ, calculate full-dataset statistics, and
 write reads meeting the configured QV threshold to new FASTQ files.
 
 ``` r
-# Rebuild the uncompressed per-read audit table on every run and write the header
+# Rebuild the compressed per-read audit table on every run and write the header
 # once. A single open connection permits memory-bounded chunk-by-chunk output.
 if (file_exists(read_statistics_path)) file_delete(read_statistics_path)
 
@@ -648,13 +651,13 @@ if (file_exists(read_statistics_path)) file_delete(read_statistics_path)
 # cannot coexist with the newly generated workflow inputs.
 stale_filtered_fastq <- dir_ls(
   filtered_fastq_folder,
-  regexp = "\\.(fastq|fq)$",
+  regexp = "\\.(fastq|fq)(\\.gz)?$",
   type = "file",
   recurse = FALSE
 )
 if (length(stale_filtered_fastq) > 0L) file_delete(stale_filtered_fastq)
 
-statistics_connection <- file(read_statistics_path, open = "wt")
+statistics_connection <- gzfile(read_statistics_path, open = "wt")
 writeLines(
   paste(c("SampleID", "ReadID", "ReadLength", "GCPercent", "ReadQV", "PassQVFilter"), collapse = "\t"),
   statistics_connection
@@ -665,7 +668,7 @@ qc_results <- tryCatch(
   lapply(seq_len(nrow(sample_manifest)), function(i) {
     filtered_path <- path(
       filtered_fastq_folder,
-      paste0(sample_manifest$SampleID[[i]], "_filtered_Q", read_qv_cutoff, ".fastq")
+      paste0(sample_manifest$SampleID[[i]], "_filtered_Q", read_qv_cutoff, ".fastq.gz")
     )
     summarize_fastq(
       path = sample_manifest$FASTQ[[i]],
@@ -848,14 +851,16 @@ PDF for sharing and comparison outside the notebook.
 
 ## Save QC Tables to Excel
 
-Create a typed run summary and a complete per-sample QC table, write
-both with the shared
+Keep the complete per-read audit in `per_read_statistics.tsv.gz`. Create
+a typed run summary and a complete per-sample QC table, write both with
+the shared
 [add_sheet_to_excel_function.R](../functions/add_sheet_to_excel_function.R)
 helper, and document every exported column with
 [build_column_dictionary_function.R](../functions/build_column_dictionary_function.R).
 
-The report prints the completed workbook path after all result sheets,
-column definitions, and header comments have been written.
+The report prints the completed workbook and compressed audit paths
+after all result sheets, column definitions, and header comments have
+been written.
 
 ## Final QC Decision
 
@@ -871,6 +876,7 @@ qc_complete <-
   all(sample_qc$TotalReads > 0) &&
   all(file_exists(sample_qc$FilteredFASTQ)) &&
   file_exists(workbook_path) &&
+  file_exists(read_statistics_path) &&
   file_exists(length_plot_path) &&
   file_exists(quality_plot_path)
 
@@ -887,7 +893,8 @@ length-distribution review.
 
 # Output Files
 
-The links below open the generated workbook and standalone PDF plots.
+The links below open the generated workbook, compressed per-read audit,
+and standalone PDF plots.
 
 # Output File Summary
 
@@ -970,6 +977,14 @@ Confirm that `expected_length_min` and `expected_length_max` match the
 primer pair and target. A `REVIEW` flag does not remove reads; it
 indicates that primer removal and downstream filtering choices deserve
 inspection.
+
+## Per-Read Audit for Large Runs
+
+Every read is written to `per_read_statistics.tsv.gz` as it is
+processed. The workbook contains summary tables and documents the audit
+columns in `Column_Dictionary`. The audit has no Excel worksheet row
+limit; opening the entire file in Excel still imposes Excel’s limit. Use
+a streaming TSV reader for large audits.
 
 ## Large Runs Use Too Much Plotting Memory
 

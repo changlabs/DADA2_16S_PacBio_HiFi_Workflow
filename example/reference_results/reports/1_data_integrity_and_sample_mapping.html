@@ -5196,34 +5196,34 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ef2929; } 
-code span.an { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.at { color: #204a87; } 
-code span.bn { color: #0000cf; } 
-code span.cf { color: #204a87; font-weight: bold; } 
-code span.ch { color: #4e9a06; } 
-code span.cn { color: #8f5902; } 
-code span.co { color: #8f5902; font-style: italic; } 
-code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.do { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.dt { color: #204a87; } 
-code span.dv { color: #0000cf; } 
-code span.er { color: #a40000; font-weight: bold; } 
-code span.ex { } 
-code span.fl { color: #0000cf; } 
-code span.fu { color: #204a87; font-weight: bold; } 
-code span.im { } 
-code span.in { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.kw { color: #204a87; font-weight: bold; } 
-code span.op { color: #ce5c00; font-weight: bold; } 
-code span.ot { color: #8f5902; } 
-code span.pp { color: #8f5902; font-style: italic; } 
-code span.sc { color: #ce5c00; font-weight: bold; } 
-code span.ss { color: #4e9a06; } 
-code span.st { color: #4e9a06; } 
-code span.va { color: #000000; } 
-code span.vs { color: #4e9a06; } 
-code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } 
+code span.al { color: #ef2929; }
+code span.an { color: #8f5902; font-weight: bold; font-style: italic; }
+code span.at { color: #204a87; }
+code span.bn { color: #0000cf; }
+code span.cf { color: #204a87; font-weight: bold; }
+code span.ch { color: #4e9a06; }
+code span.cn { color: #8f5902; }
+code span.co { color: #8f5902; font-style: italic; }
+code span.cv { color: #8f5902; font-weight: bold; font-style: italic; }
+code span.do { color: #8f5902; font-weight: bold; font-style: italic; }
+code span.dt { color: #204a87; }
+code span.dv { color: #0000cf; }
+code span.er { color: #a40000; font-weight: bold; }
+code span.ex { }
+code span.fl { color: #0000cf; }
+code span.fu { color: #204a87; font-weight: bold; }
+code span.im { }
+code span.in { color: #8f5902; font-weight: bold; font-style: italic; }
+code span.kw { color: #204a87; font-weight: bold; }
+code span.op { color: #ce5c00; font-weight: bold; }
+code span.ot { color: #8f5902; }
+code span.pp { color: #8f5902; font-style: italic; }
+code span.sc { color: #ce5c00; font-weight: bold; }
+code span.ss { color: #4e9a06; }
+code span.st { color: #4e9a06; }
+code span.va { color: #000000; }
+code span.vs { color: #4e9a06; }
+code span.wa { color: #8f5902; font-weight: bold; font-style: italic; }
 .sourceCode .row {
 width: 100%;
 }
@@ -5517,54 +5517,51 @@ overflow-x: auto !important;
 <div id="purpose" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> Purpose</h2>
 <p>This notebook is <strong>Step 1</strong> of the PacBio HiFi
-full-length 16S rRNA workflow. It validates the demultiplexed raw <a href="https://doi.org/10.1093/nar/gkp1137">FASTQ</a> zipped files and
-converts <a href="https://github.com/PacificBiosciences/barcoding">Lima</a>
-barcode-pair filenames into stable biological sample identities using <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a>.</p>
-<p>Only FASTQ files that match an active sample-sheet row are extracted
-and written to the result folder for downstream notebooks.</p>
+full-length 16S rRNA workflow. It validates the demultiplexed
+gzip-compressed <a href="https://doi.org/10.1093/nar/gkp1137">FASTQ</a>
+files and converts sample-sheet barcode-pair filenames into stable
+biological sample identities using <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a>.</p>
+<p>Only FASTQ files that match an active sample-sheet row are copied and
+written to the result folder for downstream notebooks.</p>
 </div>
 <div id="prerequisites" class="section level2" number="1.2">
 <h2><span class="header-section-number">1.2</span> Prerequisites</h2>
 <p>Before running this notebook:</p>
 <ul>
-<li>Place each <code>.fastq.zip</code> archive in its supplied pool
-folder under <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/example/data/fastq">data/fastq/</a>, for example
-<code>data/fastq/pool&lt;number&gt;/</code>.</li>
+<li>Place the demultiplexed <code>.fastq.gz</code> files in its supplied
+pool folder under <a href="../../data/fastq/">data/fastq/</a>, for
+example <code>data/fastq/pool&lt;number&gt;/</code>.</li>
 <li>Use the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> template
 to provide <code>PoolNumber</code>, <code>SampleID</code>,
 <code>ForwardBarcodeID</code>, and <code>ReverseBarcodeID</code>.</li>
 <li>Install the R dependencies used by this workflow using the scripts
-in <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/setup">setup/</a>.</li>
+in <a title="Not included in the compact curated reference set">setup/</a>.</li>
 </ul>
 </div>
 <div id="what-this-notebook-does" class="section level2" number="1.3">
 <h2><span class="header-section-number">1.3</span> What This Notebook
 Does</h2>
 <ol style="list-style-type: decimal">
-<li><strong>Pool and archive discovery</strong>: Finds supplied
-<code>pool&lt;number&gt;</code> directories and requires one
-<code>.fastq.zip</code> archive per supplied pool.</li>
-<li><strong>Archive validation</strong>: Opens each ZIP directory,
-checks member sizes, and parses Lima barcode-pair filenames.</li>
-<li><strong>Sample-sheet validation</strong>: Verifies required columns,
-pool numbers, sample identifiers, and barcode IDs.</li>
-<li><strong>Sample mapping</strong>: Matches each active row by the
-exact <code>PoolNumber + ForwardBarcodeID + ReverseBarcodeID</code>
-key.</li>
-<li><strong>Selective extraction</strong>: Extracts only matched archive
-members into <a title="Not included in the compact curated reference set">results/1_data_integrity_and_sample_mapping/mapped_fastq/</a>.</li>
-<li><strong>FASTQ integrity validation</strong>: Parses every extracted
-file completely and records its read count and size.</li>
-<li><strong>Report generation</strong>: Writes the run summary, sample
-manifest, archive inventory, optional inactive rows, and column
-dictionary to <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>.</li>
+<li><strong>Discover pools and FASTQs</strong> in
+<code>pool&lt;number&gt;</code> directories.</li>
+<li><strong>Validate the sample sheet</strong>, preserving barcode
+identifiers exactly as supplied.</li>
+<li><strong>Match samples</strong> using pool number and the literal
+forward/reverse pair in each filename.</li>
+<li><strong>Copy matched gzip files</strong> under stable sample names,
+preserving the raw inputs.</li>
+<li><strong>Validate complete FASTQs</strong>, recording read counts and
+compressed sizes.</li>
+<li><strong>Export the audit workbook</strong> with Run_Summary,
+Sample_Manifest, FASTQ_Inventory, optional inactive rows, and
+Column_Dictionary.</li>
 </ol>
 </div>
 <div id="expected-input" class="section level2" number="1.4">
 <h2><span class="header-section-number">1.4</span> Expected Input</h2>
 <ul>
-<li><code>data/fastq/pool&lt;number&gt;/&lt;archive&gt;.fastq.zip</code>
-— one ZIP archive per supplied pool.</li>
+<li><code>data/fastq/pool&lt;number&gt;/*.fastq.gz</code> — multiple
+demultiplexed files per supplied pool.</li>
 <li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
 sample-to-pool and barcode-pair mapping.</li>
 </ul>
@@ -5586,7 +5583,7 @@ sample-to-pool and barcode-pair mapping.</li>
 <h2><span class="header-section-number">2.1</span> Load Required
 Packages</h2>
 <p>The chunk below loads every R package this notebook depends on and
-sources the four reusable reporting helpers from <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/R/functions">R/functions/</a>: Excel worksheet writing,
+sources the four reusable reporting helpers from <a title="Not included in the compact curated reference set">R/functions/</a>: Excel worksheet writing,
 column-dictionary documentation, clickable output links, and the live
 output-tree summary.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Keep the dependency list explicit so a missing package produces one clear</span></span>
@@ -5627,10 +5624,9 @@ output-tree summary.</p>
 <div id="define-paths" class="section level2" number="3.1">
 <h2><span class="header-section-number">3.1</span> Define Path and
 Validation Parameters</h2>
-<p>Define the project-relative input and output paths, the expected <a href="https://github.com/PacificBiosciences/barcoding">Lima</a>
-member-name pattern, and whether every extracted FASTQ should be parsed
-completely. Using <a href="https://here.r-lib.org/">here()</a> keeps
-these paths portable across machines.</p>
+<p>Define the project-relative input and output paths, the whether every
+copied FASTQ should be parsed completely. Using <a href="https://here.r-lib.org/">here()</a> keeps these paths portable
+across machines.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Resolve all locations from the project root so the notebook remains portable</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co"># after cloning and does not embed a user-specific absolute path in its source.</span></span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>raw_fastq_root <span class="ot">&lt;-</span> <span class="fu">workflow_data_dir</span>(<span class="st">&quot;fastq&quot;</span>)</span>
@@ -5644,13 +5640,8 @@ these paths portable across machines.</p>
 <span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>mapped_fastq_folder <span class="ot">&lt;-</span> <span class="fu">here</span>(results_folder, <span class="st">&quot;mapped_fastq&quot;</span>)</span>
 <span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>workbook_path <span class="ot">&lt;-</span> <span class="fu">here</span>(results_folder, <span class="st">&quot;data_integrity_and_sample_mapping.xlsx&quot;</span>)</span>
 <span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co"># Expected Lima member format, for example:</span></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co"># lima.bc1024--bc1035.Q20.fastq</span></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>lima_member_regex <span class="ot">&lt;-</span> <span class="st">&quot;^(?:.*/)?lima</span><span class="sc">\\</span><span class="st">.(bc[0-9]+)--(bc[0-9]+)</span><span class="sc">\\</span><span class="st">.Q([0-9]+)</span><span class="sc">\\</span><span class="st">.fastq(?:</span><span class="sc">\\</span><span class="st">.gz)?$&quot;</span></span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a></span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co"># Validate every FASTQ record after extraction. This is slower than checking</span></span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co"># ZIP integrity alone, but catches malformed/truncated FASTQ content.</span></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>validate_complete_fastq <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span></code></pre></div>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co"># Parse every mapped FASTQ completely before downstream processing.</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>validate_complete_fastq <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span></code></pre></div>
 <hr />
 </div>
 </div>
@@ -5660,9 +5651,9 @@ these paths portable across machines.</p>
 <h2><span class="header-section-number">4.1</span> Define Reusable
 Validation Helpers</h2>
 <p>The chunk below defines small, single-purpose helpers for resolving
-required sample-sheet columns, parsing pool and Lima identifiers,
-sanitizing sample names, validating complete FASTQ files, and rendering
-notebook tables.</p>
+required sample-sheet columns, parsing pool identifiers and matching
+literal barcode pairs, sanitizing sample names, validating complete
+FASTQ files, and rendering notebook tables.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>normalize_header <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="co"># Ignore case, spaces, and punctuation when comparing spreadsheet headers,</span></span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="co"># while retaining the original header for later column selection.</span></span>
@@ -5693,7 +5684,7 @@ notebook tables.</p>
 <span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a>  <span class="co"># Derive the numeric pool identifier only from a complete pool&lt;number&gt;</span></span>
 <span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>  <span class="co"># directory name; return NA for any directory that violates the convention.</span></span>
 <span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a>  pool_name <span class="ot">&lt;-</span> <span class="fu">path_file</span>(path)</span>
-<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a>  match <span class="ot">&lt;-</span> <span class="fu">regexec</span>(<span class="st">&quot;^pool([0-9]+)$&quot;</span>, pool_name)</span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a>  match <span class="ot">&lt;-</span> <span class="fu">regexec</span>(<span class="st">&quot;^pool([0-9]+)$&quot;</span>, pool_name, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>  parts <span class="ot">&lt;-</span> <span class="fu">regmatches</span>(pool_name, match)[[<span class="dv">1</span>]]</span>
 <span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(parts) <span class="sc">!=</span> <span class="dv">2</span><span class="dt">L</span>) <span class="fu">return</span>(<span class="cn">NA_integer_</span>)</span>
 <span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>  <span class="fu">as.integer</span>(parts[[<span class="dv">2</span>]])</span>
@@ -5709,123 +5700,113 @@ notebook tables.</p>
 <span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a>  <span class="fu">gsub</span>(<span class="st">&quot;(^-|-$)&quot;</span>, <span class="st">&quot;&quot;</span>, x)</span>
 <span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a>}</span>
 <span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a></span>
-<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a>parse_lima_members <span class="ot">&lt;-</span> <span class="cf">function</span>(member_names) {</span>
-<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a>  <span class="co"># Apply the configured Lima filename expression to every ZIP member once,</span></span>
-<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a>  <span class="co"># then unpack the captured forward barcode, reverse barcode, and Q label.</span></span>
-<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a>  matches <span class="ot">&lt;-</span> <span class="fu">regexec</span>(lima_member_regex, member_names, <span class="at">perl =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a>  parts <span class="ot">&lt;-</span> <span class="fu">regmatches</span>(member_names, matches)</span>
-<span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a>  valid <span class="ot">&lt;-</span> <span class="fu">lengths</span>(parts) <span class="sc">==</span> <span class="dv">4</span><span class="dt">L</span></span>
-<span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a></span>
-<span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a>  <span class="co"># Preserve unrecognized members in the inventory with NA components so the</span></span>
-<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a>  <span class="co"># caller can report all offending names before stopping.</span></span>
-<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a>  <span class="fu">data.table</span>(</span>
-<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a>    <span class="at">Archive_Member =</span> member_names,</span>
-<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a>    <span class="at">Recognized_FASTQ =</span> valid,</span>
-<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a>    <span class="at">Forward_Barcode_ID =</span> <span class="fu">vapply</span>(</span>
-<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a>      parts, <span class="cf">function</span>(x) <span class="cf">if</span> (<span class="fu">length</span>(x) <span class="sc">==</span> <span class="dv">4</span><span class="dt">L</span>) x[[<span class="dv">2</span>]] <span class="cf">else</span> <span class="cn">NA_character_</span>, <span class="fu">character</span>(<span class="dv">1</span>)</span>
-<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a>    ),</span>
-<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a>    <span class="at">Reverse_Barcode_ID =</span> <span class="fu">vapply</span>(</span>
-<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a>      parts, <span class="cf">function</span>(x) <span class="cf">if</span> (<span class="fu">length</span>(x) <span class="sc">==</span> <span class="dv">4</span><span class="dt">L</span>) x[[<span class="dv">3</span>]] <span class="cf">else</span> <span class="cn">NA_character_</span>, <span class="fu">character</span>(<span class="dv">1</span>)</span>
-<span id="cb3-64"><a href="#cb3-64" tabindex="-1"></a>    ),</span>
-<span id="cb3-65"><a href="#cb3-65" tabindex="-1"></a>    <span class="at">Lima_Quality_Label =</span> <span class="fu">vapply</span>(</span>
-<span id="cb3-66"><a href="#cb3-66" tabindex="-1"></a>      parts, <span class="cf">function</span>(x) <span class="cf">if</span> (<span class="fu">length</span>(x) <span class="sc">==</span> <span class="dv">4</span><span class="dt">L</span>) <span class="fu">paste0</span>(<span class="st">&quot;Q&quot;</span>, x[[<span class="dv">4</span>]]) <span class="cf">else</span> <span class="cn">NA_character_</span>, <span class="fu">character</span>(<span class="dv">1</span>)</span>
-<span id="cb3-67"><a href="#cb3-67" tabindex="-1"></a>    )</span>
-<span id="cb3-68"><a href="#cb3-68" tabindex="-1"></a>  )</span>
-<span id="cb3-69"><a href="#cb3-69" tabindex="-1"></a>}</span>
+<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a>matches_barcode_pair <span class="ot">&lt;-</span> <span class="cf">function</span>(filename, forward_id, reverse_id) {</span>
+<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a>  <span class="co"># Search literal sample-sheet identifiers, never treating barcode text as a</span></span>
+<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a>  <span class="co"># regular expression. Require token boundaries to avoid bc1 matching bc10.</span></span>
+<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a>  pair <span class="ot">&lt;-</span> <span class="fu">paste0</span>(forward_id, <span class="st">&quot;--&quot;</span>, reverse_id)</span>
+<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a>  positions <span class="ot">&lt;-</span> <span class="fu">gregexpr</span>(pair, filename, <span class="at">fixed =</span> <span class="cn">TRUE</span>)[[<span class="dv">1</span><span class="dt">L</span>]]</span>
+<span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a>  <span class="cf">if</span> (positions[[<span class="dv">1</span><span class="dt">L</span>]] <span class="sc">==</span> <span class="sc">-</span><span class="dv">1</span><span class="dt">L</span>) <span class="fu">return</span>(<span class="cn">FALSE</span>)</span>
+<span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a>  <span class="fu">any</span>(<span class="fu">vapply</span>(positions, <span class="cf">function</span>(start) {</span>
+<span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a>    finish <span class="ot">&lt;-</span> start <span class="sc">+</span> <span class="fu">nchar</span>(pair) <span class="sc">-</span> <span class="dv">1</span><span class="dt">L</span></span>
+<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a>    before <span class="ot">&lt;-</span> <span class="cf">if</span> (start <span class="sc">&gt;</span> <span class="dv">1</span><span class="dt">L</span>) <span class="fu">substr</span>(filename, start <span class="sc">-</span> <span class="dv">1</span><span class="dt">L</span>, start <span class="sc">-</span> <span class="dv">1</span><span class="dt">L</span>) <span class="cf">else</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a>    after <span class="ot">&lt;-</span> <span class="cf">if</span> (finish <span class="sc">&lt;</span> <span class="fu">nchar</span>(filename)) <span class="fu">substr</span>(filename, finish <span class="sc">+</span> <span class="dv">1</span><span class="dt">L</span>, finish <span class="sc">+</span> <span class="dv">1</span><span class="dt">L</span>) <span class="cf">else</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;[[:alnum:]_-]&quot;</span>, before) <span class="sc">&amp;&amp;</span> <span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;[[:alnum:]_-]&quot;</span>, after)</span>
+<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a>  }, <span class="fu">logical</span>(<span class="dv">1</span>)))</span>
+<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a>}</span>
+<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a></span>
+<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a>inspect_fastq_file <span class="ot">&lt;-</span> <span class="cf">function</span>(path) {</span>
+<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a>  <span class="co"># Handle missing and zero-byte files explicitly before invoking ShortRead so</span></span>
+<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a>  <span class="co"># the audit workbook contains concise, actionable failure reasons.</span></span>
+<span id="cb3-64"><a href="#cb3-64" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file_exists</span>(path)) {</span>
+<span id="cb3-65"><a href="#cb3-65" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">valid =</span> <span class="cn">FALSE</span>, <span class="at">reads =</span> <span class="cn">NA_real_</span>, <span class="at">size_mb =</span> <span class="cn">NA_real_</span>, <span class="at">issue =</span> <span class="st">&quot;File missing&quot;</span>))</span>
+<span id="cb3-66"><a href="#cb3-66" tabindex="-1"></a>  }</span>
+<span id="cb3-67"><a href="#cb3-67" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">file_size</span>(path) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb3-68"><a href="#cb3-68" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">valid =</span> <span class="cn">FALSE</span>, <span class="at">reads =</span> <span class="dv">0</span>, <span class="at">size_mb =</span> <span class="dv">0</span>, <span class="at">issue =</span> <span class="st">&quot;File is empty&quot;</span>))</span>
+<span id="cb3-69"><a href="#cb3-69" tabindex="-1"></a>  }</span>
 <span id="cb3-70"><a href="#cb3-70" tabindex="-1"></a></span>
-<span id="cb3-71"><a href="#cb3-71" tabindex="-1"></a>inspect_fastq_file <span class="ot">&lt;-</span> <span class="cf">function</span>(path) {</span>
-<span id="cb3-72"><a href="#cb3-72" tabindex="-1"></a>  <span class="co"># Handle missing and zero-byte files explicitly before invoking ShortRead so</span></span>
-<span id="cb3-73"><a href="#cb3-73" tabindex="-1"></a>  <span class="co"># the audit workbook contains concise, actionable failure reasons.</span></span>
-<span id="cb3-74"><a href="#cb3-74" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file_exists</span>(path)) {</span>
-<span id="cb3-75"><a href="#cb3-75" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">valid =</span> <span class="cn">FALSE</span>, <span class="at">reads =</span> <span class="cn">NA_real_</span>, <span class="at">size_mb =</span> <span class="cn">NA_real_</span>, <span class="at">issue =</span> <span class="st">&quot;File missing&quot;</span>))</span>
+<span id="cb3-71"><a href="#cb3-71" tabindex="-1"></a>  <span class="co"># Store size in MiB for a human-readable report while retaining a numeric</span></span>
+<span id="cb3-72"><a href="#cb3-72" tabindex="-1"></a>  <span class="co"># value that Excel and later R steps can sort or summarize.</span></span>
+<span id="cb3-73"><a href="#cb3-73" tabindex="-1"></a>  size_mb <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">file_size</span>(path)) <span class="sc">/</span> <span class="dv">1024</span><span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb3-74"><a href="#cb3-74" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span>validate_complete_fastq) {</span>
+<span id="cb3-75"><a href="#cb3-75" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">valid =</span> <span class="cn">TRUE</span>, <span class="at">reads =</span> <span class="cn">NA_real_</span>, <span class="at">size_mb =</span> size_mb, <span class="at">issue =</span> <span class="cn">NA_character_</span>))</span>
 <span id="cb3-76"><a href="#cb3-76" tabindex="-1"></a>  }</span>
-<span id="cb3-77"><a href="#cb3-77" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">file_size</span>(path) <span class="sc">==</span> <span class="dv">0</span>) {</span>
-<span id="cb3-78"><a href="#cb3-78" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">valid =</span> <span class="cn">FALSE</span>, <span class="at">reads =</span> <span class="dv">0</span>, <span class="at">size_mb =</span> <span class="dv">0</span>, <span class="at">issue =</span> <span class="st">&quot;File is empty&quot;</span>))</span>
-<span id="cb3-79"><a href="#cb3-79" tabindex="-1"></a>  }</span>
-<span id="cb3-80"><a href="#cb3-80" tabindex="-1"></a></span>
-<span id="cb3-81"><a href="#cb3-81" tabindex="-1"></a>  <span class="co"># Store size in MiB for a human-readable report while retaining a numeric</span></span>
-<span id="cb3-82"><a href="#cb3-82" tabindex="-1"></a>  <span class="co"># value that Excel and later R steps can sort or summarize.</span></span>
-<span id="cb3-83"><a href="#cb3-83" tabindex="-1"></a>  size_mb <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">file_size</span>(path)) <span class="sc">/</span> <span class="dv">1024</span><span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb3-84"><a href="#cb3-84" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span>validate_complete_fastq) {</span>
-<span id="cb3-85"><a href="#cb3-85" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">valid =</span> <span class="cn">TRUE</span>, <span class="at">reads =</span> <span class="cn">NA_real_</span>, <span class="at">size_mb =</span> size_mb, <span class="at">issue =</span> <span class="cn">NA_character_</span>))</span>
-<span id="cb3-86"><a href="#cb3-86" tabindex="-1"></a>  }</span>
-<span id="cb3-87"><a href="#cb3-87" tabindex="-1"></a></span>
-<span id="cb3-88"><a href="#cb3-88" tabindex="-1"></a>  <span class="co"># countFastq() parses the complete file. Capture parser errors as structured</span></span>
-<span id="cb3-89"><a href="#cb3-89" tabindex="-1"></a>  <span class="co"># data instead of aborting here so all samples can be inspected together.</span></span>
-<span id="cb3-90"><a href="#cb3-90" tabindex="-1"></a>  inspection <span class="ot">&lt;-</span> <span class="fu">tryCatch</span>(</span>
-<span id="cb3-91"><a href="#cb3-91" tabindex="-1"></a>    <span class="fu">list</span>(</span>
-<span id="cb3-92"><a href="#cb3-92" tabindex="-1"></a>      <span class="at">valid =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb3-93"><a href="#cb3-93" tabindex="-1"></a>      <span class="at">reads =</span> <span class="fu">as.numeric</span>(ShortRead<span class="sc">::</span><span class="fu">countFastq</span>(path)[[<span class="dv">1</span>]]),</span>
-<span id="cb3-94"><a href="#cb3-94" tabindex="-1"></a>      <span class="at">size_mb =</span> size_mb,</span>
-<span id="cb3-95"><a href="#cb3-95" tabindex="-1"></a>      <span class="at">issue =</span> <span class="cn">NA_character_</span></span>
-<span id="cb3-96"><a href="#cb3-96" tabindex="-1"></a>    ),</span>
-<span id="cb3-97"><a href="#cb3-97" tabindex="-1"></a>    <span class="at">error =</span> <span class="cf">function</span>(e) <span class="fu">list</span>(</span>
-<span id="cb3-98"><a href="#cb3-98" tabindex="-1"></a>      <span class="at">valid =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-99"><a href="#cb3-99" tabindex="-1"></a>      <span class="at">reads =</span> <span class="cn">NA_real_</span>,</span>
-<span id="cb3-100"><a href="#cb3-100" tabindex="-1"></a>      <span class="at">size_mb =</span> size_mb,</span>
-<span id="cb3-101"><a href="#cb3-101" tabindex="-1"></a>      <span class="at">issue =</span> <span class="fu">conditionMessage</span>(e)</span>
-<span id="cb3-102"><a href="#cb3-102" tabindex="-1"></a>    )</span>
-<span id="cb3-103"><a href="#cb3-103" tabindex="-1"></a>  )</span>
-<span id="cb3-104"><a href="#cb3-104" tabindex="-1"></a>  inspection</span>
-<span id="cb3-105"><a href="#cb3-105" tabindex="-1"></a>}</span>
-<span id="cb3-106"><a href="#cb3-106" tabindex="-1"></a></span>
-<span id="cb3-107"><a href="#cb3-107" tabindex="-1"></a>render_table <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">caption =</span> <span class="cn">NULL</span>, <span class="at">column_widths =</span> <span class="cn">NULL</span>) {</span>
-<span id="cb3-108"><a href="#cb3-108" tabindex="-1"></a>  <span class="co"># Convert data.table objects to ordinary data frames so both DT and kable use</span></span>
-<span id="cb3-109"><a href="#cb3-109" tabindex="-1"></a>  <span class="co"># the same column names, values, and ordering.</span></span>
-<span id="cb3-110"><a href="#cb3-110" tabindex="-1"></a>  table_data <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(x)</span>
-<span id="cb3-111"><a href="#cb3-111" tabindex="-1"></a></span>
-<span id="cb3-112"><a href="#cb3-112" tabindex="-1"></a>  <span class="cf">if</span> (knitr<span class="sc">::</span><span class="fu">is_html_output</span>()) {</span>
-<span id="cb3-113"><a href="#cb3-113" tabindex="-1"></a>    <span class="co"># Apply optional widths only to specifically requested columns. DataTables</span></span>
-<span id="cb3-114"><a href="#cb3-114" tabindex="-1"></a>    <span class="co"># uses zero-based column indices, whereas the R vector is one-based.</span></span>
-<span id="cb3-115"><a href="#cb3-115" tabindex="-1"></a>    column_definitions <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb3-116"><a href="#cb3-116" tabindex="-1"></a>      <span class="fu">list</span>(<span class="at">className =</span> <span class="st">&quot;dt-left&quot;</span>, <span class="at">targets =</span> <span class="st">&quot;_all&quot;</span>)</span>
-<span id="cb3-117"><a href="#cb3-117" tabindex="-1"></a>    )</span>
-<span id="cb3-118"><a href="#cb3-118" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(column_widths)) {</span>
-<span id="cb3-119"><a href="#cb3-119" tabindex="-1"></a>      width_columns <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="sc">!</span><span class="fu">is.na</span>(column_widths) <span class="sc">&amp;</span> <span class="fu">nzchar</span>(column_widths))</span>
-<span id="cb3-120"><a href="#cb3-120" tabindex="-1"></a>      column_definitions <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb3-121"><a href="#cb3-121" tabindex="-1"></a>        column_definitions,</span>
-<span id="cb3-122"><a href="#cb3-122" tabindex="-1"></a>        <span class="fu">lapply</span>(width_columns, <span class="cf">function</span>(column_index) {</span>
-<span id="cb3-123"><a href="#cb3-123" tabindex="-1"></a>          <span class="fu">list</span>(</span>
-<span id="cb3-124"><a href="#cb3-124" tabindex="-1"></a>            <span class="at">targets =</span> column_index <span class="sc">-</span> <span class="dv">1</span><span class="dt">L</span>,</span>
-<span id="cb3-125"><a href="#cb3-125" tabindex="-1"></a>            <span class="at">width =</span> column_widths[[column_index]]</span>
-<span id="cb3-126"><a href="#cb3-126" tabindex="-1"></a>          )</span>
-<span id="cb3-127"><a href="#cb3-127" tabindex="-1"></a>        })</span>
-<span id="cb3-128"><a href="#cb3-128" tabindex="-1"></a>      )</span>
-<span id="cb3-129"><a href="#cb3-129" tabindex="-1"></a>    }</span>
-<span id="cb3-130"><a href="#cb3-130" tabindex="-1"></a></span>
-<span id="cb3-131"><a href="#cb3-131" tabindex="-1"></a>    <span class="co"># Keep interactive HTML tables usable when they contain many rows or wide</span></span>
-<span id="cb3-132"><a href="#cb3-132" tabindex="-1"></a>    <span class="co"># values such as absolute file paths.</span></span>
-<span id="cb3-133"><a href="#cb3-133" tabindex="-1"></a>    DT<span class="sc">::</span><span class="fu">datatable</span>(</span>
-<span id="cb3-134"><a href="#cb3-134" tabindex="-1"></a>      table_data,</span>
-<span id="cb3-135"><a href="#cb3-135" tabindex="-1"></a>      <span class="at">caption =</span> caption,</span>
-<span id="cb3-136"><a href="#cb3-136" tabindex="-1"></a>      <span class="at">rownames =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-137"><a href="#cb3-137" tabindex="-1"></a>      <span class="at">class =</span> <span class="st">&quot;display compact&quot;</span>,</span>
-<span id="cb3-138"><a href="#cb3-138" tabindex="-1"></a>      <span class="at">options =</span> <span class="fu">list</span>(</span>
-<span id="cb3-139"><a href="#cb3-139" tabindex="-1"></a>        <span class="at">scrollX =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb3-140"><a href="#cb3-140" tabindex="-1"></a>        <span class="at">scrollY =</span> <span class="st">&quot;400px&quot;</span>,</span>
-<span id="cb3-141"><a href="#cb3-141" tabindex="-1"></a>        <span class="at">scrollCollapse =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb3-142"><a href="#cb3-142" tabindex="-1"></a>        <span class="at">paging =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-143"><a href="#cb3-143" tabindex="-1"></a>        <span class="co"># These reports are inspection tables rather than data-exploration</span></span>
-<span id="cb3-144"><a href="#cb3-144" tabindex="-1"></a>        <span class="co"># interfaces, so omit search controls, sorting arrows, and status text.</span></span>
-<span id="cb3-145"><a href="#cb3-145" tabindex="-1"></a>        <span class="at">searching =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-146"><a href="#cb3-146" tabindex="-1"></a>        <span class="at">ordering =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-147"><a href="#cb3-147" tabindex="-1"></a>        <span class="at">info =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-148"><a href="#cb3-148" tabindex="-1"></a>        <span class="at">dom =</span> <span class="st">&quot;t&quot;</span>,</span>
-<span id="cb3-149"><a href="#cb3-149" tabindex="-1"></a>        <span class="at">autoWidth =</span> <span class="sc">!</span><span class="fu">is.null</span>(column_widths),</span>
-<span id="cb3-150"><a href="#cb3-150" tabindex="-1"></a>        <span class="at">columnDefs =</span> column_definitions</span>
-<span id="cb3-151"><a href="#cb3-151" tabindex="-1"></a>      )</span>
-<span id="cb3-152"><a href="#cb3-152" tabindex="-1"></a>    )</span>
-<span id="cb3-153"><a href="#cb3-153" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb3-154"><a href="#cb3-154" tabindex="-1"></a>    <span class="co"># GitHub cannot display an HTML widget, so use a portable Markdown table and</span></span>
-<span id="cb3-155"><a href="#cb3-155" tabindex="-1"></a>    <span class="co"># explicitly left-align every column there as well.</span></span>
-<span id="cb3-156"><a href="#cb3-156" tabindex="-1"></a>    knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb3-157"><a href="#cb3-157" tabindex="-1"></a>      table_data,</span>
-<span id="cb3-158"><a href="#cb3-158" tabindex="-1"></a>      <span class="at">caption =</span> caption,</span>
-<span id="cb3-159"><a href="#cb3-159" tabindex="-1"></a>      <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-160"><a href="#cb3-160" tabindex="-1"></a>      <span class="at">align =</span> <span class="fu">rep</span>(<span class="st">&quot;l&quot;</span>, <span class="fu">ncol</span>(table_data))</span>
-<span id="cb3-161"><a href="#cb3-161" tabindex="-1"></a>    )</span>
-<span id="cb3-162"><a href="#cb3-162" tabindex="-1"></a>  }</span>
-<span id="cb3-163"><a href="#cb3-163" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb3-77"><a href="#cb3-77" tabindex="-1"></a></span>
+<span id="cb3-78"><a href="#cb3-78" tabindex="-1"></a>  <span class="co"># countFastq() parses the complete file. Capture parser errors as structured</span></span>
+<span id="cb3-79"><a href="#cb3-79" tabindex="-1"></a>  <span class="co"># data instead of aborting here so all samples can be inspected together.</span></span>
+<span id="cb3-80"><a href="#cb3-80" tabindex="-1"></a>  inspection <span class="ot">&lt;-</span> <span class="fu">tryCatch</span>(</span>
+<span id="cb3-81"><a href="#cb3-81" tabindex="-1"></a>    <span class="fu">list</span>(</span>
+<span id="cb3-82"><a href="#cb3-82" tabindex="-1"></a>      <span class="at">valid =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-83"><a href="#cb3-83" tabindex="-1"></a>      <span class="at">reads =</span> <span class="fu">as.numeric</span>(ShortRead<span class="sc">::</span><span class="fu">countFastq</span>(path)[[<span class="dv">1</span>]]),</span>
+<span id="cb3-84"><a href="#cb3-84" tabindex="-1"></a>      <span class="at">size_mb =</span> size_mb,</span>
+<span id="cb3-85"><a href="#cb3-85" tabindex="-1"></a>      <span class="at">issue =</span> <span class="cn">NA_character_</span></span>
+<span id="cb3-86"><a href="#cb3-86" tabindex="-1"></a>    ),</span>
+<span id="cb3-87"><a href="#cb3-87" tabindex="-1"></a>    <span class="at">error =</span> <span class="cf">function</span>(e) <span class="fu">list</span>(</span>
+<span id="cb3-88"><a href="#cb3-88" tabindex="-1"></a>      <span class="at">valid =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-89"><a href="#cb3-89" tabindex="-1"></a>      <span class="at">reads =</span> <span class="cn">NA_real_</span>,</span>
+<span id="cb3-90"><a href="#cb3-90" tabindex="-1"></a>      <span class="at">size_mb =</span> size_mb,</span>
+<span id="cb3-91"><a href="#cb3-91" tabindex="-1"></a>      <span class="at">issue =</span> <span class="fu">conditionMessage</span>(e)</span>
+<span id="cb3-92"><a href="#cb3-92" tabindex="-1"></a>    )</span>
+<span id="cb3-93"><a href="#cb3-93" tabindex="-1"></a>  )</span>
+<span id="cb3-94"><a href="#cb3-94" tabindex="-1"></a>  inspection</span>
+<span id="cb3-95"><a href="#cb3-95" tabindex="-1"></a>}</span>
+<span id="cb3-96"><a href="#cb3-96" tabindex="-1"></a></span>
+<span id="cb3-97"><a href="#cb3-97" tabindex="-1"></a>render_table <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">caption =</span> <span class="cn">NULL</span>, <span class="at">column_widths =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb3-98"><a href="#cb3-98" tabindex="-1"></a>  <span class="co"># Convert data.table objects to ordinary data frames so both DT and kable use</span></span>
+<span id="cb3-99"><a href="#cb3-99" tabindex="-1"></a>  <span class="co"># the same column names, values, and ordering.</span></span>
+<span id="cb3-100"><a href="#cb3-100" tabindex="-1"></a>  table_data <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(x)</span>
+<span id="cb3-101"><a href="#cb3-101" tabindex="-1"></a></span>
+<span id="cb3-102"><a href="#cb3-102" tabindex="-1"></a>  <span class="cf">if</span> (knitr<span class="sc">::</span><span class="fu">is_html_output</span>()) {</span>
+<span id="cb3-103"><a href="#cb3-103" tabindex="-1"></a>    <span class="co"># Apply optional widths only to specifically requested columns. DataTables</span></span>
+<span id="cb3-104"><a href="#cb3-104" tabindex="-1"></a>    <span class="co"># uses zero-based column indices, whereas the R vector is one-based.</span></span>
+<span id="cb3-105"><a href="#cb3-105" tabindex="-1"></a>    column_definitions <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb3-106"><a href="#cb3-106" tabindex="-1"></a>      <span class="fu">list</span>(<span class="at">className =</span> <span class="st">&quot;dt-left&quot;</span>, <span class="at">targets =</span> <span class="st">&quot;_all&quot;</span>)</span>
+<span id="cb3-107"><a href="#cb3-107" tabindex="-1"></a>    )</span>
+<span id="cb3-108"><a href="#cb3-108" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(column_widths)) {</span>
+<span id="cb3-109"><a href="#cb3-109" tabindex="-1"></a>      width_columns <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="sc">!</span><span class="fu">is.na</span>(column_widths) <span class="sc">&amp;</span> <span class="fu">nzchar</span>(column_widths))</span>
+<span id="cb3-110"><a href="#cb3-110" tabindex="-1"></a>      column_definitions <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb3-111"><a href="#cb3-111" tabindex="-1"></a>        column_definitions,</span>
+<span id="cb3-112"><a href="#cb3-112" tabindex="-1"></a>        <span class="fu">lapply</span>(width_columns, <span class="cf">function</span>(column_index) {</span>
+<span id="cb3-113"><a href="#cb3-113" tabindex="-1"></a>          <span class="fu">list</span>(</span>
+<span id="cb3-114"><a href="#cb3-114" tabindex="-1"></a>            <span class="at">targets =</span> column_index <span class="sc">-</span> <span class="dv">1</span><span class="dt">L</span>,</span>
+<span id="cb3-115"><a href="#cb3-115" tabindex="-1"></a>            <span class="at">width =</span> column_widths[[column_index]]</span>
+<span id="cb3-116"><a href="#cb3-116" tabindex="-1"></a>          )</span>
+<span id="cb3-117"><a href="#cb3-117" tabindex="-1"></a>        })</span>
+<span id="cb3-118"><a href="#cb3-118" tabindex="-1"></a>      )</span>
+<span id="cb3-119"><a href="#cb3-119" tabindex="-1"></a>    }</span>
+<span id="cb3-120"><a href="#cb3-120" tabindex="-1"></a></span>
+<span id="cb3-121"><a href="#cb3-121" tabindex="-1"></a>    <span class="co"># Keep interactive HTML tables usable when they contain many rows or wide</span></span>
+<span id="cb3-122"><a href="#cb3-122" tabindex="-1"></a>    <span class="co"># values such as absolute file paths.</span></span>
+<span id="cb3-123"><a href="#cb3-123" tabindex="-1"></a>    DT<span class="sc">::</span><span class="fu">datatable</span>(</span>
+<span id="cb3-124"><a href="#cb3-124" tabindex="-1"></a>      table_data,</span>
+<span id="cb3-125"><a href="#cb3-125" tabindex="-1"></a>      <span class="at">caption =</span> caption,</span>
+<span id="cb3-126"><a href="#cb3-126" tabindex="-1"></a>      <span class="at">rownames =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-127"><a href="#cb3-127" tabindex="-1"></a>      <span class="at">class =</span> <span class="st">&quot;display compact&quot;</span>,</span>
+<span id="cb3-128"><a href="#cb3-128" tabindex="-1"></a>      <span class="at">options =</span> <span class="fu">list</span>(</span>
+<span id="cb3-129"><a href="#cb3-129" tabindex="-1"></a>        <span class="at">scrollX =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-130"><a href="#cb3-130" tabindex="-1"></a>        <span class="at">scrollY =</span> <span class="st">&quot;400px&quot;</span>,</span>
+<span id="cb3-131"><a href="#cb3-131" tabindex="-1"></a>        <span class="at">scrollCollapse =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-132"><a href="#cb3-132" tabindex="-1"></a>        <span class="at">paging =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-133"><a href="#cb3-133" tabindex="-1"></a>        <span class="co"># These reports are inspection tables rather than data-exploration</span></span>
+<span id="cb3-134"><a href="#cb3-134" tabindex="-1"></a>        <span class="co"># interfaces, so omit search controls, sorting arrows, and status text.</span></span>
+<span id="cb3-135"><a href="#cb3-135" tabindex="-1"></a>        <span class="at">searching =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-136"><a href="#cb3-136" tabindex="-1"></a>        <span class="at">ordering =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-137"><a href="#cb3-137" tabindex="-1"></a>        <span class="at">info =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-138"><a href="#cb3-138" tabindex="-1"></a>        <span class="at">dom =</span> <span class="st">&quot;t&quot;</span>,</span>
+<span id="cb3-139"><a href="#cb3-139" tabindex="-1"></a>        <span class="at">autoWidth =</span> <span class="sc">!</span><span class="fu">is.null</span>(column_widths),</span>
+<span id="cb3-140"><a href="#cb3-140" tabindex="-1"></a>        <span class="at">columnDefs =</span> column_definitions</span>
+<span id="cb3-141"><a href="#cb3-141" tabindex="-1"></a>      )</span>
+<span id="cb3-142"><a href="#cb3-142" tabindex="-1"></a>    )</span>
+<span id="cb3-143"><a href="#cb3-143" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb3-144"><a href="#cb3-144" tabindex="-1"></a>    <span class="co"># GitHub cannot display an HTML widget, so use a portable Markdown table and</span></span>
+<span id="cb3-145"><a href="#cb3-145" tabindex="-1"></a>    <span class="co"># explicitly left-align every column there as well.</span></span>
+<span id="cb3-146"><a href="#cb3-146" tabindex="-1"></a>    knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb3-147"><a href="#cb3-147" tabindex="-1"></a>      table_data,</span>
+<span id="cb3-148"><a href="#cb3-148" tabindex="-1"></a>      <span class="at">caption =</span> caption,</span>
+<span id="cb3-149"><a href="#cb3-149" tabindex="-1"></a>      <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-150"><a href="#cb3-150" tabindex="-1"></a>      <span class="at">align =</span> <span class="fu">rep</span>(<span class="st">&quot;l&quot;</span>, <span class="fu">ncol</span>(table_data))</span>
+<span id="cb3-151"><a href="#cb3-151" tabindex="-1"></a>    )</span>
+<span id="cb3-152"><a href="#cb3-152" tabindex="-1"></a>  }</span>
+<span id="cb3-153"><a href="#cb3-153" tabindex="-1"></a>}</span></code></pre></div>
 <hr />
 </div>
 </div>
@@ -5852,144 +5833,53 @@ output folders if necessary.</p>
 <p>The report now records the resolved input and output locations. These
 paths help diagnose an incorrect project root without exposing the
 simple reporting code as a separate visible block.</p>
-<pre><code>## Raw FASTQ root: PROJECT_ROOT/example/data/fastq</code></pre>
-<pre><code>## Sample sheet: PROJECT_ROOT/example/data/sample_sheet.xlsx</code></pre>
-<pre><code>## Results folder: PROJECT_ROOT/example/run_results/1_data_integrity_and_sample_mapping</code></pre>
+<pre><code>## Raw FASTQ root: /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/data/fastq</code></pre>
+<pre><code>## Sample sheet: /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/data/sample_sheet.xlsx</code></pre>
+<pre><code>## Results folder: /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/1_data_integrity_and_sample_mapping</code></pre>
 </div>
 <div id="discover-pools" class="section level2" number="5.2">
 <h2><span class="header-section-number">5.2</span> Discover Pools and
-Archives</h2>
-<p>Each supplied pool must have a lowercase directory named
-<code>pool&lt;number&gt;</code> and contain exactly one
-<code>.fastq.zip</code> archive. Pools listed in the sample sheet but
-absent from <code>data/fastq/</code> are reported as inactive and are
-not treated as failures.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Only immediate child directories are pools; recursive discovery could</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co"># accidentally interpret nested delivery folders as additional pools.</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>pool_directories <span class="ot">&lt;-</span> <span class="fu">dir_ls</span>(raw_fastq_root, <span class="at">type =</span> <span class="st">&quot;directory&quot;</span>, <span class="at">recurse =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(pool_directories) <span class="sc">==</span> <span class="dv">0</span><span class="dt">L</span>) {</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;No pool directories were found under: &quot;</span>, raw_fastq_root)</span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>}</span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co"># Build one typed inventory row per supplied directory and parse its Pool_ID</span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co"># from the enforced directory naming convention.</span></span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>pool_inventory <span class="ot">&lt;-</span> <span class="fu">data.table</span>(</span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="at">Pool_Directory =</span> <span class="fu">path_file</span>(pool_directories),</span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  <span class="at">Pool_Path =</span> <span class="fu">as.character</span>(pool_directories),</span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>  <span class="at">Pool_ID =</span> <span class="fu">vapply</span>(pool_directories, extract_pool_number, <span class="fu">integer</span>(<span class="dv">1</span>))</span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>)</span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a></span>
-<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(pool_inventory<span class="sc">$</span>Pool_ID)) {</span>
-<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>  <span class="fu">stop</span>(</span>
-<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>    <span class="st">&quot;Every directory directly under data/fastq must be named pool&lt;number&gt;. Invalid: &quot;</span>,</span>
-<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a>    <span class="fu">paste</span>(pool_inventory<span class="sc">$</span>Pool_Directory[<span class="fu">is.na</span>(pool_inventory<span class="sc">$</span>Pool_ID)], <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>)</span>
-<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>  )</span>
-<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a>}</span>
-<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(pool_inventory<span class="sc">$</span>Pool_ID)) {</span>
-<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Multiple pool directories resolve to the same Pool_ID.&quot;</span>)</span>
-<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a>}</span>
-<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a></span>
-<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co"># Discover archives independently within each pool so the one-archive-per-pool</span></span>
-<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co"># requirement can be checked and reported precisely.</span></span>
-<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a>archive_lists <span class="ot">&lt;-</span> <span class="fu">lapply</span>(pool_inventory<span class="sc">$</span>Pool_Path, <span class="cf">function</span>(pool_path) {</span>
-<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a>  <span class="fu">dir_ls</span>(pool_path, <span class="at">regexp =</span> <span class="st">&quot;</span><span class="sc">\\</span><span class="st">.fastq</span><span class="sc">\\</span><span class="st">.zip$&quot;</span>, <span class="at">type =</span> <span class="st">&quot;file&quot;</span>, <span class="at">recurse =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a>})</span>
-<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a>pool_inventory[, Archive_Count <span class="sc">:=</span> <span class="fu">lengths</span>(archive_lists)]</span>
-<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a>pool_inventory[, Archive_Path <span class="sc">:=</span> <span class="fu">vapply</span>(</span>
-<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a>  archive_lists,</span>
-<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a>  <span class="cf">function</span>(x) <span class="cf">if</span> (<span class="fu">length</span>(x) <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span>) <span class="fu">as.character</span>(x) <span class="cf">else</span> <span class="cn">NA_character_</span>,</span>
-<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a>  <span class="fu">character</span>(<span class="dv">1</span>)</span>
-<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a>)]</span>
-<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a></span>
-<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a><span class="co"># Multiple archives are ambiguous and zero archives cannot supply reads, so</span></span>
-<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a><span class="co"># both conditions are fatal rather than guessed around.</span></span>
-<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(pool_inventory<span class="sc">$</span>Archive_Count <span class="sc">!=</span> <span class="dv">1</span><span class="dt">L</span>)) {</span>
-<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a>  problem <span class="ot">&lt;-</span> pool_inventory[Archive_Count <span class="sc">!=</span> <span class="dv">1</span><span class="dt">L</span>, .(Pool_Directory, Archive_Count)]</span>
-<span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a>  <span class="fu">print</span>(problem)</span>
-<span id="cb8-44"><a href="#cb8-44" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Each supplied pool must contain exactly one .fastq.zip archive.&quot;</span>)</span>
-<span id="cb8-45"><a href="#cb8-45" tabindex="-1"></a>}</span>
-<span id="cb8-46"><a href="#cb8-46" tabindex="-1"></a></span>
-<span id="cb8-47"><a href="#cb8-47" tabindex="-1"></a><span class="co"># Sort output deterministically so reports remain easy to compare across runs.</span></span>
-<span id="cb8-48"><a href="#cb8-48" tabindex="-1"></a><span class="fu">setorder</span>(pool_inventory, Pool_ID)</span>
-<span id="cb8-49"><a href="#cb8-49" tabindex="-1"></a><span class="fu">render_table</span>(pool_inventory[, .(Pool_ID, Pool_Directory, Archive_Count, Archive_Path)],</span>
-<span id="cb8-50"><a href="#cb8-50" tabindex="-1"></a>             <span class="st">&quot;Supplied PacBio pool archives&quot;</span>,</span>
-<span id="cb8-51"><a href="#cb8-51" tabindex="-1"></a>             <span class="at">column_widths =</span> <span class="fu">c</span>(<span class="st">&quot;80px&quot;</span>, <span class="st">&quot;120px&quot;</span>, <span class="st">&quot;120px&quot;</span>, <span class="cn">NA_character_</span>))</span></code></pre></div>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-89d284fc2e47714b7ee6" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-89d284fc2e47714b7ee6">{"x":{"filter":"none","vertical":false,"caption":"<caption>Supplied PacBio pool archives<\/caption>","data":[[1],["pool1"],[1],["PROJECT_ROOT/example/data/fastq/pool1/Callahan-Fecal-HiFi-Example.fastq.zip"]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Pool_Directory<\/th>\n      <th>Archive_Count<\/th>\n      <th>Archive_Path<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":true,"columnDefs":[{"className":"dt-left","targets":"_all"},{"targets":0,"width":"80px"},{"targets":1,"width":"120px"},{"targets":2,"width":"120px"},{"name":"Pool_ID","targets":0},{"name":"Pool_Directory","targets":1},{"name":"Archive_Count","targets":2},{"name":"Archive_Path","targets":3}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+Compressed FASTQs</h2>
+<p>Pool directory names are case-insensitive (<code>pool1</code>,
+<code>Pool1</code>, and <code>POOL1</code> are equivalent). Each
+supplied <code>pool&lt;number&gt;</code> directory contains one or more
+<code>.fastq.gz</code> or <code>.fq.gz</code> files directly. ZIP
+archives are not inputs. Pools absent from disk are recorded as inactive
+sample-sheet rows.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>pool_directories <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">dir_ls</span>(raw_fastq_root, <span class="at">type =</span> <span class="st">&quot;directory&quot;</span>, <span class="at">recurse =</span> <span class="cn">FALSE</span>))</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">length</span>(pool_directories)) <span class="fu">stop</span>(<span class="st">&quot;No pool directories were found under: &quot;</span>, raw_fastq_root)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>pool_inventory <span class="ot">&lt;-</span> <span class="fu">data.table</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">Pool_Directory =</span> <span class="fu">path_file</span>(pool_directories),</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">Pool_Path =</span> <span class="fu">as.character</span>(pool_directories),</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">Pool_ID =</span> <span class="fu">vapply</span>(pool_directories, extract_pool_number, <span class="fu">integer</span>(<span class="dv">1</span>))</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>)</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(pool_inventory<span class="sc">$</span>Pool_ID)) {</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every directory directly under data/fastq must be named pool&lt;number&gt;. Invalid: &quot;</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>       <span class="fu">paste</span>(pool_inventory<span class="sc">$</span>Pool_Directory[<span class="fu">is.na</span>(pool_inventory<span class="sc">$</span>Pool_ID)], <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>}</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(pool_inventory<span class="sc">$</span>Pool_ID)) <span class="fu">stop</span>(<span class="st">&quot;Multiple pool directories resolve to the same Pool_ID.&quot;</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="fu">setorder</span>(pool_inventory, Pool_ID)</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>fastq_lists <span class="ot">&lt;-</span> <span class="fu">lapply</span>(pool_inventory<span class="sc">$</span>Pool_Path, <span class="cf">function</span>(pool_path) {</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="fu">sort</span>(<span class="fu">dir_ls</span>(pool_path, <span class="at">regexp =</span> <span class="st">&quot;(?i)</span><span class="sc">\\</span><span class="st">.(fastq|fq)</span><span class="sc">\\</span><span class="st">.gz$&quot;</span>, <span class="at">type =</span> <span class="st">&quot;file&quot;</span>, <span class="at">recurse =</span> <span class="cn">FALSE</span>))</span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>})</span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>pool_inventory[, FASTQ_Count <span class="sc">:=</span> <span class="fu">lengths</span>(fastq_lists)]</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(pool_inventory<span class="sc">$</span>FASTQ_Count <span class="sc">==</span> <span class="dv">0</span><span class="dt">L</span>)) {</span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Each supplied pool must contain at least one .fastq.gz or .fq.gz file. Empty pools: &quot;</span>,</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a>       <span class="fu">paste</span>(pool_inventory[FASTQ_Count <span class="sc">==</span> <span class="dv">0</span><span class="dt">L</span>, Pool_Directory], <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>}</span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a>fastq_inventory <span class="ot">&lt;-</span> <span class="fu">rbindlist</span>(<span class="fu">lapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(pool_inventory)), <span class="cf">function</span>(i) {</span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a>  <span class="fu">data.table</span>(<span class="at">Pool_ID =</span> pool_inventory<span class="sc">$</span>Pool_ID[[i]],</span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a>             <span class="at">Source_FASTQ =</span> <span class="fu">as.character</span>(fastq_lists[[i]]),</span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a>             <span class="at">Source_Filename =</span> <span class="fu">path_file</span>(fastq_lists[[i]]),</span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a>             <span class="at">Compressed_Size_Bytes =</span> <span class="fu">as.numeric</span>(<span class="fu">file_size</span>(fastq_lists[[i]])))</span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a>}))</span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(fastq_inventory<span class="sc">$</span>Compressed_Size_Bytes <span class="sc">&lt;=</span> <span class="dv">0</span>)) <span class="fu">stop</span>(<span class="st">&quot;One or more supplied FASTQ files are zero bytes.&quot;</span>)</span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="fu">render_table</span>(pool_inventory[, .(Pool_ID, Pool_Directory, FASTQ_Count)], <span class="st">&quot;Supplied PacBio pools&quot;</span>)</span></code></pre></div>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-0c05e5e6f92e62afaf50" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-0c05e5e6f92e62afaf50">{"x":{"filter":"none","vertical":false,"caption":"<caption>Supplied PacBio pools<\/caption>","data":[[1],["pool1"],[4]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Pool_Directory<\/th>\n      <th>FASTQ_Count<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Pool_Directory","targets":1},{"name":"FASTQ_Count","targets":2}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
-<div id="validate-archives" class="section level2" number="5.3">
-<h2><span class="header-section-number">5.3</span> Validate ZIP Archives
-and Inventory Members</h2>
-<p><code>utils::unzip(list = TRUE)</code> reads each archive directory
-and also verifies that the ZIP can be opened.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Preallocate the per-pool list because each iteration can produce a different</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co"># number of archive members before the inventories are combined.</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>archive_inventory_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="fu">nrow</span>(pool_inventory))</span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(pool_inventory))) {</span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  archive_path <span class="ot">&lt;-</span> pool_inventory<span class="sc">$</span>Archive_Path[[i]]</span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  pool_id <span class="ot">&lt;-</span> pool_inventory<span class="sc">$</span>Pool_ID[[i]]</span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a></span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="co"># Reading the ZIP directory validates the container structure without first</span></span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="co"># extracting every member to disk.</span></span>
-<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  zip_listing <span class="ot">&lt;-</span> <span class="fu">tryCatch</span>(</span>
-<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>    utils<span class="sc">::</span><span class="fu">unzip</span>(archive_path, <span class="at">list =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>    <span class="at">error =</span> <span class="cf">function</span>(e) <span class="fu">stop</span>(<span class="st">&quot;Cannot read ZIP archive &quot;</span>, archive_path, <span class="st">&quot;: &quot;</span>, <span class="fu">conditionMessage</span>(e))</span>
-<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>  )</span>
-<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a></span>
-<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(zip_listing) <span class="sc">==</span> <span class="dv">0</span><span class="dt">L</span>) {</span>
-<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;ZIP archive contains no members: &quot;</span>, archive_path)</span>
-<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  }</span>
-<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a></span>
-<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>  <span class="co"># Exclude directory entries, then parse every remaining filename according</span></span>
-<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>  <span class="co"># to the expected Lima barcode-pair convention.</span></span>
-<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a>  zip_listing <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(zip_listing)</span>
-<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>  zip_listing <span class="ot">&lt;-</span> zip_listing[<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;/$&quot;</span>, Name)]</span>
-<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a>  parsed <span class="ot">&lt;-</span> <span class="fu">parse_lima_members</span>(zip_listing<span class="sc">$</span>Name)</span>
-<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a>  parsed[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(</span>
-<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a>    <span class="at">Pool_ID =</span> pool_id,</span>
-<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a>    <span class="at">Archive_Path =</span> archive_path,</span>
-<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a>    <span class="at">Uncompressed_Size_Bytes =</span> zip_listing<span class="sc">$</span>Length,</span>
-<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a>    <span class="at">Archive_Date =</span> <span class="fu">as.character</span>(zip_listing<span class="sc">$</span>Date)</span>
-<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a>  )]</span>
-<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a>  archive_inventory_list[[i]] <span class="ot">&lt;-</span> parsed</span>
-<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a>}</span>
-<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a></span>
-<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co"># Combine all pools only after each archive has been validated and annotated.</span></span>
-<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a>archive_inventory <span class="ot">&lt;-</span> <span class="fu">rbindlist</span>(archive_inventory_list, <span class="at">use.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a></span>
-<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(<span class="sc">!</span>archive_inventory<span class="sc">$</span>Recognized_FASTQ)) {</span>
-<span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a>  <span class="fu">stop</span>(</span>
-<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a>    <span class="st">&quot;Found archive member(s) that do not match the expected Lima FASTQ naming convention: &quot;</span>,</span>
-<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="fu">head</span>(archive_inventory[Recognized_FASTQ <span class="sc">==</span> <span class="cn">FALSE</span>, Archive_Member], <span class="dv">20</span>), <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>)</span>
-<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a>  )</span>
-<span id="cb9-42"><a href="#cb9-42" tabindex="-1"></a>}</span>
-<span id="cb9-43"><a href="#cb9-43" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(archive_inventory<span class="sc">$</span>Uncompressed_Size_Bytes <span class="sc">&lt;=</span> <span class="dv">0</span>)) {</span>
-<span id="cb9-44"><a href="#cb9-44" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;One or more archive FASTQ members are empty.&quot;</span>)</span>
-<span id="cb9-45"><a href="#cb9-45" tabindex="-1"></a>}</span>
-<span id="cb9-46"><a href="#cb9-46" tabindex="-1"></a></span>
-<span id="cb9-47"><a href="#cb9-47" tabindex="-1"></a><span class="co"># Pool number is part of the key because the same barcode pair can legitimately</span></span>
-<span id="cb9-48"><a href="#cb9-48" tabindex="-1"></a><span class="co"># be reused in a different pool.</span></span>
-<span id="cb9-49"><a href="#cb9-49" tabindex="-1"></a>archive_inventory[, Mapping_Key <span class="sc">:=</span> <span class="fu">paste</span>(Pool_ID, Forward_Barcode_ID, Reverse_Barcode_ID, <span class="at">sep =</span> <span class="st">&quot;|&quot;</span>)]</span>
-<span id="cb9-50"><a href="#cb9-50" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(archive_inventory<span class="sc">$</span>Mapping_Key)) {</span>
-<span id="cb9-51"><a href="#cb9-51" tabindex="-1"></a>  duplicate_keys <span class="ot">&lt;-</span> <span class="fu">unique</span>(archive_inventory<span class="sc">$</span>Mapping_Key[<span class="fu">duplicated</span>(archive_inventory<span class="sc">$</span>Mapping_Key)])</span>
-<span id="cb9-52"><a href="#cb9-52" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Duplicate pool/barcode mappings in archive members: &quot;</span>, <span class="fu">paste</span>(duplicate_keys, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
-<span id="cb9-53"><a href="#cb9-53" tabindex="-1"></a>}</span>
-<span id="cb9-54"><a href="#cb9-54" tabindex="-1"></a></span>
-<span id="cb9-55"><a href="#cb9-55" tabindex="-1"></a><span class="co"># Summarize delivery contents without loading sequence data into memory.</span></span>
-<span id="cb9-56"><a href="#cb9-56" tabindex="-1"></a>archive_summary <span class="ot">&lt;-</span> archive_inventory[, .(</span>
-<span id="cb9-57"><a href="#cb9-57" tabindex="-1"></a>  <span class="at">FASTQ_Members =</span> .N,</span>
-<span id="cb9-58"><a href="#cb9-58" tabindex="-1"></a>  <span class="at">Uncompressed_GB =</span> <span class="fu">round</span>(<span class="fu">sum</span>(Uncompressed_Size_Bytes) <span class="sc">/</span> <span class="dv">1024</span><span class="sc">^</span><span class="dv">3</span>, <span class="dv">3</span>),</span>
-<span id="cb9-59"><a href="#cb9-59" tabindex="-1"></a>  <span class="at">Quality_Labels =</span> <span class="fu">paste</span>(<span class="fu">sort</span>(<span class="fu">unique</span>(Lima_Quality_Label)), <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>)</span>
-<span id="cb9-60"><a href="#cb9-60" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
-<span id="cb9-61"><a href="#cb9-61" tabindex="-1"></a></span>
-<span id="cb9-62"><a href="#cb9-62" tabindex="-1"></a><span class="fu">render_table</span>(archive_summary, <span class="st">&quot;FASTQ archive summary&quot;</span>)</span></code></pre></div>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-dcd9596fc0a413e1629c" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-dcd9596fc0a413e1629c">{"x":{"filter":"none","vertical":false,"caption":"<caption>FASTQ archive summary<\/caption>","data":[[1],[4],[0.057],["Q20"]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>FASTQ_Members<\/th>\n      <th>Uncompressed_GB<\/th>\n      <th>Quality_Labels<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"FASTQ_Members","targets":1},{"name":"Uncompressed_GB","targets":2},{"name":"Quality_Labels","targets":3}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-</div>
-<div id="validate-sample-sheet" class="section level2" number="5.4">
-<h2><span class="header-section-number">5.4</span> Read and Validate the
+<div id="validate-sample-sheet" class="section level2" number="5.3">
+<h2><span class="header-section-number">5.3</span> Read and Validate the
 Sample Sheet</h2>
 <p>Required columns are resolved by their explicit names rather than by
 position. The notebook validates <code>PoolNumber</code>,
@@ -5998,268 +5888,209 @@ position. The notebook validates <code>PoolNumber</code>,
 Barcode nucleotide sequences are unnecessary because the supplied FASTQs
 have already been demultiplexed. Extra sample-sheet columns are
 ignored.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Read every input column as text first. Explicit conversion below gives more</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co"># informative validation errors than automatic spreadsheet type guessing.</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>sheet_raw <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_excel</span>(</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  sequencing_sheet_path,</span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">sheet =</span> sequencing_sheet_name,</span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="st">&quot;text&quot;</span>,</span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>)</span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co"># data.table syntax is used for typed transformations and grouped summaries.</span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>sheet_raw <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(sheet_raw)</span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a></span>
-<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(sheet_raw) <span class="sc">==</span> <span class="dv">0</span><span class="dt">L</span>) <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet contains no sample rows.&quot;</span>)</span>
-<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(<span class="fu">names</span>(sheet_raw))) <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet has duplicated column names.&quot;</span>)</span>
-<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a></span>
-<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co"># Resolve columns by name rather than position so users may reorder the</span></span>
-<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co"># template without changing the workflow.</span></span>
-<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>pool_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;PoolNumber&quot;</span>), <span class="st">&quot;pool number&quot;</span></span>
-<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a>)</span>
-<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>sample_name_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;SampleID&quot;</span>), <span class="st">&quot;sample identifier&quot;</span></span>
-<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a>)</span>
-<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a>forward_barcode_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ForwardBarcodeID&quot;</span>),</span>
-<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>  <span class="st">&quot;forward barcode ID&quot;</span></span>
-<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a>)</span>
-<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a>reverse_barcode_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
-<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ReverseBarcodeID&quot;</span>),</span>
-<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a>  <span class="st">&quot;reverse barcode ID&quot;</span></span>
-<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a>)</span>
-<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a></span>
-<span id="cb10-32"><a href="#cb10-32" tabindex="-1"></a><span class="co"># Create a normalized internal representation: integer pools, lowercase Lima</span></span>
-<span id="cb10-33"><a href="#cb10-33" tabindex="-1"></a><span class="co"># IDs, and trimmed sample names.</span></span>
-<span id="cb10-34"><a href="#cb10-34" tabindex="-1"></a>sample_sheet <span class="ot">&lt;-</span> sheet_raw[, .(</span>
-<span id="cb10-35"><a href="#cb10-35" tabindex="-1"></a>  <span class="at">Pool_ID =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.integer</span>(<span class="fu">get</span>(pool_column))),</span>
-<span id="cb10-36"><a href="#cb10-36" tabindex="-1"></a>  <span class="at">Sample_Name_Original =</span> <span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(sample_name_column))),</span>
-<span id="cb10-37"><a href="#cb10-37" tabindex="-1"></a>  <span class="at">Forward_Barcode_ID =</span> <span class="fu">tolower</span>(<span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(forward_barcode_column)))),</span>
-<span id="cb10-38"><a href="#cb10-38" tabindex="-1"></a>  <span class="at">Reverse_Barcode_ID =</span> <span class="fu">tolower</span>(<span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(reverse_barcode_column))))</span>
-<span id="cb10-39"><a href="#cb10-39" tabindex="-1"></a>)]</span>
-<span id="cb10-40"><a href="#cb10-40" tabindex="-1"></a></span>
-<span id="cb10-41"><a href="#cb10-41" tabindex="-1"></a><span class="co"># Validate field domains before constructing keys. This prevents malformed</span></span>
-<span id="cb10-42"><a href="#cb10-42" tabindex="-1"></a><span class="co"># values from silently becoming unmatched samples later.</span></span>
-<span id="cb10-43"><a href="#cb10-43" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Pool_ID) <span class="sc">||</span> <span class="fu">any</span>(sample_sheet<span class="sc">$</span>Pool_ID <span class="sc">&lt;</span> <span class="dv">1</span><span class="dt">L</span>)) {</span>
-<span id="cb10-44"><a href="#cb10-44" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every sample-sheet row must have a positive integer PoolNumber.&quot;</span>)</span>
-<span id="cb10-45"><a href="#cb10-45" tabindex="-1"></a>}</span>
-<span id="cb10-46"><a href="#cb10-46" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Sample_Name_Original) <span class="sc">||</span> <span class="fu">any</span>(sample_sheet<span class="sc">$</span>Sample_Name_Original <span class="sc">==</span> <span class="st">&quot;&quot;</span>)) {</span>
-<span id="cb10-47"><a href="#cb10-47" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every sample-sheet row must have a non-empty SampleID.&quot;</span>)</span>
-<span id="cb10-48"><a href="#cb10-48" tabindex="-1"></a>}</span>
-<span id="cb10-49"><a href="#cb10-49" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Forward_Barcode_ID) <span class="sc">||</span> <span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Reverse_Barcode_ID) <span class="sc">||</span></span>
-<span id="cb10-50"><a href="#cb10-50" tabindex="-1"></a>    <span class="fu">any</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;^bc[0-9]+$&quot;</span>, sample_sheet<span class="sc">$</span>Forward_Barcode_ID)) <span class="sc">||</span></span>
-<span id="cb10-51"><a href="#cb10-51" tabindex="-1"></a>    <span class="fu">any</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">&quot;^bc[0-9]+$&quot;</span>, sample_sheet<span class="sc">$</span>Reverse_Barcode_ID))) {</span>
-<span id="cb10-52"><a href="#cb10-52" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every barcode ID must use the format bc&lt;number&gt;.&quot;</span>)</span>
-<span id="cb10-53"><a href="#cb10-53" tabindex="-1"></a>}</span>
-<span id="cb10-54"><a href="#cb10-54" tabindex="-1"></a></span>
-<span id="cb10-55"><a href="#cb10-55" tabindex="-1"></a><span class="co"># Retain both the source identifier for auditing and a sanitized identifier for</span></span>
-<span id="cb10-56"><a href="#cb10-56" tabindex="-1"></a><span class="co"># safe output filenames. PoolNumber remains independent metadata and is never</span></span>
-<span id="cb10-57"><a href="#cb10-57" tabindex="-1"></a><span class="co"># appended to the biological SampleID.</span></span>
-<span id="cb10-58"><a href="#cb10-58" tabindex="-1"></a>sample_sheet[, Sample_Name <span class="sc">:=</span> <span class="fu">sanitize_sample_id</span>(Sample_Name_Original)]</span>
-<span id="cb10-59"><a href="#cb10-59" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(sample_sheet<span class="sc">$</span>Sample_Name <span class="sc">==</span> <span class="st">&quot;&quot;</span>)) <span class="fu">stop</span>(<span class="st">&quot;Sample-name sanitization produced an empty identifier.&quot;</span>)</span>
-<span id="cb10-60"><a href="#cb10-60" tabindex="-1"></a></span>
-<span id="cb10-61"><a href="#cb10-61" tabindex="-1"></a><span class="co"># Use the sanitized biological identifier directly. Because SampleID is the</span></span>
-<span id="cb10-62"><a href="#cb10-62" tabindex="-1"></a><span class="co"># workflow-wide key, it must be unique across all pools; PoolNumber is carried</span></span>
-<span id="cb10-63"><a href="#cb10-63" tabindex="-1"></a><span class="co"># in its own numeric column in every table that needs pool provenance.</span></span>
-<span id="cb10-64"><a href="#cb10-64" tabindex="-1"></a>sample_sheet[, SampleID <span class="sc">:=</span> Sample_Name]</span>
-<span id="cb10-65"><a href="#cb10-65" tabindex="-1"></a><span class="co"># Construct the same composite key used for archive members, then mark rows</span></span>
-<span id="cb10-66"><a href="#cb10-66" tabindex="-1"></a><span class="co"># whose pool was actually supplied in this demo/run.</span></span>
-<span id="cb10-67"><a href="#cb10-67" tabindex="-1"></a>sample_sheet[, Mapping_Key <span class="sc">:=</span> <span class="fu">paste</span>(Pool_ID, Forward_Barcode_ID, Reverse_Barcode_ID, <span class="at">sep =</span> <span class="st">&quot;|&quot;</span>)]</span>
-<span id="cb10-68"><a href="#cb10-68" tabindex="-1"></a>sample_sheet[, Active_Pool <span class="sc">:=</span> Pool_ID <span class="sc">%in%</span> pool_inventory<span class="sc">$</span>Pool_ID]</span>
-<span id="cb10-69"><a href="#cb10-69" tabindex="-1"></a></span>
-<span id="cb10-70"><a href="#cb10-70" tabindex="-1"></a><span class="co"># Both mapping keys and output SampleIDs must be unique to guarantee a one-row,</span></span>
-<span id="cb10-71"><a href="#cb10-71" tabindex="-1"></a><span class="co"># one-input, one-output relationship.</span></span>
-<span id="cb10-72"><a href="#cb10-72" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_sheet<span class="sc">$</span>Mapping_Key)) {</span>
-<span id="cb10-73"><a href="#cb10-73" tabindex="-1"></a>  duplicate_keys <span class="ot">&lt;-</span> <span class="fu">unique</span>(sample_sheet<span class="sc">$</span>Mapping_Key[<span class="fu">duplicated</span>(sample_sheet<span class="sc">$</span>Mapping_Key)])</span>
-<span id="cb10-74"><a href="#cb10-74" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet has duplicate pool/barcode mappings: &quot;</span>, <span class="fu">paste</span>(duplicate_keys, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
-<span id="cb10-75"><a href="#cb10-75" tabindex="-1"></a>}</span>
-<span id="cb10-76"><a href="#cb10-76" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_sheet<span class="sc">$</span>SampleID)) {</span>
-<span id="cb10-77"><a href="#cb10-77" tabindex="-1"></a>  duplicate_ids <span class="ot">&lt;-</span> <span class="fu">unique</span>(sample_sheet<span class="sc">$</span>SampleID[<span class="fu">duplicated</span>(sample_sheet<span class="sc">$</span>SampleID)])</span>
-<span id="cb10-78"><a href="#cb10-78" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet produces duplicate SampleIDs: &quot;</span>, <span class="fu">paste</span>(duplicate_ids, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
-<span id="cb10-79"><a href="#cb10-79" tabindex="-1"></a>}</span>
-<span id="cb10-80"><a href="#cb10-80" tabindex="-1"></a></span>
-<span id="cb10-81"><a href="#cb10-81" tabindex="-1"></a><span class="co"># Show whether every sheet pool is active without treating intentionally absent</span></span>
-<span id="cb10-82"><a href="#cb10-82" tabindex="-1"></a><span class="co"># pools as a validation failure.</span></span>
-<span id="cb10-83"><a href="#cb10-83" tabindex="-1"></a>sheet_pool_summary <span class="ot">&lt;-</span> sample_sheet[, .(</span>
-<span id="cb10-84"><a href="#cb10-84" tabindex="-1"></a>  <span class="at">Sequencing_Sheet_Rows =</span> .N,</span>
-<span id="cb10-85"><a href="#cb10-85" tabindex="-1"></a>  <span class="at">Active_Pool =</span> <span class="fu">unique</span>(Active_Pool)</span>
-<span id="cb10-86"><a href="#cb10-86" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
-<span id="cb10-87"><a href="#cb10-87" tabindex="-1"></a><span class="fu">setorder</span>(sheet_pool_summary, Pool_ID)</span>
-<span id="cb10-88"><a href="#cb10-88" tabindex="-1"></a><span class="fu">render_table</span>(sheet_pool_summary, <span class="st">&quot;Sequencing-sheet pool coverage&quot;</span>)</span></code></pre></div>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-f390d63222bc2b8deb72" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-f390d63222bc2b8deb72">{"x":{"filter":"none","vertical":false,"caption":"<caption>Sequencing-sheet pool coverage<\/caption>","data":[[1],[4],[true]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Sequencing_Sheet_Rows<\/th>\n      <th>Active_Pool<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Sequencing_Sheet_Rows","targets":1},{"name":"Active_Pool","targets":2}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Read every input column as text first. Explicit conversion below gives more</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co"># informative validation errors than automatic spreadsheet type guessing.</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>sheet_raw <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_excel</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  sequencing_sheet_path,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">sheet =</span> sequencing_sheet_name,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="st">&quot;text&quot;</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>)</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co"># data.table syntax is used for typed transformations and grouped summaries.</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>sheet_raw <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(sheet_raw)</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(sheet_raw) <span class="sc">==</span> <span class="dv">0</span><span class="dt">L</span>) <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet contains no sample rows.&quot;</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(<span class="fu">names</span>(sheet_raw))) <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet has duplicated column names.&quot;</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co"># Resolve columns by name rather than position so users may reorder the</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co"># template without changing the workflow.</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>pool_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;PoolNumber&quot;</span>), <span class="st">&quot;pool number&quot;</span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>)</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>sample_name_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;SampleID&quot;</span>), <span class="st">&quot;sample identifier&quot;</span></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a>)</span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>forward_barcode_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ForwardBarcodeID&quot;</span>),</span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a>  <span class="st">&quot;forward barcode ID&quot;</span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a>)</span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a>reverse_barcode_column <span class="ot">&lt;-</span> <span class="fu">resolve_required_column</span>(</span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a>  <span class="fu">names</span>(sheet_raw), <span class="fu">c</span>(<span class="st">&quot;ReverseBarcodeID&quot;</span>),</span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a>  <span class="st">&quot;reverse barcode ID&quot;</span></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a>)</span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a></span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co"># Preserve barcode spelling and case exactly after trimming cell whitespace.</span></span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a>sample_sheet <span class="ot">&lt;-</span> sheet_raw[, .(</span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a>  <span class="at">Pool_ID =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.integer</span>(<span class="fu">get</span>(pool_column))),</span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a>  <span class="at">Sample_Name_Original =</span> <span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(sample_name_column))),</span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a>  <span class="at">Forward_Barcode_ID =</span> <span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(forward_barcode_column))),</span>
+<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a>  <span class="at">Reverse_Barcode_ID =</span> <span class="fu">trimws</span>(<span class="fu">as.character</span>(<span class="fu">get</span>(reverse_barcode_column)))</span>
+<span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a>)]</span>
+<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a></span>
+<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a><span class="co"># Validate field domains before constructing keys. This prevents malformed</span></span>
+<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a><span class="co"># values from silently becoming unmatched samples later.</span></span>
+<span id="cb9-42"><a href="#cb9-42" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Pool_ID) <span class="sc">||</span> <span class="fu">any</span>(sample_sheet<span class="sc">$</span>Pool_ID <span class="sc">&lt;</span> <span class="dv">1</span><span class="dt">L</span>)) {</span>
+<span id="cb9-43"><a href="#cb9-43" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every sample-sheet row must have a positive integer PoolNumber.&quot;</span>)</span>
+<span id="cb9-44"><a href="#cb9-44" tabindex="-1"></a>}</span>
+<span id="cb9-45"><a href="#cb9-45" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Sample_Name_Original) <span class="sc">||</span> <span class="fu">any</span>(sample_sheet<span class="sc">$</span>Sample_Name_Original <span class="sc">==</span> <span class="st">&quot;&quot;</span>)) {</span>
+<span id="cb9-46"><a href="#cb9-46" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every sample-sheet row must have a non-empty SampleID.&quot;</span>)</span>
+<span id="cb9-47"><a href="#cb9-47" tabindex="-1"></a>}</span>
+<span id="cb9-48"><a href="#cb9-48" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Forward_Barcode_ID) <span class="sc">||</span> <span class="fu">anyNA</span>(sample_sheet<span class="sc">$</span>Reverse_Barcode_ID) <span class="sc">||</span></span>
+<span id="cb9-49"><a href="#cb9-49" tabindex="-1"></a>    <span class="fu">any</span>(<span class="sc">!</span><span class="fu">nzchar</span>(sample_sheet<span class="sc">$</span>Forward_Barcode_ID)) <span class="sc">||</span> <span class="fu">any</span>(<span class="sc">!</span><span class="fu">nzchar</span>(sample_sheet<span class="sc">$</span>Reverse_Barcode_ID))) {</span>
+<span id="cb9-50"><a href="#cb9-50" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Every barcode ID must be non-empty text matching the filename exactly.&quot;</span>)</span>
+<span id="cb9-51"><a href="#cb9-51" tabindex="-1"></a>}</span>
+<span id="cb9-52"><a href="#cb9-52" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">grepl</span>(<span class="st">&quot;--&quot;</span>, sample_sheet<span class="sc">$</span>Forward_Barcode_ID, <span class="at">fixed =</span> <span class="cn">TRUE</span>)) <span class="sc">||</span></span>
+<span id="cb9-53"><a href="#cb9-53" tabindex="-1"></a>    <span class="fu">any</span>(<span class="fu">grepl</span>(<span class="st">&quot;--&quot;</span>, sample_sheet<span class="sc">$</span>Reverse_Barcode_ID, <span class="at">fixed =</span> <span class="cn">TRUE</span>))) {</span>
+<span id="cb9-54"><a href="#cb9-54" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Barcode IDs cannot contain the barcode-pair separator &#39;--&#39;.&quot;</span>)</span>
+<span id="cb9-55"><a href="#cb9-55" tabindex="-1"></a>}</span>
+<span id="cb9-56"><a href="#cb9-56" tabindex="-1"></a></span>
+<span id="cb9-57"><a href="#cb9-57" tabindex="-1"></a><span class="co"># Retain both the source identifier for auditing and a sanitized identifier for</span></span>
+<span id="cb9-58"><a href="#cb9-58" tabindex="-1"></a><span class="co"># safe output filenames. PoolNumber remains independent metadata and is never</span></span>
+<span id="cb9-59"><a href="#cb9-59" tabindex="-1"></a><span class="co"># appended to the biological SampleID.</span></span>
+<span id="cb9-60"><a href="#cb9-60" tabindex="-1"></a>sample_sheet[, Sample_Name <span class="sc">:=</span> <span class="fu">sanitize_sample_id</span>(Sample_Name_Original)]</span>
+<span id="cb9-61"><a href="#cb9-61" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(sample_sheet<span class="sc">$</span>Sample_Name <span class="sc">==</span> <span class="st">&quot;&quot;</span>)) <span class="fu">stop</span>(<span class="st">&quot;Sample-name sanitization produced an empty identifier.&quot;</span>)</span>
+<span id="cb9-62"><a href="#cb9-62" tabindex="-1"></a></span>
+<span id="cb9-63"><a href="#cb9-63" tabindex="-1"></a><span class="co"># Use the sanitized biological identifier directly. Because SampleID is the</span></span>
+<span id="cb9-64"><a href="#cb9-64" tabindex="-1"></a><span class="co"># workflow-wide key, it must be unique across all pools; PoolNumber is carried</span></span>
+<span id="cb9-65"><a href="#cb9-65" tabindex="-1"></a><span class="co"># in its own numeric column in every table that needs pool provenance.</span></span>
+<span id="cb9-66"><a href="#cb9-66" tabindex="-1"></a>sample_sheet[, SampleID <span class="sc">:=</span> Sample_Name]</span>
+<span id="cb9-67"><a href="#cb9-67" tabindex="-1"></a><span class="co"># Construct a pool-specific barcode-pair key, then mark rows</span></span>
+<span id="cb9-68"><a href="#cb9-68" tabindex="-1"></a><span class="co"># whose pool was actually supplied in this demo/run.</span></span>
+<span id="cb9-69"><a href="#cb9-69" tabindex="-1"></a>sample_sheet[, Mapping_Key <span class="sc">:=</span> <span class="fu">paste</span>(Pool_ID, <span class="fu">paste0</span>(Forward_Barcode_ID, <span class="st">&quot;--&quot;</span>, Reverse_Barcode_ID), <span class="at">sep =</span> <span class="st">&quot;|&quot;</span>)]</span>
+<span id="cb9-70"><a href="#cb9-70" tabindex="-1"></a>sample_sheet[, Active_Pool <span class="sc">:=</span> Pool_ID <span class="sc">%in%</span> pool_inventory<span class="sc">$</span>Pool_ID]</span>
+<span id="cb9-71"><a href="#cb9-71" tabindex="-1"></a></span>
+<span id="cb9-72"><a href="#cb9-72" tabindex="-1"></a><span class="co"># Both mapping keys and output SampleIDs must be unique to guarantee a one-row,</span></span>
+<span id="cb9-73"><a href="#cb9-73" tabindex="-1"></a><span class="co"># one-input, one-output relationship.</span></span>
+<span id="cb9-74"><a href="#cb9-74" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_sheet<span class="sc">$</span>Mapping_Key)) {</span>
+<span id="cb9-75"><a href="#cb9-75" tabindex="-1"></a>  duplicate_keys <span class="ot">&lt;-</span> <span class="fu">unique</span>(sample_sheet<span class="sc">$</span>Mapping_Key[<span class="fu">duplicated</span>(sample_sheet<span class="sc">$</span>Mapping_Key)])</span>
+<span id="cb9-76"><a href="#cb9-76" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet has duplicate pool/barcode mappings: &quot;</span>, <span class="fu">paste</span>(duplicate_keys, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
+<span id="cb9-77"><a href="#cb9-77" tabindex="-1"></a>}</span>
+<span id="cb9-78"><a href="#cb9-78" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_sheet<span class="sc">$</span>SampleID)) {</span>
+<span id="cb9-79"><a href="#cb9-79" tabindex="-1"></a>  duplicate_ids <span class="ot">&lt;-</span> <span class="fu">unique</span>(sample_sheet<span class="sc">$</span>SampleID[<span class="fu">duplicated</span>(sample_sheet<span class="sc">$</span>SampleID)])</span>
+<span id="cb9-80"><a href="#cb9-80" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;The sequencing sheet produces duplicate SampleIDs: &quot;</span>, <span class="fu">paste</span>(duplicate_ids, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
+<span id="cb9-81"><a href="#cb9-81" tabindex="-1"></a>}</span>
+<span id="cb9-82"><a href="#cb9-82" tabindex="-1"></a></span>
+<span id="cb9-83"><a href="#cb9-83" tabindex="-1"></a><span class="co"># Show whether every sheet pool is active without treating intentionally absent</span></span>
+<span id="cb9-84"><a href="#cb9-84" tabindex="-1"></a><span class="co"># pools as a validation failure.</span></span>
+<span id="cb9-85"><a href="#cb9-85" tabindex="-1"></a>sheet_pool_summary <span class="ot">&lt;-</span> sample_sheet[, .(</span>
+<span id="cb9-86"><a href="#cb9-86" tabindex="-1"></a>  <span class="at">Sequencing_Sheet_Rows =</span> .N,</span>
+<span id="cb9-87"><a href="#cb9-87" tabindex="-1"></a>  <span class="at">Active_Pool =</span> <span class="fu">unique</span>(Active_Pool)</span>
+<span id="cb9-88"><a href="#cb9-88" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
+<span id="cb9-89"><a href="#cb9-89" tabindex="-1"></a><span class="fu">setorder</span>(sheet_pool_summary, Pool_ID)</span>
+<span id="cb9-90"><a href="#cb9-90" tabindex="-1"></a><span class="fu">render_table</span>(sheet_pool_summary, <span class="st">&quot;Sequencing-sheet pool coverage&quot;</span>)</span></code></pre></div>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-f06dfb87ca9cfe8f01a9" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-f06dfb87ca9cfe8f01a9">{"x":{"filter":"none","vertical":false,"caption":"<caption>Sequencing-sheet pool coverage<\/caption>","data":[[1],[4],[true]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Sequencing_Sheet_Rows<\/th>\n      <th>Active_Pool<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Sequencing_Sheet_Rows","targets":1},{"name":"Active_Pool","targets":2}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
-<div id="match-samples" class="section level2" number="5.5">
-<h2><span class="header-section-number">5.5</span> Match Active Samples
-to Archive Members</h2>
-<p>The join key is the exact combination of pool, forward barcode ID,
-and reverse barcode ID. Barcode-pair members not listed for an active
-pool are retained in the results report but are not extracted.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Only rows belonging to supplied pools participate in matching. Inactive rows</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co"># remain available for the optional audit worksheet.</span></span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>active_samples <span class="ot">&lt;-</span> <span class="fu">copy</span>(sample_sheet[Active_Pool <span class="sc">==</span> <span class="cn">TRUE</span>])</span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co"># Left-join from the sample sheet so every requested active sample is retained,</span></span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co"># including rows with no matching archive member.</span></span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>sample_manifest <span class="ot">&lt;-</span> <span class="fu">merge</span>(</span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  active_samples,</span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  archive_inventory[, .(</span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>    Mapping_Key, Archive_Path, Archive_Member, Lima_Quality_Label,</span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>    Uncompressed_Size_Bytes</span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  )],</span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>  <span class="at">by =</span> <span class="st">&quot;Mapping_Key&quot;</span>,</span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>  <span class="at">all.x =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>  <span class="at">sort =</span> <span class="cn">FALSE</span></span>
-<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>)</span>
-<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co"># Convert missing join results into an explicit, user-facing status.</span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a>sample_manifest[, Mapping_Status <span class="sc">:=</span> <span class="fu">fifelse</span>(</span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>  <span class="fu">is.na</span>(Archive_Member), <span class="st">&quot;FAIL: sequencing-sheet mapping absent from archive&quot;</span>, <span class="st">&quot;PASS&quot;</span></span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>)]</span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a></span>
-<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co"># Flag extra demultiplexed members for auditing; they are deliberately not</span></span>
-<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co"># extracted because no active sample-sheet row requested them.</span></span>
-<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a>archive_inventory[, Listed_In_Sequencing_Sheet <span class="sc">:=</span> Mapping_Key <span class="sc">%in%</span> active_samples<span class="sc">$</span>Mapping_Key]</span>
-<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a></span>
-<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>missing_active_samples <span class="ot">&lt;-</span> sample_manifest[<span class="fu">is.na</span>(Archive_Member)]</span>
-<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(missing_active_samples) <span class="sc">&gt;</span> <span class="dv">0</span><span class="dt">L</span>) {</span>
-<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a>  <span class="fu">render_table</span>(</span>
-<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a>    missing_active_samples[, .(</span>
-<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a>      Pool_ID, Sample_Name_Original,</span>
-<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a>      Forward_Barcode_ID, Reverse_Barcode_ID, Mapping_Status</span>
-<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a>    )],</span>
-<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a>    <span class="st">&quot;Active sequencing-sheet rows without an archive member&quot;</span></span>
-<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a>  )</span>
-<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a>}</span></code></pre></div>
-<p>The following summary reports how many requested samples matched, how
-many active requests remain unresolved, and how many delivered
-barcode-pair files were intentionally left inside the archives because
-they were not requested.</p>
-<pre><code>## Active sequencing-sheet samples: 4</code></pre>
+<div id="match-samples" class="section level2" number="5.4">
+<h2><span class="header-section-number">5.4</span> Match Active Samples
+to FASTQ Files</h2>
+<p>Match the literal <code>{ForwardBarcodeID}--{ReverseBarcodeID}</code>
+pair anywhere in each filename within its pool. Prefixes and suffixes
+may vary; matches are case-sensitive and require identifier boundaries.
+For example,
+<code>m84157_260831_153015_s4.hifi_reads.Kinnex16S_Fwd_06--Kinnex16S_Rev_16.hifi_reads.fastq.gz</code>
+matches the supplied Kinnex barcode IDs. Each active sample must match
+exactly one file, and no file may match multiple samples. Unlisted files
+remain in the audit and are not copied.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>active_samples <span class="ot">&lt;-</span> <span class="fu">copy</span>(sample_sheet[Active_Pool <span class="sc">==</span> <span class="cn">TRUE</span>])</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">nrow</span>(active_samples)) <span class="fu">stop</span>(<span class="st">&quot;No sample-sheet rows belong to the supplied pools.&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>matched_indices <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(active_samples)), <span class="cf">function</span>(i) {</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  candidates <span class="ot">&lt;-</span> <span class="fu">which</span>(fastq_inventory<span class="sc">$</span>Pool_ID <span class="sc">==</span> active_samples<span class="sc">$</span>Pool_ID[[i]])</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  candidates[<span class="fu">vapply</span>(fastq_inventory<span class="sc">$</span>Source_Filename[candidates], matches_barcode_pair,</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>                    <span class="fu">logical</span>(<span class="dv">1</span>), <span class="at">forward_id =</span> active_samples<span class="sc">$</span>Forward_Barcode_ID[[i]],</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>                    <span class="at">reverse_id =</span> active_samples<span class="sc">$</span>Reverse_Barcode_ID[[i]])]</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>})</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">lengths</span>(matched_indices) <span class="sc">&gt;</span> <span class="dv">1</span><span class="dt">L</span>)) {</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Multiple FASTQ files match sample(s): &quot;</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>       <span class="fu">paste</span>(active_samples<span class="sc">$</span>SampleID[<span class="fu">lengths</span>(matched_indices) <span class="sc">&gt;</span> <span class="dv">1</span><span class="dt">L</span>], <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>))</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>}</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>assigned_indices <span class="ot">&lt;-</span> <span class="fu">unlist</span>(matched_indices, <span class="at">use.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(assigned_indices)) <span class="fu">stop</span>(<span class="st">&quot;A FASTQ file matches more than one sample-sheet row.&quot;</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>sample_manifest <span class="ot">&lt;-</span> <span class="fu">copy</span>(active_samples)</span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>sample_manifest[, Source_FASTQ <span class="sc">:=</span> <span class="fu">vapply</span>(matched_indices, <span class="cf">function</span>(indices) {</span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(indices)) fastq_inventory<span class="sc">$</span>Source_FASTQ[[indices]] <span class="cf">else</span> <span class="cn">NA_character_</span></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>}, <span class="fu">character</span>(<span class="dv">1</span>))]</span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a>sample_manifest[, Mapping_Status <span class="sc">:=</span> <span class="fu">fifelse</span>(<span class="fu">is.na</span>(Source_FASTQ), <span class="st">&quot;FAIL: no matching FASTQ&quot;</span>, <span class="st">&quot;PASS&quot;</span>)]</span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>fastq_inventory[, Listed_In_Sequencing_Sheet <span class="sc">:=</span> <span class="fu">seq_len</span>(.N) <span class="sc">%in%</span> assigned_indices]</span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a>missing_active_samples <span class="ot">&lt;-</span> sample_manifest[<span class="fu">is.na</span>(Source_FASTQ)]</span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(missing_active_samples)) {</span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a>  <span class="fu">print</span>(missing_active_samples[, .(Pool_ID, SampleID, Forward_Barcode_ID, Reverse_Barcode_ID)])</span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Active sample-sheet samples are missing from the supplied FASTQs.&quot;</span>)</span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>}</span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Matched samples:&quot;</span>, <span class="fu">nrow</span>(sample_manifest), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Matched samples: 4</code></pre>
-<pre><code>## Unmatched active samples: 0</code></pre>
-<pre><code>## Unlisted barcode-pair files (not extracted): 0</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Unlisted FASTQ files (not copied):&quot;</span>, <span class="fu">sum</span>(<span class="sc">!</span>fastq_inventory<span class="sc">$</span>Listed_In_Sequencing_Sheet), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<pre><code>## Unlisted FASTQ files (not copied): 0</code></pre>
 </div>
-<div id="extract-fastq" class="section level2" number="5.6">
-<h2><span class="header-section-number">5.6</span> Extract and Rename
+<div id="copy-fastq" class="section level2" number="5.5">
+<h2><span class="header-section-number">5.5</span> Copy and Rename
 Matched FASTQ Files</h2>
-<p>Each matched archive member is extracted directly to a temporary
-directory and then moved to its deterministic workflow filename. Because
-this notebook owns <a title="Not included in the compact curated reference set">results/1_data_integrity_and_sample_mapping/mapped_fastq/</a>,
-possible stale FASTQ files existing from earlier runs are cleared from
-that managed folder before extraction. Raw files under <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/example/data">data/</a> are never changed.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Do not create a partial mapped dataset: all active rows must resolve before</span></span>
-<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co"># extraction begins.</span></span>
-<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(missing_active_samples) <span class="sc">&gt;</span> <span class="dv">0</span><span class="dt">L</span>) {</span>
-<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="fu">stop</span>(</span>
-<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>    <span class="st">&quot;Cannot extract workflow inputs because &quot;</span>, <span class="fu">nrow</span>(missing_active_samples),</span>
-<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>    <span class="st">&quot; active sequencing-sheet sample(s) are missing from the supplied archives.&quot;</span></span>
-<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>  )</span>
-<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>}</span>
-<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a></span>
-<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co"># Derive deterministic output paths from validated SampleIDs.</span></span>
-<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a>sample_manifest[, Output_FASTQ <span class="sc">:=</span> <span class="fu">as.character</span>(</span>
-<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>  <span class="fu">path</span>(mapped_fastq_folder, <span class="fu">paste0</span>(SampleID, <span class="st">&quot;.fastq&quot;</span>))</span>
-<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>)]</span>
-<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a></span>
-<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_manifest<span class="sc">$</span>Output_FASTQ)) {</span>
-<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Multiple samples resolve to the same output FASTQ path.&quot;</span>)</span>
-<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a>}</span>
-<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a></span>
-<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a><span class="co"># This notebook owns mapped_fastq/, so remove stale FASTQ outputs from an older</span></span>
-<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a><span class="co"># sample sheet before writing the current run. Non-FASTQ files are left alone.</span></span>
-<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a>stale_fastq_outputs <span class="ot">&lt;-</span> <span class="fu">dir_ls</span>(</span>
-<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a>  mapped_fastq_folder,</span>
-<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a>  <span class="at">regexp =</span> <span class="st">&quot;</span><span class="sc">\\</span><span class="st">.fastq(?:</span><span class="sc">\\</span><span class="st">.gz)?$&quot;</span>,</span>
-<span id="cb16-24"><a href="#cb16-24" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">&quot;file&quot;</span>,</span>
-<span id="cb16-25"><a href="#cb16-25" tabindex="-1"></a>  <span class="at">recurse =</span> <span class="cn">FALSE</span></span>
-<span id="cb16-26"><a href="#cb16-26" tabindex="-1"></a>)</span>
-<span id="cb16-27"><a href="#cb16-27" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(stale_fastq_outputs) <span class="sc">&gt;</span> <span class="dv">0</span><span class="dt">L</span>) <span class="fu">file_delete</span>(stale_fastq_outputs)</span>
-<span id="cb16-28"><a href="#cb16-28" tabindex="-1"></a></span>
-<span id="cb16-29"><a href="#cb16-29" tabindex="-1"></a><span class="co"># Isolate each extraction in a temporary directory and register cleanup even if</span></span>
-<span id="cb16-30"><a href="#cb16-30" tabindex="-1"></a><span class="co"># a later validation step stops with an error.</span></span>
-<span id="cb16-31"><a href="#cb16-31" tabindex="-1"></a>temporary_extract_root <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">pattern =</span> <span class="st">&quot;pacbio_step1_extract_&quot;</span>, <span class="at">tmpdir =</span> <span class="fu">tempdir</span>())</span>
-<span id="cb16-32"><a href="#cb16-32" tabindex="-1"></a><span class="fu">dir_create</span>(temporary_extract_root)</span>
-<span id="cb16-33"><a href="#cb16-33" tabindex="-1"></a><span class="fu">on.exit</span>(<span class="fu">unlink</span>(temporary_extract_root, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>), <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb16-34"><a href="#cb16-34" tabindex="-1"></a></span>
-<span id="cb16-35"><a href="#cb16-35" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(sample_manifest))) {</span>
-<span id="cb16-36"><a href="#cb16-36" tabindex="-1"></a>  <span class="co"># Extract exactly one matched member, never the entire pool archive.</span></span>
-<span id="cb16-37"><a href="#cb16-37" tabindex="-1"></a>  member <span class="ot">&lt;-</span> sample_manifest<span class="sc">$</span>Archive_Member[[i]]</span>
-<span id="cb16-38"><a href="#cb16-38" tabindex="-1"></a>  archive <span class="ot">&lt;-</span> sample_manifest<span class="sc">$</span>Archive_Path[[i]]</span>
-<span id="cb16-39"><a href="#cb16-39" tabindex="-1"></a>  output_path <span class="ot">&lt;-</span> sample_manifest<span class="sc">$</span>Output_FASTQ[[i]]</span>
-<span id="cb16-40"><a href="#cb16-40" tabindex="-1"></a>  extract_dir <span class="ot">&lt;-</span> <span class="fu">path</span>(temporary_extract_root, <span class="fu">paste0</span>(<span class="st">&quot;sample_&quot;</span>, i))</span>
-<span id="cb16-41"><a href="#cb16-41" tabindex="-1"></a>  <span class="fu">dir_create</span>(extract_dir)</span>
-<span id="cb16-42"><a href="#cb16-42" tabindex="-1"></a></span>
-<span id="cb16-43"><a href="#cb16-43" tabindex="-1"></a>  <span class="co"># junkpaths=TRUE discards any internal ZIP directory prefix so the expected</span></span>
-<span id="cb16-44"><a href="#cb16-44" tabindex="-1"></a>  <span class="co"># extracted filename is deterministic.</span></span>
-<span id="cb16-45"><a href="#cb16-45" tabindex="-1"></a>  utils<span class="sc">::</span><span class="fu">unzip</span>(archive, <span class="at">files =</span> member, <span class="at">exdir =</span> extract_dir, <span class="at">junkpaths =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb16-46"><a href="#cb16-46" tabindex="-1"></a>  extracted_path <span class="ot">&lt;-</span> <span class="fu">path</span>(extract_dir, <span class="fu">path_file</span>(member))</span>
-<span id="cb16-47"><a href="#cb16-47" tabindex="-1"></a></span>
-<span id="cb16-48"><a href="#cb16-48" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file_exists</span>(extracted_path)) {</span>
-<span id="cb16-49"><a href="#cb16-49" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Extraction did not produce the expected FASTQ member: &quot;</span>, member)</span>
-<span id="cb16-50"><a href="#cb16-50" tabindex="-1"></a>  }</span>
-<span id="cb16-51"><a href="#cb16-51" tabindex="-1"></a></span>
-<span id="cb16-52"><a href="#cb16-52" tabindex="-1"></a>  <span class="co"># Move the validated extraction into the managed output folder under its</span></span>
-<span id="cb16-53"><a href="#cb16-53" tabindex="-1"></a>  <span class="co"># stable sample-based filename.</span></span>
-<span id="cb16-54"><a href="#cb16-54" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">file_exists</span>(output_path)) <span class="fu">file_delete</span>(output_path)</span>
-<span id="cb16-55"><a href="#cb16-55" tabindex="-1"></a>  <span class="fu">file_move</span>(extracted_path, output_path)</span>
-<span id="cb16-56"><a href="#cb16-56" tabindex="-1"></a>}</span></code></pre></div>
-<p>After all matched members have been published under their
-sample-based filenames, the report confirms how many FASTQ files were
-extracted and where they were written.</p>
-<pre><code>## Extracted 4 sample FASTQ files to PROJECT_ROOT/example/run_results/1_data_integrity_and_sample_mapping/mapped_fastq</code></pre>
+<p>Copy matched gzip files to deterministic sample filenames without
+decompressing them. Source files remain unchanged. Stale FASTQs in this
+notebook’s managed output folder are removed after all active samples
+have unique matches.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>sample_manifest[, Output_FASTQ <span class="sc">:=</span> <span class="fu">as.character</span>(<span class="fu">path</span>(mapped_fastq_folder, <span class="fu">paste0</span>(SampleID, <span class="st">&quot;.fastq.gz&quot;</span>)))]</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">anyDuplicated</span>(sample_manifest<span class="sc">$</span>Output_FASTQ)) <span class="fu">stop</span>(<span class="st">&quot;Multiple samples resolve to the same output FASTQ path.&quot;</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>stale_fastq_outputs <span class="ot">&lt;-</span> <span class="fu">dir_ls</span>(mapped_fastq_folder, <span class="at">regexp =</span> <span class="st">&quot;(?i)</span><span class="sc">\\</span><span class="st">.(fastq|fq)(</span><span class="sc">\\</span><span class="st">.gz)?$&quot;</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>                             <span class="at">type =</span> <span class="st">&quot;file&quot;</span>, <span class="at">recurse =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(stale_fastq_outputs)) <span class="fu">file_delete</span>(stale_fastq_outputs)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(sample_manifest))) {</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="fu">file_copy</span>(sample_manifest<span class="sc">$</span>Source_FASTQ[[i]], sample_manifest<span class="sc">$</span>Output_FASTQ[[i]])</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>}</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Copied&quot;</span>, <span class="fu">nrow</span>(sample_manifest), <span class="st">&quot;sample FASTQs to&quot;</span>, mapped_fastq_folder, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<pre><code>## Copied 4 sample FASTQs to /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/1_data_integrity_and_sample_mapping/mapped_fastq</code></pre>
 </div>
-<div id="validate-fastq" class="section level2" number="5.7">
-<h2><span class="header-section-number">5.7</span> Validate Extracted
-FASTQ Files</h2>
-<p>Every extracted FASTQ is checked for existence, non-zero size, and
+<div id="validate-fastq" class="section level2" number="5.6">
+<h2><span class="header-section-number">5.6</span> Validate Copied FASTQ
+Files</h2>
+<p>Every copied FASTQ is checked for existence, non-zero size, and
 complete parsing. Read counts reported here are the input counts for the
 downstream primer-removal step.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Validate each extracted file independently and keep the structured results in</span></span>
-<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="co"># manifest row order.</span></span>
-<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>fastq_inspections <span class="ot">&lt;-</span> <span class="fu">lapply</span>(sample_manifest<span class="sc">$</span>Output_FASTQ, inspect_fastq_file)</span>
-<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a></span>
-<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="co"># Expand the per-file result lists into typed manifest columns for downstream</span></span>
-<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="co"># summaries and Excel export.</span></span>
-<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>sample_manifest[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(</span>
-<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>  <span class="at">FASTQ_Valid =</span> <span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">logical</span>(<span class="dv">1</span>), <span class="st">&quot;valid&quot;</span>),</span>
-<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>  <span class="at">Input_Reads =</span> <span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&quot;reads&quot;</span>),</span>
-<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>  <span class="at">Output_Size_MB =</span> <span class="fu">round</span>(<span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&quot;size_mb&quot;</span>), <span class="dv">3</span>),</span>
-<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a>  <span class="at">FASTQ_Issue =</span> <span class="fu">vapply</span>(</span>
-<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a>    fastq_inspections,</span>
-<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a>    <span class="cf">function</span>(x) <span class="cf">if</span> (<span class="fu">is.null</span>(x<span class="sc">$</span>issue) <span class="sc">||</span> <span class="fu">is.na</span>(x<span class="sc">$</span>issue)) <span class="cn">NA_character_</span> <span class="cf">else</span> <span class="fu">as.character</span>(x<span class="sc">$</span>issue),</span>
-<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a>    <span class="fu">character</span>(<span class="dv">1</span>)</span>
-<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a>  )</span>
-<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a>)]</span>
-<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a></span>
-<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="co"># Mapping failure takes precedence; otherwise parsing determines final status.</span></span>
-<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a>sample_manifest[, Integrity_Status <span class="sc">:=</span> <span class="fu">fifelse</span>(</span>
-<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a>  Mapping_Status <span class="sc">!=</span> <span class="st">&quot;PASS&quot;</span>, Mapping_Status,</span>
-<span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a>  <span class="fu">fifelse</span>(FASTQ_Valid <span class="sc">==</span> <span class="cn">TRUE</span>, <span class="st">&quot;PASS&quot;</span>, <span class="st">&quot;FAIL: FASTQ parsing failed&quot;</span>)</span>
-<span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a>)]</span>
-<span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a></span>
-<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a><span class="co"># Display every invalid file and its captured parser message before stopping.</span></span>
-<span id="cb18-25"><a href="#cb18-25" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(sample_manifest<span class="sc">$</span>FASTQ_Valid <span class="sc">!=</span> <span class="cn">TRUE</span>)) {</span>
-<span id="cb18-26"><a href="#cb18-26" tabindex="-1"></a>  <span class="fu">render_table</span>(</span>
-<span id="cb18-27"><a href="#cb18-27" tabindex="-1"></a>    sample_manifest[FASTQ_Valid <span class="sc">!=</span> <span class="cn">TRUE</span>, .(SampleID, Output_FASTQ, FASTQ_Issue)],</span>
-<span id="cb18-28"><a href="#cb18-28" tabindex="-1"></a>    <span class="st">&quot;Invalid extracted FASTQ files&quot;</span></span>
-<span id="cb18-29"><a href="#cb18-29" tabindex="-1"></a>  )</span>
-<span id="cb18-30"><a href="#cb18-30" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;One or more extracted FASTQ files failed complete-file validation.&quot;</span>)</span>
-<span id="cb18-31"><a href="#cb18-31" tabindex="-1"></a>}</span>
-<span id="cb18-32"><a href="#cb18-32" tabindex="-1"></a></span>
-<span id="cb18-33"><a href="#cb18-33" tabindex="-1"></a><span class="co"># Summarize read depth and extracted size by pool using numeric values.</span></span>
-<span id="cb18-34"><a href="#cb18-34" tabindex="-1"></a>sample_summary <span class="ot">&lt;-</span> sample_manifest[, .(</span>
-<span id="cb18-35"><a href="#cb18-35" tabindex="-1"></a>  <span class="at">Samples =</span> .N,</span>
-<span id="cb18-36"><a href="#cb18-36" tabindex="-1"></a>  <span class="at">Total_Reads =</span> <span class="fu">sum</span>(Input_Reads),</span>
-<span id="cb18-37"><a href="#cb18-37" tabindex="-1"></a>  <span class="at">Median_Reads =</span> <span class="fu">round</span>(stats<span class="sc">::</span><span class="fu">median</span>(Input_Reads)),</span>
-<span id="cb18-38"><a href="#cb18-38" tabindex="-1"></a>  <span class="at">Minimum_Reads =</span> <span class="fu">min</span>(Input_Reads),</span>
-<span id="cb18-39"><a href="#cb18-39" tabindex="-1"></a>  <span class="at">Maximum_Reads =</span> <span class="fu">max</span>(Input_Reads),</span>
-<span id="cb18-40"><a href="#cb18-40" tabindex="-1"></a>  <span class="at">Total_Size_MB =</span> <span class="fu">round</span>(<span class="fu">sum</span>(Output_Size_MB), <span class="dv">2</span>)</span>
-<span id="cb18-41"><a href="#cb18-41" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
-<span id="cb18-42"><a href="#cb18-42" tabindex="-1"></a></span>
-<span id="cb18-43"><a href="#cb18-43" tabindex="-1"></a><span class="fu">render_table</span>(sample_summary, <span class="st">&quot;Validated workflow-ready FASTQ files&quot;</span>)</span></code></pre></div>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-029e71915f025abee9ab" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-029e71915f025abee9ab">{"x":{"filter":"none","vertical":false,"caption":"<caption>Validated workflow-ready FASTQ files<\/caption>","data":[[1],[4],[20000],[5000],[5000],[5000],[57.89]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Samples<\/th>\n      <th>Total_Reads<\/th>\n      <th>Median_Reads<\/th>\n      <th>Minimum_Reads<\/th>\n      <th>Maximum_Reads<\/th>\n      <th>Total_Size_MB<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Samples","targets":1},{"name":"Total_Reads","targets":2},{"name":"Median_Reads","targets":3},{"name":"Minimum_Reads","targets":4},{"name":"Maximum_Reads","targets":5},{"name":"Total_Size_MB","targets":6}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Validate each copied file independently and keep the structured results in</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co"># manifest row order.</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>fastq_inspections <span class="ot">&lt;-</span> <span class="fu">lapply</span>(sample_manifest<span class="sc">$</span>Output_FASTQ, inspect_fastq_file)</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="co"># Expand the per-file result lists into typed manifest columns for downstream</span></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="co"># summaries and Excel export.</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>sample_manifest[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>  <span class="at">FASTQ_Valid =</span> <span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">logical</span>(<span class="dv">1</span>), <span class="st">&quot;valid&quot;</span>),</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>  <span class="at">Input_Reads =</span> <span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&quot;reads&quot;</span>),</span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>  <span class="at">Output_Size_MB =</span> <span class="fu">round</span>(<span class="fu">vapply</span>(fastq_inspections, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="fu">numeric</span>(<span class="dv">1</span>), <span class="st">&quot;size_mb&quot;</span>), <span class="dv">3</span>),</span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a>  <span class="at">FASTQ_Issue =</span> <span class="fu">vapply</span>(</span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>    fastq_inspections,</span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>    <span class="cf">function</span>(x) <span class="cf">if</span> (<span class="fu">is.null</span>(x<span class="sc">$</span>issue) <span class="sc">||</span> <span class="fu">is.na</span>(x<span class="sc">$</span>issue)) <span class="cn">NA_character_</span> <span class="cf">else</span> <span class="fu">as.character</span>(x<span class="sc">$</span>issue),</span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a>    <span class="fu">character</span>(<span class="dv">1</span>)</span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a>  )</span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a>)]</span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a></span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a><span class="co"># Mapping failure takes precedence; otherwise parsing determines final status.</span></span>
+<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a>sample_manifest[, Integrity_Status <span class="sc">:=</span> <span class="fu">fifelse</span>(</span>
+<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a>  Mapping_Status <span class="sc">!=</span> <span class="st">&quot;PASS&quot;</span>, Mapping_Status,</span>
+<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a>  <span class="fu">fifelse</span>(FASTQ_Valid <span class="sc">==</span> <span class="cn">TRUE</span>, <span class="st">&quot;PASS&quot;</span>, <span class="st">&quot;FAIL: FASTQ parsing failed&quot;</span>)</span>
+<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a>)]</span>
+<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a></span>
+<span id="cb16-24"><a href="#cb16-24" tabindex="-1"></a><span class="co"># Display every invalid file and its captured parser message before stopping.</span></span>
+<span id="cb16-25"><a href="#cb16-25" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(sample_manifest<span class="sc">$</span>FASTQ_Valid <span class="sc">!=</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb16-26"><a href="#cb16-26" tabindex="-1"></a>  <span class="fu">render_table</span>(</span>
+<span id="cb16-27"><a href="#cb16-27" tabindex="-1"></a>    sample_manifest[FASTQ_Valid <span class="sc">!=</span> <span class="cn">TRUE</span>, .(SampleID, Output_FASTQ, FASTQ_Issue)],</span>
+<span id="cb16-28"><a href="#cb16-28" tabindex="-1"></a>    <span class="st">&quot;Invalid copied FASTQ files&quot;</span></span>
+<span id="cb16-29"><a href="#cb16-29" tabindex="-1"></a>  )</span>
+<span id="cb16-30"><a href="#cb16-30" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;One or more copied FASTQ files failed complete-file validation.&quot;</span>)</span>
+<span id="cb16-31"><a href="#cb16-31" tabindex="-1"></a>}</span>
+<span id="cb16-32"><a href="#cb16-32" tabindex="-1"></a></span>
+<span id="cb16-33"><a href="#cb16-33" tabindex="-1"></a><span class="co"># Summarize read depth and copied size by pool using numeric values.</span></span>
+<span id="cb16-34"><a href="#cb16-34" tabindex="-1"></a>sample_summary <span class="ot">&lt;-</span> sample_manifest[, .(</span>
+<span id="cb16-35"><a href="#cb16-35" tabindex="-1"></a>  <span class="at">Samples =</span> .N,</span>
+<span id="cb16-36"><a href="#cb16-36" tabindex="-1"></a>  <span class="at">Total_Reads =</span> <span class="fu">sum</span>(Input_Reads),</span>
+<span id="cb16-37"><a href="#cb16-37" tabindex="-1"></a>  <span class="at">Median_Reads =</span> <span class="fu">round</span>(stats<span class="sc">::</span><span class="fu">median</span>(Input_Reads)),</span>
+<span id="cb16-38"><a href="#cb16-38" tabindex="-1"></a>  <span class="at">Minimum_Reads =</span> <span class="fu">min</span>(Input_Reads),</span>
+<span id="cb16-39"><a href="#cb16-39" tabindex="-1"></a>  <span class="at">Maximum_Reads =</span> <span class="fu">max</span>(Input_Reads),</span>
+<span id="cb16-40"><a href="#cb16-40" tabindex="-1"></a>  <span class="at">Total_Size_MB =</span> <span class="fu">round</span>(<span class="fu">sum</span>(Output_Size_MB), <span class="dv">2</span>)</span>
+<span id="cb16-41"><a href="#cb16-41" tabindex="-1"></a>), by <span class="ot">=</span> Pool_ID]</span>
+<span id="cb16-42"><a href="#cb16-42" tabindex="-1"></a></span>
+<span id="cb16-43"><a href="#cb16-43" tabindex="-1"></a><span class="fu">render_table</span>(sample_summary, <span class="st">&quot;Validated workflow-ready FASTQ files&quot;</span>)</span></code></pre></div>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-b32e69543fb64e3375b4" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-b32e69543fb64e3375b4">{"x":{"filter":"none","vertical":false,"caption":"<caption>Validated workflow-ready FASTQ files<\/caption>","data":[[1],[4],[20000],[5000],[5000],[5000],[5.32]],"container":"<table class=\"display compact\">\n  <thead>\n    <tr>\n      <th>Pool_ID<\/th>\n      <th>Samples<\/th>\n      <th>Total_Reads<\/th>\n      <th>Median_Reads<\/th>\n      <th>Minimum_Reads<\/th>\n      <th>Maximum_Reads<\/th>\n      <th>Total_Size_MB<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","scrollCollapse":true,"paging":false,"searching":false,"ordering":false,"info":false,"dom":"t","autoWidth":false,"columnDefs":[{"className":"dt-left","targets":"_all"},{"name":"Pool_ID","targets":0},{"name":"Samples","targets":1},{"name":"Total_Reads","targets":2},{"name":"Median_Reads","targets":3},{"name":"Minimum_Reads","targets":4},{"name":"Maximum_Reads","targets":5},{"name":"Total_Size_MB","targets":6}],"order":[],"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <hr />
 </div>
 </div>
@@ -6268,17 +6099,17 @@ downstream primer-removal step.</p>
 <div id="save-excel" class="section level2" number="6.1">
 <h2><span class="header-section-number">6.1</span> Save the Manifest and
 Export Tables to Excel</h2>
-<p>Assemble the typed run summary, sample manifest, archive inventory,
-and optional inactive-row table; document every exported column with the
-shared <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/functions/build_column_dictionary_function.R">build_column_dictionary_function.R</a>
+<p>Assemble the typed run summary, sample manifest, FASTQ inventory, and
+optional inactive-row table; document every exported column with the
+shared <a title="Not included in the compact curated reference set">build_column_dictionary_function.R</a>
 helper; and save the complete workbook as <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>.
 An extra <code>Inactive_Sheet_Rows</code> worksheet is included only
 when at least one sample-sheet row refers to a pool for which no FASTQ
-archive was supplied.</p>
+pool was supplied.</p>
 <p>The workbook path printed below identifies the complete audit
 artifact to review before accepting the final integrity decision.</p>
 <pre><code>## Results exported to:
-##  PROJECT_ROOT/example/run_results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx</code></pre>
+##  /Users/jon/Documents/workflows/DADA2_16S_PacBio_HiFi_Workflow/example/run_results/1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx</code></pre>
 </div>
 <div id="final-decision" class="section level2" number="6.2">
 <h2><span class="header-section-number">6.2</span> Final Integrity
@@ -6287,29 +6118,29 @@ Decision</h2>
 Downstream notebooks should proceed only when every active sample maps
 exactly once, every mapped FASTQ parses completely, and every file
 contains at least one read.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Downstream work is allowed only when at least one sample exists and every</span></span>
-<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="co"># active sample mapped, parsed successfully, and contains at least one read.</span></span>
-<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>overall_pass <span class="ot">&lt;-</span></span>
-<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>  <span class="fu">nrow</span>(sample_manifest) <span class="sc">&gt;</span> <span class="dv">0</span><span class="dt">L</span> <span class="sc">&amp;&amp;</span></span>
-<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>Mapping_Status <span class="sc">==</span> <span class="st">&quot;PASS&quot;</span>) <span class="sc">&amp;&amp;</span></span>
-<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>FASTQ_Valid <span class="sc">==</span> <span class="cn">TRUE</span>) <span class="sc">&amp;&amp;</span></span>
-<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>Input_Reads <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a></span>
-<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a><span class="co"># Stop the notebook with a single gate failure after all detailed diagnostics</span></span>
-<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a><span class="co"># and the audit workbook have been produced.</span></span>
-<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span>overall_pass) {</span>
-<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Step 1 integrity checks failed. Review the audit workbook before continuing.&quot;</span>)</span>
-<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Downstream work is allowed only when at least one sample exists and every</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="co"># active sample mapped, parsed successfully, and contains at least one read.</span></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>overall_pass <span class="ot">&lt;-</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>  <span class="fu">nrow</span>(sample_manifest) <span class="sc">&gt;</span> <span class="dv">0</span><span class="dt">L</span> <span class="sc">&amp;&amp;</span></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>Mapping_Status <span class="sc">==</span> <span class="st">&quot;PASS&quot;</span>) <span class="sc">&amp;&amp;</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>FASTQ_Valid <span class="sc">==</span> <span class="cn">TRUE</span>) <span class="sc">&amp;&amp;</span></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="fu">all</span>(sample_manifest<span class="sc">$</span>Input_Reads <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="co"># Stop the notebook with a single gate failure after all detailed diagnostics</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="co"># and the audit workbook have been produced.</span></span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span>overall_pass) {</span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">&quot;Step 1 integrity checks failed. Review the audit workbook before continuing.&quot;</span>)</span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a>}</span></code></pre></div>
 <p>If every validation criterion passed, this final status line reports
 the number of workflow-ready samples and supplied pools.</p>
-<pre><code>## PASS — 4 samples from 1 supplied pool(s) were mapped, extracted, and validated.</code></pre>
+<pre><code>## PASS — 4 samples from 1 supplied pool(s) were mapped, copied, and validated.</code></pre>
 <hr />
 </div>
 </div>
 <div id="output-files" class="section level1" number="7">
 <h1><span class="header-section-number">7</span> Output Files</h1>
 <p>The link below opens the Excel workbook generated by this run. It is
-rendered at knit time by the shared <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/functions/render_output_links_function.R">render_output_links_function.R</a>
+rendered at knit time by the shared <a title="Not included in the compact curated reference set">render_output_links_function.R</a>
 helper so the GitHub document contains a portable relative link rather
 than a machine-specific absolute path.</p>
 <ul>
@@ -6323,17 +6154,17 @@ example/run_results/1_data_integrity_and_sample_mapping/data_integrity_and_sampl
 <h1><span class="header-section-number">8</span> Output File
 Summary</h1>
 <p>The tree below lists the current contents of <a href="../1_data_integrity_and_sample_mapping/">results/1_data_integrity_and_sample_mapping/</a>
-as clickable links, generated live from disk by <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/functions/render_output_tree_function.R">render_output_tree_function.R</a>.
+as clickable links, generated live from disk by <a title="Not included in the compact curated reference set">render_output_tree_function.R</a>.
 This avoids maintaining a separate output list that could drift away
 from the files actually produced.</p>
 <pre>
 example/run_results/1_data_integrity_and_sample_mapping/
-├── <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>  # Run summary, sample manifest, archive inventory, optional inactive sample-sheet rows, and column dictionary
-└── <a title="Not included in the compact curated reference set">mapped_fastq/</a>                           # Workflow-ready FASTQ files matched and renamed from the supplied PacBio pool archives
-    ├── <a title="Not included in the compact curated reference set">Subject-R11-Timepoint-1.fastq</a>
-    ├── <a title="Not included in the compact curated reference set">Subject-R3-Timepoint-1.fastq</a>
-    ├── <a title="Not included in the compact curated reference set">Subject-R3-Timepoint-2.fastq</a>
-    └── <a title="Not included in the compact curated reference set">Subject-R3-Timepoint-3.fastq</a>
+├── <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>  # Run summary, sample manifest, FASTQ inventory, optional inactive sample-sheet rows, and column dictionary
+└── <a title="Not included in the compact curated reference set">mapped_fastq/</a>                           # Gzip-compressed FASTQ files matched and renamed from the supplied PacBio pool directories
+    ├── <a title="Not included in the compact curated reference set">Subject-R11-Timepoint-1.fastq.gz</a>
+    ├── <a title="Not included in the compact curated reference set">Subject-R3-Timepoint-1.fastq.gz</a>
+    ├── <a title="Not included in the compact curated reference set">Subject-R3-Timepoint-2.fastq.gz</a>
+    └── <a title="Not included in the compact curated reference set">Subject-R3-Timepoint-3.fastq.gz</a>
 </pre>
 <hr />
 </div>
@@ -6356,81 +6187,62 @@ future executions.</p>
 <pre><code>## R version 4.5.2 (2025-10-31)
 ## Platform: aarch64-apple-darwin20
 ## Running under: macOS Tahoe 26.6.2
-## 
+##
 ## Matrix products: default
-## BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+## BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
 ## LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
-## 
+##
 ## locale:
 ## [1] C.UTF-8/C.UTF-8/C.UTF-8/C/C.UTF-8/C.UTF-8
-## 
+##
 ## time zone: Europe/Berlin
 ## tzcode source: internal
-## 
+##
 ## attached base packages:
-## [1] stats     graphics  grDevices utils     datasets  methods   base     
-## 
+## [1] stats     graphics  grDevices utils     datasets  methods   base
+##
 ## other attached packages:
 ## [1] here_1.0.2        fs_2.1.0          data.table_1.18.4
-## 
+##
 ## loaded via a namespace (and not attached):
-##   [1] DBI_1.3.0                   bitops_1.1-0               
-##   [3] deldir_2.0-4                phangorn_2.12.1            
-##   [5] readxl_1.5.0                permute_0.9-10             
-##   [7] rlang_1.3.0                 magrittr_2.0.5             
-##   [9] ade4_1.7-24                 otel_0.2.0                 
-##  [11] matrixStats_1.5.0           compiler_4.5.2             
-##  [13] mgcv_1.9-4                  png_0.1-9                  
-##  [15] vctrs_0.7.3                 reshape2_1.4.5             
-##  [17] quadprog_1.5-8              stringr_1.6.0              
-##  [19] pwalign_1.4.0               pkgconfig_2.0.3            
-##  [21] crayon_1.5.3                fastmap_1.2.0              
-##  [23] XVector_0.48.0              Rsamtools_2.24.1           
-##  [25] rmarkdown_2.31              UCSC.utils_1.4.0           
-##  [27] xfun_0.60                   cachem_1.1.0               
-##  [29] GenomeInfoDb_1.44.3         jsonlite_2.0.0             
-##  [31] biomformat_1.36.0           rhdf5filters_1.20.0        
-##  [33] DelayedArray_0.34.1         Rhdf5lib_1.30.0            
-##  [35] BiocParallel_1.42.2         jpeg_0.1-11                
-##  [37] parallel_4.5.2              cluster_2.1.8.3            
-##  [39] R6_2.6.1                    bslib_0.12.0               
-##  [41] stringi_1.8.9               RColorBrewer_1.1-3         
-##  [43] cellranger_1.1.0            jquerylib_0.1.4            
-##  [45] GenomicRanges_1.60.0        Rcpp_1.1.2                 
-##  [47] Seqinfo_1.0.0               SummarizedExperiment_1.38.1
-##  [49] iterators_1.0.14            knitr_1.51                 
-##  [51] DECIPHER_3.4.0              IRanges_2.42.0             
-##  [53] Matrix_1.7-6                splines_4.5.2              
-##  [55] igraph_2.3.3                tidyselect_1.2.1           
-##  [57] abind_1.4-8                 yaml_2.3.12                
-##  [59] vegan_2.7-5                 codetools_0.2-20           
-##  [61] hwriter_1.3.2.1             lattice_0.23-1             
-##  [63] tibble_3.3.1                plyr_1.8.9                 
-##  [65] Biobase_2.73.1              ShortRead_1.66.0           
-##  [67] S7_0.2.2                    evaluate_1.0.5             
-##  [69] survival_3.8-9              RcppParallel_6.2.0         
-##  [71] zip_3.0.2                   Biostrings_2.78.0          
-##  [73] pillar_1.11.1               phyloseq_1.52.0            
-##  [75] MatrixGenerics_1.20.0       DT_0.34.0                  
-##  [77] foreach_1.5.2               stats4_4.5.2               
-##  [79] generics_0.1.4              rprojroot_2.1.1            
-##  [81] S4Vectors_0.48.1            ggplot2_4.0.3              
-##  [83] scales_1.4.0                glue_1.8.1                 
-##  [85] tools_4.5.2                 interp_1.1-6               
-##  [87] openxlsx_4.2.8.1            GenomicAlignments_1.44.0   
-##  [89] fastmatch_1.1-8             rhdf5_2.52.1               
-##  [91] grid_4.5.2                  ape_5.8-1                  
-##  [93] crosstalk_1.2.2             latticeExtra_0.6-31        
-##  [95] colorspace_2.1-3            nlme_3.1-170               
-##  [97] GenomeInfoDbData_1.2.14     cli_3.6.6                  
-##  [99] S4Arrays_1.8.1              dada2_1.36.0               
-## [101] dplyr_1.2.1                 gtable_0.3.6               
-## [103] sass_0.4.10                 digest_0.6.39              
-## [105] BiocGenerics_0.56.0         SparseArray_1.8.1          
-## [107] htmlwidgets_1.6.4           farver_2.1.2               
-## [109] htmltools_0.5.9             multtest_2.64.0            
-## [111] lifecycle_1.0.5             httr_1.4.8                 
-## [113] MASS_7.3-66</code></pre>
+##  [1] SummarizedExperiment_1.38.1 xfun_0.60
+##  [3] bslib_0.12.0                hwriter_1.3.2.1
+##  [5] htmlwidgets_1.6.4           latticeExtra_0.6-31
+##  [7] Biobase_2.73.1              lattice_0.23-1
+##  [9] crosstalk_1.2.2             vctrs_0.7.3
+## [11] tools_4.5.2                 bitops_1.1-0
+## [13] generics_0.1.4              stats4_4.5.2
+## [15] parallel_4.5.2              tibble_3.3.1
+## [17] pkgconfig_2.0.3             Matrix_1.7-6
+## [19] RColorBrewer_1.1-3          S4Vectors_0.48.1
+## [21] readxl_1.5.0                lifecycle_1.0.5
+## [23] GenomeInfoDbData_1.2.14     compiler_4.5.2
+## [25] deldir_2.0-4                Rsamtools_2.24.1
+## [27] Biostrings_2.78.0           Seqinfo_1.0.0
+## [29] codetools_0.2-20            GenomeInfoDb_1.44.3
+## [31] htmltools_0.5.9             sass_0.4.10
+## [33] yaml_2.3.12                 pillar_1.11.1
+## [35] crayon_1.5.3                jquerylib_0.1.4
+## [37] DT_0.34.0                   BiocParallel_1.42.2
+## [39] cachem_1.1.0                DelayedArray_0.34.1
+## [41] ShortRead_1.66.0            abind_1.4-8
+## [43] zip_3.0.2                   digest_0.6.39
+## [45] stringi_1.8.9               rprojroot_2.1.1
+## [47] fastmap_1.2.0               grid_4.5.2
+## [49] cli_3.6.6                   SparseArray_1.8.1
+## [51] magrittr_2.0.5              S4Arrays_1.8.1
+## [53] UCSC.utils_1.4.0            rmarkdown_2.31
+## [55] pwalign_1.4.0               XVector_0.48.0
+## [57] httr_1.4.8                  matrixStats_1.5.0
+## [59] jpeg_0.1-11                 interp_1.1-6
+## [61] otel_0.2.0                  cellranger_1.1.0
+## [63] png_0.1-9                   openxlsx_4.2.8.1
+## [65] evaluate_1.0.5              knitr_1.51
+## [67] GenomicRanges_1.60.0        IRanges_2.42.0
+## [69] rlang_1.3.0                 Rcpp_1.1.2
+## [71] glue_1.8.1                  BiocGenerics_0.56.0
+## [73] jsonlite_2.0.0              R6_2.6.1
+## [75] MatrixGenerics_1.20.0       GenomicAlignments_1.44.0</code></pre>
 <hr />
 </div>
 <div id="references" class="section level1" number="11">
@@ -6477,7 +6289,7 @@ Files</h2>
 <ul>
 <li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">data/sample_sheet.xlsx</a> —
 editable PacBio sample and barcode mapping.</li>
-<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/R/functions">R/functions/</a> — shared report-writing and
+<li><a title="Not included in the compact curated reference set">R/functions/</a> — shared report-writing and
 output-rendering helpers.</li>
 </ul>
 <hr />
@@ -6492,59 +6304,42 @@ Found</h2>
 <p><strong>Error</strong>:
 <code>No pool directories were found under ...</code></p>
 <ul>
-<li>Confirm that each supplied archive is under <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/tree/main/example/data/fastq">data/fastq/</a><code>pool&lt;number&gt;/</code>.</li>
-<li>Use lowercase directory names such as <code>pool1</code> and
-<code>pool2</code>; additional text is not accepted.</li>
+<li>Confirm that each supplied gzip FASTQ is under <a href="../../data/fastq/">data/fastq/</a><code>pool&lt;number&gt;/</code>.</li>
+<li>Use names such as <code>pool1</code>, <code>Pool1</code>, or
+<code>POOL1</code>; additional text is not accepted.</li>
 </ul>
 </div>
-<div id="wrong-number-of-archives" class="section level2" number="12.2">
-<h2><span class="header-section-number">12.2</span> Wrong Number of
-Archives</h2>
-<p><strong>Error</strong>:
-<code>Each supplied pool must contain exactly one .fastq.zip archive.</code></p>
-<ul>
-<li>Remove unrelated ZIP files from the pool directory.</li>
-<li>Confirm that the delivery archive ends in
-<code>.fastq.zip</code>.</li>
-<li>Keep one archive per supplied pool.</li>
-</ul>
+<div id="no-compressed-fastqs-in-a-pool" class="section level2" number="12.2">
+<h2><span class="header-section-number">12.2</span> No Compressed FASTQs
+in a Pool</h2>
+<p>Each supplied pool must contain at least one <code>.fastq.gz</code>
+or <code>.fq.gz</code> file directly. ZIP archives are not discovered.
+Unpack a delivery archive before running this notebook.</p>
 </div>
 <div id="missing-or-invalid-sample-sheet-columns" class="section level2" number="12.3">
 <h2><span class="header-section-number">12.3</span> Missing or Invalid
 Sample-Sheet Columns</h2>
-<p>The required columns in <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/example/data/sample_sheet.xlsx">sample_sheet.xlsx</a> are
-<code>PoolNumber</code>, <code>SampleID</code>,
-<code>ForwardBarcodeID</code>, and <code>ReverseBarcodeID</code>.</p>
-<ul>
-<li>Do not rename or reorder identifiers inside barcode values such as
-<code>bc1024</code>.</li>
-<li>Each <code>PoolNumber + ForwardBarcodeID + ReverseBarcodeID</code>
-combination must be unique.</li>
-</ul>
+<p>Supply <code>PoolNumber</code>, <code>SampleID</code>,
+<code>ForwardBarcodeID</code>, and <code>ReverseBarcodeID</code>.
+Barcode values are case-sensitive text, including Kinnex identifiers; do
+not change their spelling. Each pool/barcode-pair combination and each
+sanitized SampleID must be unique.</p>
 </div>
-<div id="sample-sheet-row-has-no-fastq-member" class="section level2" number="12.4">
-<h2><span class="header-section-number">12.4</span> Sample-Sheet Row Has
-No FASTQ Member</h2>
-<p><strong>Error</strong>:
-<code>active sample-sheet sample(s) are missing from the supplied archives.</code></p>
-<ul>
-<li>Confirm that the row uses the correct pool number and barcode
-direction.</li>
-<li>Inspect the <code>Archive_Inventory</code> worksheet in <a href="../1_data_integrity_and_sample_mapping/data_integrity_and_sample_mapping.xlsx">data_integrity_and_sample_mapping.xlsx</a>.</li>
-<li>Confirm that the sequencing provider delivered the expected Lima
-barcode-pair member.</li>
-</ul>
+<div id="missing-or-ambiguous-fastq-match" class="section level2" number="12.4">
+<h2><span class="header-section-number">12.4</span> Missing or Ambiguous
+FASTQ Match</h2>
+<p>The literal pair <code>{ForwardBarcodeID}--{ReverseBarcodeID}</code>
+must occur within the filename with identifier boundaries. Run prefixes
+and suffixes may vary. Check pool number, barcode direction, spelling,
+and case. Missing samples, multiple files for the same sample, and a
+file matching multiple samples stop processing; files not listed in the
+sheet are retained in <code>FASTQ_Inventory</code> and not copied.</p>
 </div>
-<div id="invalid-extracted-fastq" class="section level2" number="12.5">
-<h2><span class="header-section-number">12.5</span> Invalid Extracted
-FASTQ</h2>
-<p>If an extracted FASTQ fails <a href="https://bioconductor.org/packages/release/bioc/manuals/ShortRead/man/ShortRead.pdf">ShortRead::countFastq()</a>:</p>
-<ul>
-<li>Re-download or re-copy the corresponding raw archive.</li>
-<li>Verify the ZIP archive independently with <code>unzip -t</code>
-command.</li>
-<li>Review the reported <code>FASTQ_Issue</code> before proceeding.</li>
-</ul>
+<div id="invalid-fastq" class="section level2" number="12.5">
+<h2><span class="header-section-number">12.5</span> Invalid FASTQ</h2>
+<p>Review <code>FASTQ_Issue</code>, then re-download or re-copy the
+original gzip file. Complete FASTQ parsing and a positive read count are
+required before downstream processing.</p>
 </div>
 </div>
 

@@ -26,7 +26,7 @@ A reproducible R-based pipeline for processing **PacBio HiFi full-length 16S rRN
 
 - **PacBio HiFi-aware quality control** — Calculates per-read length, GC content, and mean read quality directly in R and retains reads with **Q ≥ 20**.
 - **Data-driven maxEE selection** — A PacBio-specific Shiny app displays pooled and per-sample expected-error retention and validates the selected threshold with real DADA2 processing.
-- **Demultiplexed delivery mapping** — Maps Lima barcode-pair filenames to stable sample identities through [data/sample_sheet.xlsx](data/sample_sheet.xlsx).
+- **Demultiplexed delivery mapping** — Matches sample-sheet barcode pairs in filenames to stable sample identities through [data/sample_sheet.xlsx](data/sample_sheet.xlsx).
 - **Primer orientation and trimming** — Uses [Cutadapt](https://cutadapt.readthedocs.io/) with linked primers and reverse-complements reads when required.
 - **PacBio DADA2 inference** — Uses the single-end PacBio HiFi workflow for filtering, error learning, denoising, chimera removal, ASV generation, and taxonomy assignment.
 - **Pool-aware outputs** — Produces combined results and, when applicable, self-contained results for every pool under `separate_pools/`.
@@ -42,7 +42,7 @@ A reproducible R-based pipeline for processing **PacBio HiFi full-length 16S rRN
 ## Pipeline Overview
 
 ``` text
-  PacBio HiFi FASTQ archives + sample sheet
+  PacBio HiFi FASTQ.gz files + sample sheet
                      │
                      ▼
         ┌──────────────────────────┐
@@ -188,16 +188,16 @@ A `download_manifest.txt` file is written to each subfolder recording the source
 
 The setup script installs SILVA 144 and the SBDI Sativa-curated GTDB R11-RS232-1 DADA2 files. Step 5 uses their exact versioned filenames, preventing older files left in an existing `tools/trainsets/` directory from being selected accidentally. The committed example reports predate this reference update and retain their original database provenance; they were not regenerated for this setup-only change.
 
-### 7. Add PacBio FASTQ Archives and the Sample Sheet
+### 7. Add Compressed PacBio FASTQs and the Sample Sheet
 
-Copy your FASTQ files into the [`data/fastq/`](data/fastq/) directory. Place one `.fastq.zip` archive per supplied pool under a lowercase folder:
+Copy your FASTQ files into the [`data/fastq/`](data/fastq/) directory. Place multiple demultiplexed `.fastq.gz` files directly in each supplied pool folder. Folder names are case-insensitive: `pool1`, `Pool1`, and `POOL1` identify pool 1.
 
 ``` text
-data/fastq/pool1/<delivery>.fastq.zip
-data/fastq/pool2/<delivery>.fastq.zip
+data/fastq/pool1/<run>.<forward>--<reverse>.fastq.gz
+data/fastq/pool2/<run>.<forward>--<reverse>.fastq.gz
 ```
 
-Edit [data/sample_sheet.xlsx](data/sample_sheet.xlsx) using the four required columns: `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`. Each active barcode pair must map to a unique `SampleID` and numeric `PoolNumber`. `SampleID` must not include the pool number. Barcode nucleotide sequences are unnecessary because the supplied FASTQs have already been demultiplexed. [Step 1](R/notebooks/1_data_integrity_and_sample_mapping.md) extracts only mapped archive members and retains unmatched sample-sheet rows for review.
+Edit [data/sample_sheet.xlsx](data/sample_sheet.xlsx) using the four required columns: `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`. Each active barcode pair must map to a unique `SampleID` and numeric `PoolNumber`. `SampleID` must not include the pool number. Barcode nucleotide sequences are unnecessary because the supplied FASTQs have already been demultiplexed. [Step 1](R/notebooks/1_data_integrity_and_sample_mapping.md) copies only uniquely matched files. Barcode IDs are case-sensitive text from the sample sheet, including Kinnex names, and are matched literally as `ForwardBarcodeID--ReverseBarcodeID` within the filename. Each active sample must match exactly one file; missing or ambiguous matches stop processing. ZIP archives must be unpacked first.
 
 See [data/README.md](data/README.md) for the complete format and consistency checks.
 
@@ -219,15 +219,15 @@ Run the numbered notebooks in order from the project root. In RStudio, use **Kni
 
 ### Step 1 — [Data Integrity and Sample Mapping](R/notebooks/1_data_integrity_and_sample_mapping.md) *(required)*
 
-Validates the supplied pool archives and FASTQ members, checks the sample sheet, maps Lima barcode pairs to biological sample identifiers, and extracts only matched reads.
+Discovers multiple compressed FASTQs per pool, checks the sample sheet, matches its literal barcode pairs (including Kinnex identifiers), and copies uniquely matched files under stable `.fastq.gz` sample names.
 
 ### Step 2 — [Quality Filtering](R/notebooks/2_quality_filtering.md) *(required)*
 
-Calculates per-sample PacBio read-quality, read-length, GC, and size statistics in R. Reads with mean **Q ≥ 20** are written as uncompressed FASTQ files. No read-length filter or length truncation is applied in this step.
+Calculates per-sample PacBio read-quality, read-length, GC, and size statistics in R. Reads with mean **Q ≥ 20** are written as gzip-compressed `.fastq.gz` files. Every input read's length, GC percentage, QV, and filter decision are streamed to `per_read_statistics.tsv.gz`, avoiding Excel's worksheet row limit and loading the full audit into memory. The Excel workbook retains `Run_Summary`, `Sample_QC`, and `Column_Dictionary`; the dictionary also documents the external audit columns. No read-length filter or length truncation is applied in this step.
 
 ### Step 3 — [Primer Trimming](R/notebooks/3_primer_trimming.md) *(required)*
 
-Uses linked primers with Cutadapt to retain full primer-to-primer amplicons, remove both primers, and orient every retained HiFi read consistently. Review the configured primer sequences before running a different assay.
+Uses linked primers with Cutadapt to retain full primer-to-primer amplicons, remove both primers, and orient every retained HiFi read consistently. Primer-trimmed reads are written as `.fastq.gz` for Steps 4 and 5. Review the configured primer sequences before running a different assay.
 
 ### Step 4 — [DADA2 Parameter Selection](R/notebooks/4_dada2_parameter_selection.md) *(recommended)*
 
@@ -318,12 +318,12 @@ DADA2_16S_PacBio_HiFi_Workflow/
 │   ├── sample_sheet.xlsx
 │   ├── metadata.tsv
 │   ├── cell_count/cell_count.tsv
-│   └── fastq/pool<number>/*.fastq.zip
+│   └── fastq/pool<number>/*.fastq.gz
 ├── example/
 │   ├── README.md
 │   ├── run_example.R
 │   ├── data/
-│   │   ├── fastq/pool1/Callahan-Fecal-HiFi-Example.fastq.zip
+│   │   ├── fastq/pool1/*.fastq.gz
 │   │   ├── sample_sheet.xlsx
 │   │   ├── metadata.tsv
 │   │   ├── dada2_filter_parameters.xlsx
@@ -382,3 +382,5 @@ This project is released under the [MIT License](LICENSE).
 
 **Author**: Amro Abbas - Generated with Claude AI assistance\
 **Last Updated**: September 2026
+
+FASTQ outputs from Steps 1, 2, 3, and all three filtering stages in Step 5 are gzip-compressed. Steps 3–5 also accept legacy uncompressed FASTQs. Step 1 requires direct gzip inputs. The Step 4 app uses gzip for its temporary validation files.

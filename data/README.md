@@ -1,6 +1,6 @@
 # Workflow input data
 
-This folder contains the PacBio HiFi FASTQ archives, sequencing sample sheet, and optional sample-level tables used for a user's normal workflow run. The supplied tables are editable templates populated with placeholder rows; replace them with study-specific values before interpreting downstream results.
+This folder contains the PacBio HiFi FASTQ.gz files, sequencing sample sheet, and optional sample-level tables used for a user's normal workflow run. The supplied tables are editable templates populated with placeholder rows; replace them with study-specific values before interpreting downstream results.
 
 ## Bundled example data
 
@@ -16,7 +16,7 @@ This runs all Steps 1–9 with both SILVA and GTDB and writes only to the ignore
 
 ## Folder contents
 
-- [FASTQ input folder](fastq/) contains the demultiplexed PacBio HiFi FASTQ archives organized in lowercase pool folders such as `pool1` and `pool2`.
+- [FASTQ input folder](fastq/) contains the demultiplexed PacBio HiFi FASTQ.gz files organized in pool folders such as `pool1`, `Pool1`, or `POOL1`.
 - [Sample sheet](sample_sheet.xlsx) maps each sample to its pool and barcode pair using `PoolNumber`, `SampleID`, `ForwardBarcodeID`, and `ReverseBarcodeID`. Barcode nucleotide sequences are not required for these already-demultiplexed FASTQs.
 - [Sample metadata](metadata.tsv) contains sample annotations for downstream construction and analysis of the phyloseq object.
 - [Cell-count table](cell_count/cell_count.tsv) contains sample-level cell counts for microbial-load correction.
@@ -64,9 +64,11 @@ Before running the downstream steps, confirm that:
 1.  Every `SampleID` is unique within each table.
 2.  The same spelling and capitalization are used for `SampleID` in all input files.
 3.  Every sample has the same `PoolNumber` in the sample sheet, metadata table, and cell-count table.
-4.  Every pool is represented by a lowercase input folder such as `data/fastq/pool1`.
+4.  Every pool is represented by an input folder (case-insensitive) such as `data/fastq/pool1`.
 5.  `PoolNumber` and `Cell_Count` contain numeric values rather than text.
 6.  Placeholder metadata and cell counts have been replaced with study values.
 7.  No required values are blank.
 
 Rows can be added or removed, but each retained row must still map unambiguously to one workflow sample and pool. Samples may be omitted from the optional metadata or cell-count table only when the downstream analysis that needs that table is also omitted; Step 8 specifically requires a valid positive cell count for every sample it processes.
+
+Place multiple demultiplexed `.fastq.gz` files directly in each pool folder. ZIP archives must be unpacked first. Barcode IDs are matched literally and case-sensitively from the sample sheet as `ForwardBarcodeID--ReverseBarcodeID` within each filename; Kinnex and conventional `bc` identifiers are both supported.

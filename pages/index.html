@@ -253,14 +253,14 @@
       <article class="card">
         <div class="card-top"><span class="step">Step 1</span></div>
         <h4>Data Integrity and Sample Mapping</h4>
-        <p>Validate pool archives, map Lima barcode pairs to sample identities, and extract workflow-ready FASTQs.</p>
+        <p>Validate compressed FASTQs in each pool, match sample-sheet barcode pairs, and copy files under stable sample names.</p>
         <div class="actions"><a class="report-link" href="reports/1_data_integrity_and_sample_mapping.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/1_data_integrity_and_sample_mapping.md">Source</a></div>
       </article>
 
       <article class="card">
         <div class="card-top"><span class="step">Step 2</span></div>
         <h4>Quality Filtering</h4>
-        <p>Calculate PacBio read statistics and retain full-length reads with mean read quality Q ≥ 20.</p>
+        <p>Calculate PacBio read statistics, retain Q ≥ 20 reads as FASTQ.gz, and stream the complete per-read audit to TSV.gz.</p>
         <div class="actions"><a class="report-link" href="reports/2_quality_filtering.html">Example</a><a class="source-link" href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/2_quality_filtering.md">Source</a></div>
       </article>
 

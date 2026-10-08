@@ -93,11 +93,11 @@ credentials/
 secrets/
 .positai
 
-# Bundled example: generated reruns stay local, while the small source archive
+# Bundled example: generated reruns stay local, while the compressed source FASTQs
 # and curated reference deliverables are intentionally versioned.
 example/run_results/
 !example/data/fastq/
 !example/data/fastq/**/
-!example/data/fastq/**/*.fastq.zip
+!example/data/fastq/**/*.fastq.gz
 !example/reference_results/**/*.pdf
 !example/reference_results/**/*.RData

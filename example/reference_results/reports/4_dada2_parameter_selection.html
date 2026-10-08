@@ -1425,34 +1425,34 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ef2929; } 
-code span.an { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.at { color: #204a87; } 
-code span.bn { color: #0000cf; } 
-code span.cf { color: #204a87; font-weight: bold; } 
-code span.ch { color: #4e9a06; } 
-code span.cn { color: #8f5902; } 
-code span.co { color: #8f5902; font-style: italic; } 
-code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.do { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.dt { color: #204a87; } 
-code span.dv { color: #0000cf; } 
-code span.er { color: #a40000; font-weight: bold; } 
-code span.ex { } 
-code span.fl { color: #0000cf; } 
-code span.fu { color: #204a87; font-weight: bold; } 
-code span.im { } 
-code span.in { color: #8f5902; font-weight: bold; font-style: italic; } 
-code span.kw { color: #204a87; font-weight: bold; } 
-code span.op { color: #ce5c00; font-weight: bold; } 
-code span.ot { color: #8f5902; } 
-code span.pp { color: #8f5902; font-style: italic; } 
-code span.sc { color: #ce5c00; font-weight: bold; } 
-code span.ss { color: #4e9a06; } 
-code span.st { color: #4e9a06; } 
-code span.va { color: #000000; } 
-code span.vs { color: #4e9a06; } 
-code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } 
+code span.al { color: #ef2929; }
+code span.an { color: #8f5902; font-weight: bold; font-style: italic; }
+code span.at { color: #204a87; }
+code span.bn { color: #0000cf; }
+code span.cf { color: #204a87; font-weight: bold; }
+code span.ch { color: #4e9a06; }
+code span.cn { color: #8f5902; }
+code span.co { color: #8f5902; font-style: italic; }
+code span.cv { color: #8f5902; font-weight: bold; font-style: italic; }
+code span.do { color: #8f5902; font-weight: bold; font-style: italic; }
+code span.dt { color: #204a87; }
+code span.dv { color: #0000cf; }
+code span.er { color: #a40000; font-weight: bold; }
+code span.ex { }
+code span.fl { color: #0000cf; }
+code span.fu { color: #204a87; font-weight: bold; }
+code span.im { }
+code span.in { color: #8f5902; font-weight: bold; font-style: italic; }
+code span.kw { color: #204a87; font-weight: bold; }
+code span.op { color: #ce5c00; font-weight: bold; }
+code span.ot { color: #8f5902; }
+code span.pp { color: #8f5902; font-style: italic; }
+code span.sc { color: #ce5c00; font-weight: bold; }
+code span.ss { color: #4e9a06; }
+code span.st { color: #4e9a06; }
+code span.va { color: #000000; }
+code span.vs { color: #4e9a06; }
+code span.wa { color: #8f5902; font-weight: bold; font-style: italic; }
 .sourceCode .row {
 width: 100%;
 }
@@ -1702,7 +1702,7 @@ th, td { text-align: left !important; white-space: nowrap !important; }
 <div id="purpose" class="section level2" number="1.1">
 <h2><span class="header-section-number">1.1</span> Purpose</h2>
 <p>This notebook is <strong>Step 4</strong> of the PacBio HiFi
-full-length 16S workflow. It explains how to use the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/shiny/dada2_parameter_selection_app.R">PacBio HiFi maxEE
+full-length 16S workflow. It explains how to use the <a title="Not included in the compact curated reference set">PacBio HiFi maxEE
 Parameter Explorer</a> to select the maximum expected-error threshold
 used by the <a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">DADA2 pipeline in Step
 5</a>.</p>
@@ -1985,6 +1985,9 @@ selected <code>maxEE</code>:</p>
 </div>
 <div id="run-validation" class="section level2" number="5.2">
 <h2><span class="header-section-number">5.2</span> Run Validation</h2>
+<p>The app reads <code>.fastq.gz</code> primer-trimmed inputs directly
+and writes its temporary length, ambiguous-base, and expected-error
+validation stages as gzip-compressed FASTQs.</p>
 <p>Click <strong>Run real DADA2 validation</strong>. The app
 performs:</p>
 <ol style="list-style-type: decimal">
@@ -2113,7 +2116,7 @@ filtering tutorial</a></li>
 <code>filterAndTrim()</code> documentation</a></li>
 <li><a href="https://benjjneb.github.io/dada2/tutorial_1_8.html">DADA2
 PacBio workflow</a></li>
-<li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/shiny/dada2_parameter_selection_app.R">PacBio HiFi maxEE
+<li><a title="Not included in the compact curated reference set">PacBio HiFi maxEE
 app source</a></li>
 <li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/3_primer_trimming.md">Step 3 primer trimming</a></li>
 <li><a href="https://github.com/changlabs/DADA2_16S_PacBio_HiFi_Workflow/blob/main/R/notebooks/5_dada2_pipeline.md">Step 5 DADA2 pipeline</a></li>

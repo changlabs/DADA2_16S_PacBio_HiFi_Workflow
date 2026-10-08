@@ -155,8 +155,8 @@ The workflow accomplishes the following tasks:
 
 - **Location**:
   [results/3_primer_trimming/primer_trimmed_reads/](../../results/3_primer_trimming/primer_trimmed_reads/)
-- **Naming convention**: `{SampleID}_primer_trimmed.fastq`
-- **Format**: One uncompressed, single-end FASTQ file per sample
+- **Naming convention**: `{SampleID}_primer_trimmed.fastq.gz`
+- **Format**: One gzip-compressed, single-end FASTQ file per sample
 - **Sample identifiers**: `SampleID` does not contain `PoolNumber`; pool
   provenance is read from the Step 3 workbook.
 
@@ -532,13 +532,19 @@ if (!file_exists(step2_workbook)) {
   stop("Step 2 workbook not found: ", step2_workbook)
 }
 
-input_pattern <- "(?i)_primer_trimmed\\.(fastq|fq)$"
+input_pattern <- "(?i)_primer_trimmed\\.(fastq|fq)(\\.gz)?$"
 input_paths <- sort(dir_ls(input_folder, regexp = input_pattern, type = "file"))
 sample_names <- sub(input_pattern, "", path_file(input_paths), perl = TRUE)
 
 if (length(input_paths) == 0L) stop("No primer-trimmed FASTQ files were found.")
 if (anyDuplicated(sample_names)) stop("Primer-trimmed FASTQs produce duplicate SampleIDs.")
-if (any(file_size(input_paths) == 0)) stop("One or more primer-trimmed FASTQs are empty.")
+# Empty gzip files have nonzero size; inspect one record before filtering.
+empty_input <- vapply(input_paths, function(fastq_path) {
+  streamer <- ShortRead::FastqStreamer(fastq_path, n = 1L)
+  on.exit(close(streamer))
+  length(ShortRead::yield(streamer)) == 0L
+}, logical(1))
+if (any(empty_input)) stop("One or more primer-trimmed FASTQs contain no reads.")
 
 step3_samples <- as.data.table(read.xlsx(step3_workbook, sheet = "Sample_Summary"))
 required_step3_columns <- c("PoolNumber", "SampleID")
@@ -701,15 +707,15 @@ aggregated view and then shows every sample separately.
 
 Apply three explicit single-end filtering stages so losses from length,
 ambiguous bases, and expected errors remain separately auditable. No
-positional truncation is performed and every output FASTQ remains
-uncompressed.
+positional truncation is performed and every output FASTQ is
+gzip-compressed.
 
 ``` r
 # Clear only the managed final FASTQs before rebuilding this run. Temporary
 # stage folders are isolated below and removed after the final filter succeeds.
 stale_filtered <- dir_ls(
   filtered_reads_folder,
-  regexp = "\\.(fastq|fq)$",
+  regexp = "\\.(fastq|fq)(\\.gz)?$",
   type = "file",
   fail = FALSE
 )
@@ -722,9 +728,9 @@ n_stage_folder <- here(filter_staging, "no_N")
 dir_create(length_stage_folder, recurse = TRUE)
 dir_create(n_stage_folder, recurse = TRUE)
 
-length_stage_paths <- here(length_stage_folder, paste0(sample_names, ".fastq"))
-n_stage_paths <- here(n_stage_folder, paste0(sample_names, ".fastq"))
-filtered_paths <- here(filtered_reads_folder, paste0(sample_names, "_filtered.fastq"))
+length_stage_paths <- here(length_stage_folder, paste0(sample_names, ".fastq.gz"))
+n_stage_paths <- here(n_stage_folder, paste0(sample_names, ".fastq.gz"))
+filtered_paths <- here(filtered_reads_folder, paste0(sample_names, "_filtered.fastq.gz"))
 
 # Stage 1 retains only the expected full-length interval. maxN and maxEE are
 # unrestricted here so this row measures length loss alone.
@@ -739,7 +745,7 @@ length_counts <- filterAndTrim(
   truncQ = 0,
   minQ = 0,
   rm.phix = FALSE,
-  compress = FALSE,
+  compress = TRUE,
   multithread = nr_threads,
   verbose = TRUE
 )
@@ -757,7 +763,7 @@ n_counts <- filterAndTrim(
   truncQ = 0,
   minQ = 0,
   rm.phix = FALSE,
-  compress = FALSE,
+  compress = TRUE,
   multithread = nr_threads,
   verbose = TRUE
 )
@@ -775,7 +781,7 @@ quality_counts <- filterAndTrim(
   truncQ = truncation_quality,
   minQ = minimum_base_quality,
   rm.phix = TRUE,
-  compress = FALSE,
+  compress = TRUE,
   multithread = nr_threads,
   verbose = TRUE
 )

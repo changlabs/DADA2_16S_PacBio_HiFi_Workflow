@@ -4,7 +4,7 @@ These are curated outputs from `Rscript example/run_example.R`, generated on 29 
 
 The `reports/` directory contains rendered HTML reports for every step. Steps 1–3 and 5–9 are executed reports; Step 4 is the rendered parameter-selection guide accompanied by the prepared workbook. Together, the compact step folders contain:
 
-- the archive/sample-mapping audit, quality/length summaries, plots, and primer-trimming summary;
+- the FASTQ inventory and sample-mapping audit, quality/length summaries, plots, and primer-trimming summary;
 - the exact Step 4 `maxEE = 2` workbook read by Step 5;
 - 238 inferred ASVs, the sample-by-ASV table, SILVA and GTDB taxonomy tables, processing summary, error model, quality profiles, and amplicon-length plot;
 - the alignment, ASV-labelled tree, SILVA- and GTDB-labelled Newick trees and PDFs, and tree summary;
@@ -16,3 +16,9 @@ Reproducible FASTQ intermediates, checkpoints, console logs, PICRUSt2 placement 
 The cell-count inputs used by Steps 8 and 9 are synthetic test values, not measurements from the source study. Do not use them for biological interpretation. See [`../data/cell_count/README.md`](../data/cell_count/README.md) for the assumptions and supporting references.
 
 For provenance, sample mapping, primer definitions, and the complete test command, see the parent [`example/README.md`](../README.md).
+
+On 8 October 2026, Steps 1–3 were rerun with individual gzip FASTQ inputs and the updated workflow; their HTML reports, summary workbooks, and Step 2 plots were replaced. Step 4's HTML guide was regenerated. `per_read_statistics.tsv.gz` is now included alongside Step 2's summary workbook. Step 1 exports `FASTQ_Inventory`, accepts case-insensitive pool folder names, and matches literal sample-sheet barcode pairs, including Kinnex names. The bundled subset uses four direct gzip files with unchanged reads.
+
+Steps 5–9 retain their original executed biological results and embedded code, with a visible notice linking to current sources. They have not been rerun for the input and compression changes. Current sources write gzip FASTQs in Steps 1, 2, 3, all three Step 5 filtering stages, and the Step 4 app's temporary validation stages. Displayed user home paths in the reports use `/Users/jon/`; portable result links remain relative.
+
+Steps 5–9 retain their original executed biological results and embedded code, with a visible notice linking to current sources. They have not been rerun for the input and compression changes. Current sources write gzip FASTQs in Steps 1, 2, 3, all three Step 5 filtering stages, and the Step 4 app's temporary validation stages. Displayed user home paths in the reports use `/Users/jon/`; portable result links remain relative.

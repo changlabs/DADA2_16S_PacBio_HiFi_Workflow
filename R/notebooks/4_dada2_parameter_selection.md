@@ -299,6 +299,10 @@ selected `maxEE`:
 
 ## Run Validation
 
+The app reads `.fastq.gz` primer-trimmed inputs directly and writes its
+temporary length, ambiguous-base, and expected-error validation stages
+as gzip-compressed FASTQs.
+
 Click **Run real DADA2 validation**. The app performs:
 
 1.  [`filterAndTrim()`](https://benjjneb.github.io/dada2/reference/filterAndTrim.html)
