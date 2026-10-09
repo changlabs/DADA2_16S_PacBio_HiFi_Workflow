@@ -10,8 +10,8 @@ A reproducible R-based pipeline for processing **PacBio HiFi full-length 16S rRN
 
 - [Key Features](#key-features)
 - [Pipeline Overview](#pipeline-overview)
-- [Bundled PacBio HiFi Example](#bundled-pacbio-hifi-example)
 - [Setup](#setup)
+- [Example run](#example-run)
 - [Running the Pipeline](#running-the-pipeline)
 - [Pool-Specific Processing](#pool-specific-processing)
 - [Column Dictionaries](#column-dictionaries)
@@ -95,28 +95,6 @@ A reproducible R-based pipeline for processing **PacBio HiFi full-length 16S rRN
          (phyloseq .RData, corrected
           abundance tables, & plots)
 ```
-
-------------------------------------------------------------------------
-
-## Bundled PacBio HiFi Example
-
-The repository includes an isolated, clone-ready example derived from the PacBio full-length 16S fecal dataset in BioProject [`PRJNA521754`](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA521754), which was used in the official [DADA2 PacBio analysis](https://benjjneb.github.io/LRASManuscript/LRASms_fecal.html). It contains deterministic 5,000-read subsets from four PacBio Sequel CCS/HiFi runs (20,000 reads total) targeting the bacterial **full-length V1–V9 16S rRNA gene**.
-
-The source reads retain the F27 and R1492 primer sequences, so Step 3 performs genuine linked-primer detection, orientation, and trimming. The example also includes descriptive sample names, metadata in this workflow's TSV layout, and clearly labelled synthetic fecal cell counts so every step—including microbial-load correction and Step 9—runs as part of the test.
-
-After completing the setup below, run from the repository root:
-
-```bash
-Rscript example/run_example.R
-```
-
-The runner executes all Steps 1–9 in order, uses the supplied Step 4 `maxEE = 2` workbook directly in Step 5, and requires both SILVA and GTDB through the downstream taxonomy-dependent results. It writes only to the ignored `example/run_results/` directory; it does not read or modify `data/fastq/` or `results/`, so it remains unaffected when another dataset is added to the normal input folder.
-
-Users who do not want to run the workflow can browse the committed reports under [`example/reference_results/reports/`](example/reference_results/reports/) or on GitHub Pages. The full source-run mapping, primer definitions, transformation details, cell-count warning, third-party-data notice, and required citations are documented in [`example/README.md`](example/README.md).
-
-Please cite the dataset-generating study when using the example:
-
-> Callahan BJ, Wong J, Heiner C, Oh S, Theriot CM, Gulati AS, McGill SK, Dougherty MK. (2019). High-throughput amplicon sequencing of the full-length 16S rRNA gene with single-nucleotide resolution. *Nucleic Acids Research*, 47(18), e103. <https://doi.org/10.1093/nar/gkz569>
 
 ------------------------------------------------------------------------
 
@@ -210,6 +188,28 @@ The cell-count template is provided at [`data/cell_count/cell_count.tsv`](data/c
 ### 9. Add Your Metadata File (Optional)
 
 Only needed for [Step 9](R/notebooks/9_phyloseq_object.md) if you want experimental sample information included in the generated phyloseq objects. Replace the template at [`data/metadata.tsv`](data/metadata.tsv) with metadata whose sample identifiers match your data. If no metadata file is provided, Step 9 still runs and generates the phyloseq objects without metadata. See [`data/README.md`](data/README.md) for the full file format.
+
+------------------------------------------------------------------------
+
+## Example run
+
+The repository includes an isolated, clone-ready example derived from the PacBio full-length 16S fecal dataset in BioProject [`PRJNA521754`](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA521754), which was used in the official [DADA2 PacBio analysis](https://benjjneb.github.io/LRASManuscript/LRASms_fecal.html). It contains deterministic 5,000-read subsets from four PacBio Sequel CCS/HiFi runs (20,000 reads total) targeting the bacterial **full-length V1–V9 16S rRNA gene**.
+
+The source reads retain the F27 and R1492 primer sequences, so Step 3 performs genuine linked-primer detection, orientation, and trimming. The example also includes descriptive sample names, metadata in this workflow's TSV layout, and clearly labelled synthetic fecal cell counts so every step—including microbial-load correction and Step 9—runs as part of the test.
+
+After completing setup, run from the repository root:
+
+```bash
+Rscript example/run_example.R
+```
+
+The runner executes all Steps 1–9 in order, uses the supplied Step 4 `maxEE = 2` workbook directly in Step 5, and requires both SILVA and GTDB through the downstream taxonomy-dependent results. It writes only to the ignored `example/run_results/` directory; it does not read or modify `data/fastq/` or `results/`, so it remains unaffected when another dataset is added to the normal input folder.
+
+You can view or download results from an already completed example run without executing the workflow. The step folders under [`example/reference_results/`](example/reference_results/) include Excel summaries, PDF plots, ASV and taxonomy tables, phylogenetic trees, corrected abundance tables, and final phyloseq objects. See the [reference-results overview](example/reference_results/README.md) for the included outputs and their version history. Rendered HTML reports are available under [`example/reference_results/reports/`](example/reference_results/reports/) or on GitHub Pages. The full source-run mapping, primer definitions, transformation details, cell-count warning, third-party-data notice, and required citations are documented in [`example/README.md`](example/README.md).
+
+Please cite the dataset-generating study when using the example:
+
+> Callahan BJ, Wong J, Heiner C, Oh S, Theriot CM, Gulati AS, McGill SK, Dougherty MK. (2019). High-throughput amplicon sequencing of the full-length 16S rRNA gene with single-nucleotide resolution. *Nucleic Acids Research*, 47(18), e103. <https://doi.org/10.1093/nar/gkz569>
 
 ------------------------------------------------------------------------
 

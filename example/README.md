@@ -67,7 +67,7 @@ When describing the analysis, also cite DADA2:
 
 ## Third-party data notice
 
-The FASTQ reads are third-party human-fecal research data from the cited study. Their inclusion does not place them under this repository's MIT software license; attribution and any applicable rights remain with the original authors and data repository. The files contain sequencing reads and public accession identifiers, not participant identifiers or clinical metadata.
+The FASTQ reads are third-party human-fecal research data from the cited study. Their inclusion does not place them under this repository's MIT software license; attribution and any applicable rights remain with the original authors and data repository. The bundled data contain sequencing reads, public accession identifiers, and public study subject codes (`R3` and `R11`) retained in the sample names and metadata. No direct personal identifiers are included.
 
 Step 2 now writes gzip-compressed Q20 FASTQs and the complete per-read audit to
 `run_results/2_quality_filtered_reads/per_read_statistics.tsv.gz`. Its Excel
