@@ -146,7 +146,7 @@ FastTree is compiled for the current computer. The installer tries an OpenMP bui
 
 **Skip this step if you do not plan to run the optional [Step 7](#step-7--16s-copy-number-correction-optional) notebook for 16S copy number correction.**
 
-PICRUSt2 is required for the bundled example because that test deliberately runs every step through Step 9.
+Viewing the saved example results does not require PICRUSt2.
 
 [PICRUSt2](https://github.com/picrust/picrust2/wiki) is a conda package with several compiled phylogenetics dependencies (HMMER, EPA-ng, gappa, SEPP) that are not practical to manage inside the plain pip virtual environments used above, so it is installed separately, into its own dedicated conda environment. This requires a working conda/miniconda installation already present on your machine.
 
@@ -193,19 +193,11 @@ Only needed for [Step 9](R/notebooks/9_phyloseq_object.md) if you want experimen
 
 ## Example run
 
-The repository includes an isolated, clone-ready example derived from the PacBio full-length 16S fecal dataset in BioProject [`PRJNA521754`](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA521754), which was used in the official [DADA2 PacBio analysis](https://benjjneb.github.io/LRASManuscript/LRASms_fecal.html). It contains deterministic 5,000-read subsets from four PacBio Sequel CCS/HiFi runs (20,000 reads total) targeting the bacterial **full-length V1–V9 16S rRNA gene**.
+View the completed example through the [example landing page](https://changlabs.github.io/DADA2_16S_PacBio_HiFi_Workflow/) or browse the [saved results directory](example/reference_results/) for HTML reports, Excel summaries, PDF plots, ASV and taxonomy tables, phylogenetic trees, corrected abundance tables, and phyloseq objects. No installation or execution is required.
 
-The source reads retain the F27 and R1492 primer sequences, so Step 3 performs genuine linked-primer detection, orientation, and trimming. The example also includes descriptive sample names, metadata in this workflow's TSV layout, and clearly labelled synthetic fecal cell counts so every step—including microbial-load correction and Step 9—runs as part of the test.
+The saved run processed deterministic 5,000-read subsets from four PacBio Sequel CCS/HiFi fecal-sample runs (20,000 reads total) targeting **full-length V1–V9 16S rRNA**. The source is BioProject [`PRJNA521754`](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA521754), used in the official [DADA2 PacBio analysis](https://benjjneb.github.io/LRASManuscript/LRASms_fecal.html). Results include both SILVA and GTDB taxonomy branches.
 
-After completing setup, run from the repository root:
-
-```bash
-Rscript example/run_example.R
-```
-
-The runner executes all Steps 1–9 in order, uses the supplied Step 4 `maxEE = 2` workbook directly in Step 5, and requires both SILVA and GTDB through the downstream taxonomy-dependent results. It writes only to the ignored `example/run_results/` directory; it does not read or modify `data/fastq/` or `results/`, so it remains unaffected when another dataset is added to the normal input folder.
-
-You can view or download results from an already completed example run without executing the workflow. The step folders under [`example/reference_results/`](example/reference_results/) include Excel summaries, PDF plots, ASV and taxonomy tables, phylogenetic trees, corrected abundance tables, and final phyloseq objects. See the [reference-results overview](example/reference_results/README.md) for the included outputs and their version history. Rendered HTML reports are available under [`example/reference_results/reports/`](example/reference_results/reports/) or on GitHub Pages. The full source-run mapping, primer definitions, transformation details, cell-count warning, third-party-data notice, and required citations are documented in [`example/README.md`](example/README.md).
+**Input FASTQ files are not included in the repository.** The example is provided for viewing completed results. Cell counts are synthetic test inputs and must not be used for biological interpretation. See the [reference-results overview](example/reference_results/README.md) for output scope and versions, and the [example guide](example/README.md) for sample mapping, primers, provenance, and citations.
 
 Please cite the dataset-generating study when using the example:
 
@@ -321,9 +313,7 @@ DADA2_16S_PacBio_HiFi_Workflow/
 │   └── fastq/pool<number>/*.fastq.gz
 ├── example/
 │   ├── README.md
-│   ├── run_example.R
 │   ├── data/
-│   │   ├── fastq/pool1/*.fastq.gz
 │   │   ├── sample_sheet.xlsx
 │   │   ├── metadata.tsv
 │   │   ├── dada2_filter_parameters.xlsx
@@ -366,7 +356,7 @@ DADA2_16S_PacBio_HiFi_Workflow/
 
 ## License
 
-This project is released under the [MIT License](LICENSE).
+The workflow software is released under the [MIT License](LICENSE). Example sequencing inputs are not included; see the [example provenance](example/README.md#data-provenance-and-citation) for the source of the saved results.
 
 ------------------------------------------------------------------------
 

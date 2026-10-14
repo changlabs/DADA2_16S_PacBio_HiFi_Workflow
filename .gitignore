@@ -93,11 +93,8 @@ credentials/
 secrets/
 .positai
 
-# Bundled example: generated reruns stay local, while the compressed source FASTQs
-# and curated reference deliverables are intentionally versioned.
+# Example input reads are excluded; saved reference results remain tracked.
 example/run_results/
-!example/data/fastq/
-!example/data/fastq/**/
-!example/data/fastq/**/*.fastq.gz
+example/data/fastq/
 !example/reference_results/**/*.pdf
 !example/reference_results/**/*.RData

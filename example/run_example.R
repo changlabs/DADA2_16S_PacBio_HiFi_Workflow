@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# Run all nine workflow steps against the bundled PacBio HiFi example. Inputs,
+# Run all nine workflow steps against prepared PacBio HiFi inputs. Inputs,
 # generated outputs, and rendered reports remain below example/ so this run
 # never reads from data/fastq or writes to the normal results/ directory.
 
@@ -21,6 +21,32 @@ data_root <- file.path(project_root, "example", "data")
 run_results <- file.path(project_root, "example", "run_results")
 reference_results <- file.path(project_root, "example", "reference_results")
 configuration_workbook <- file.path(data_root, "dada2_filter_parameters.xlsx")
+
+fastq_directory <- file.path(data_root, "fastq", "pool1")
+expected_files <- paste0(
+  "lima.bc", sprintf("%04d", 1001:1004), "--bc",
+  sprintf("%04d", 1001:1004), ".Q20.fastq.gz"
+)
+fastq_paths <- file.path(fastq_directory, expected_files)
+sample_sheet_path <- file.path(data_root, "sample_sheet.xlsx")
+metadata_path <- file.path(data_root, "metadata.tsv")
+cell_count_path <- file.path(data_root, "cell_count", "cell_count.tsv")
+required_inputs <- c(
+  fastq_paths, sample_sheet_path, metadata_path, cell_count_path,
+  configuration_workbook
+)
+if (!all(file.exists(required_inputs))) {
+  stop(
+    "Example sequencing inputs are not included in repository checkouts. View saved results in example/reference_results/. Missing required inputs:\n  - ",
+    paste(required_inputs[!file.exists(required_inputs)], collapse = "\n  - "),
+    call. = FALSE
+  )
+}
+
+if (!identical(sort(list.files(fastq_directory, pattern = "[.]fastq[.]gz$")), sort(expected_files))) {
+  stop("The example pool must contain exactly the four documented compressed FASTQs.", call. = FALSE)
+}
+
 
 Sys.setenv(
   DADA2_DATA_DIR = data_root,
@@ -43,31 +69,6 @@ if (length(missing_packages)) {
     paste(missing_packages, collapse = ", "),
     call. = FALSE
   )
-}
-
-fastq_directory <- file.path(data_root, "fastq", "pool1")
-expected_files <- paste0(
-  "lima.bc", sprintf("%04d", 1001:1004), "--bc",
-  sprintf("%04d", 1001:1004), ".Q20.fastq.gz"
-)
-fastq_paths <- file.path(fastq_directory, expected_files)
-sample_sheet_path <- file.path(data_root, "sample_sheet.xlsx")
-metadata_path <- file.path(data_root, "metadata.tsv")
-cell_count_path <- file.path(data_root, "cell_count", "cell_count.tsv")
-required_inputs <- c(
-  fastq_paths, sample_sheet_path, metadata_path, cell_count_path,
-  configuration_workbook
-)
-if (!all(file.exists(required_inputs))) {
-  stop(
-    "The bundled example is incomplete. Missing:\n  - ",
-    paste(required_inputs[!file.exists(required_inputs)], collapse = "\n  - "),
-    call. = FALSE
-  )
-}
-
-if (!identical(sort(list.files(fastq_directory, pattern = "[.]fastq[.]gz$")), sort(expected_files))) {
-  stop("The example pool must contain exactly the four documented compressed FASTQs.", call. = FALSE)
 }
 
 sample_sheet <- openxlsx::read.xlsx(sample_sheet_path, sheet = "SampleSheet")

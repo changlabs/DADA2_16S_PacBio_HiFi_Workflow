@@ -23,35 +23,6 @@ Step 4: DADA2 maxEE Parameter Selection
   - [Step 5 Uses the Fallback](#step-5-uses-the-fallback)
 - [References](#references)
 
-<style type="text/css">
-body { font-size: 16px; line-height: 1.6; }
-h1, h2, h3 { color: #2c3e50; margin-top: 1.5em; }
-code {
-  background-color: #F2F2F2;
-  color: #2c3e50;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 14px;
-}
-pre, pre code { font-size: 14px; }
-.alert-info {
-  background-color: #2c3e50;
-  color: #ffffff;
-  border-left: 4px solid #f39c12;
-  padding: 12px;
-  margin: 15px 0;
-}
-.alert-warning {
-  background-color: #2c3e50;
-  color: #ffffff;
-  border-left: 4px solid #e74c3c;
-  padding: 12px;
-  margin: 15px 0;
-}
-table { width: 100%; display: block; overflow-x: auto; white-space: nowrap; }
-th, td { text-align: left !important; white-space: nowrap !important; }
-</style>
-
 # Introduction
 
 ## Purpose

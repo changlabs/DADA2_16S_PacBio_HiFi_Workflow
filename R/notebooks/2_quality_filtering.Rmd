@@ -31,7 +31,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{css custom-styles, echo=FALSE, eval=knitr::is_html_output()}
+```{css custom-styles, echo=FALSE, eval=identical(knitr::opts_knit$get("rmarkdown.pandoc.to"), "html"), include=identical(knitr::opts_knit$get("rmarkdown.pandoc.to"), "html")}
 body {
   font-size: 16px;
   line-height: 1.6;

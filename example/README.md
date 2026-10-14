@@ -1,40 +1,22 @@
-# Bundled PacBio HiFi example
+# Example run
 
-This directory contains a self-contained test profile for the complete workflow. It is deliberately separate from [`data/`](../data/) and the generated `results/` directory: running it cannot mix the example reads with a user's FASTQ files, and adding another dataset to `data/fastq/` cannot alter the example run.
-
-The source material is a deterministic 5,000-read subset from each of four PacBio Sequel CCS/HiFi fecal-sample runs used in the DADA2 full-length 16S analysis. It targets the bacterial **full-length V1–V9 16S rRNA gene**, not an Illumina V4 amplicon. The reads retain their sequenced primers so Step 3 produces real trimming results.
+View the [example landing page](https://changlabs.github.io/DADA2_16S_PacBio_HiFi_Workflow/) or browse the [saved results](reference_results/) without installing or running anything. The example sequencing inputs are not included in the repository. Supporting metadata and configuration document the saved analysis.
 
 ## Contents
 
-- `data/fastq/pool1/*.fastq.gz`: 20,000 reads in four gzip-compressed FASTQs with conventional barcode-pair filenames.
 - `data/sample_sheet.xlsx`: maps the filename barcodes to descriptive sample names.
 - `data/metadata.tsv`: sample annotations in the workflow's normal metadata layout, with SRA and BioSample provenance.
 - `data/cell_count/cell_count.tsv`: required, clearly labelled synthetic microbial loads for Steps 8 and 9.
 - `data/dada2_filter_parameters.xlsx`: prepared Step 4 handoff selecting `maxEE = 2`, which Step 5 reads directly.
 - `reference_results/`: curated outputs and rendered reports from all Steps 1–9 for viewing without running the workflow.
-- `run_example.R`: executes the complete example without reading or modifying the normal `data/fastq/` or `results/` trees.
 
-## Run the complete example
+## Saved analysis
 
-First install the repository's R dependencies, project-local Cutadapt and FastTree tools, PICRUSt2, and both SILVA and GTDB reference databases as described in the root [`README.md`](../README.md). Then run this command from the repository root:
-
-```bash
-Rscript example/run_example.R
-```
-
-The command runs Steps 1–3, renders the Step 4 guide and copies its prepared parameter workbook into the isolated run results, and then runs Steps 5–9. All steps are required for this example. Step 5 assigns both SILVA and GTDB taxonomy; those parallel taxonomy branches are retained in the labelled Step 6 trees and all six Step 9 database-by-abundance phyloseq objects. Generated files go only to the ignored `example/run_results/` directory.
-
-The prepared Step 4 workbook records expected-error retention calculated from the bundled, primer-trimmed reads. Its selected `maxEE = 2` matches the source PacBio DADA2 analysis and is loaded by Step 5 through `DADA2_PARAMETER_FILE`; the example never falls back to the notebook's generic setting.
-
-New example runs use SILVA 144 and the SBDI Sativa-curated GTDB R11-RS232-1 files installed by the setup script. The committed reference reports were generated before this database update and retain their original version labels; they were not regenerated for the setup-only change.
-
-To inspect results without installing or running anything, open the HTML files in [`reference_results/reports/`](reference_results/reports/) or use the repository's GitHub Pages site. The Step 4 report is a rendered guide, while the accompanying workbook is the actual non-interactive parameter handoff used by Step 5.
-
-The bundled result is methodologically comparable to the official analysis, but its numerical ASV totals and abundance tables are not expected to be identical: this repository uses fixed 5,000-read subsets from four of the source runs, whereas the published analysis used the complete experiment. The reference run retained 19,329 non-chimeric reads and inferred 238 ASVs. These values are regression expectations for this bundled subset, not targets for the full BioProject.
+The saved run used four deterministic 5,000-read subsets (20,000 reads total), the prepared Step 4 `maxEE = 2` workbook, and both SILVA and GTDB. It retained 19,329 non-chimeric reads and inferred 238 ASVs. These values describe the subset, not the full BioProject. Saved report versions are documented in [reference-results notes](reference_results/README.md).
 
 ## Primers and read orientation
 
-The compressed FASTQs contain the original sequenced primer-bearing CCS reads. Step 3 uses the same full-length bacterial primers as the source DADA2 analysis:
+The input FASTQs used for the saved analysis contained the original sequenced primer-bearing CCS reads. Step 3 uses the same full-length bacterial primers as the source DADA2 analysis:
 
 - F27: `AGRGTTYGATYMTGGCTCAG`
 - R1492 reference oligo: `RGYTACCTTGTTACGACTT`
@@ -44,18 +26,18 @@ Cutadapt is called with `F27...read-oriented-R1492`, `--trimmed-only`, `--revcom
 
 ## Included source runs and renamed samples
 
-| SRA run | BioSample | Original library | Bundled `SampleID` | Reads |
+| SRA run | BioSample | Original library | Example `SampleID` | Reads |
 |:---|:---|:---|:---|---:|
 | `SRR8557472` | `SAMN10910592` | `R3_1_P3C3` | `Subject-R3-Timepoint-1` | 5,000 |
 | `SRR8557475` | `SAMN10910593` | `R3_2_P3C3` | `Subject-R3-Timepoint-2` | 5,000 |
 | `SRR8557476` | `SAMN10910594` | `R3_3_P3C3` | `Subject-R3-Timepoint-3` | 5,000 |
 | `SRR8557478` | `SAMN10910600` | `R11_1_P3C3` | `Subject-R11-Timepoint-1` | 5,000 |
 
-The subset selection used a fixed pseudorandom seed derived from BioProject `PRJNA521754`. Filenames were changed in the bundled subset so they follow the source example's conventional barcode naming and remain understandable after mapping.
+The subset selection used a fixed pseudorandom seed derived from BioProject `PRJNA521754`. Filenames were changed in the example subset so they follow the source example's conventional barcode naming and remain understandable after mapping.
 
 ## Data provenance and citation
 
-The source dataset is BioProject [`PRJNA521754`](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA521754), generated on the PacBio Sequel platform using replicate-2 S/P3-C3/5.0 chemistry and described in the official [DADA2 PacBio fecal analysis](https://benjjneb.github.io/LRASManuscript/LRASms_fecal.html). The four bundled subsets were retrieved from the NCBI Sequence Read Archive on 29 September 2026.
+The source dataset is BioProject [`PRJNA521754`](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA521754), generated on the PacBio Sequel platform using replicate-2 S/P3-C3/5.0 chemistry and described in the official [DADA2 PacBio fecal analysis](https://benjjneb.github.io/LRASManuscript/LRASms_fecal.html). The four example subsets were retrieved from the NCBI Sequence Read Archive on 29 September 2026.
 
 Please cite the dataset-generating study:
 
@@ -67,23 +49,4 @@ When describing the analysis, also cite DADA2:
 
 ## Third-party data notice
 
-The FASTQ reads are third-party human-fecal research data from the cited study. Their inclusion does not place them under this repository's MIT software license; attribution and any applicable rights remain with the original authors and data repository. The bundled data contain sequencing reads, public accession identifiers, and public study subject codes (`R3` and `R11`) retained in the sample names and metadata. No direct personal identifiers are included.
-
-Step 2 now writes gzip-compressed Q20 FASTQs and the complete per-read audit to
-`run_results/2_quality_filtered_reads/per_read_statistics.tsv.gz`. Its Excel
-workbook contains sample summaries and column definitions. Step 3 reads these
-compressed FASTQs directly; its primer-trimmed outputs use `.fastq.gz`
-for Steps 4 and 5. Step 1 validates originals and exports their project-relative paths without copying reads. Step 5 filtering outputs also use gzip. The runner checks that both the audit and one compressed
-Q20 FASTQ per sample exist.
-
-Run the focused Step 1 mapping regression checks without Cutadapt or taxonomy databases:
-
-```sh
-Rscript tests/test_step1_mapping.R
-```
-
-These checks cover the supplied Kinnex filename, conventional barcode names, literal punctuation, unlisted files, inactive pools, unchanged original FASTQs and portable source paths, and rejection of missing, duplicate, or ambiguous matches.
-
-Step 2 distribution PDFs use all input reads and six sample facets per page, with total-read and inclusive 1,800–2,000 bp counts in each read-length facet. QV facets instead show total reads and reads passing the QV cutoff. Histograms and exact length quantiles use streamed frequencies rather than a bounded read sample or loading the audit TSV. Run `Rscript tests/test_step2_distributions.R` to check coverage beyond the former 50,000-read cap, boundary counts, quantiles, and PDF pagination.
-
-Step 1 workbook exports are compact: the manifest keeps sample/pool identifiers, original relative paths, read counts, compressed sizes, and integrity status. Original sample names are included only when sanitization changes them. Unlisted FASTQs and inactive rows have optional sheets; duplicated filenames, mapped barcode columns, and repeated success counts are omitted.
+The input FASTQs are third-party research data and are not included in the repository. Saved results retain public accession identifiers and study subject codes (`R3` and `R11`) for provenance. The MIT software license does not grant rights to the original sequencing data. No direct personal identifiers are included.
